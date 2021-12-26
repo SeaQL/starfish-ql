@@ -21,3 +21,7 @@ StarfishQL uses a SQL database internally and is built on top of other libraries
 ## Freeport
 
 Freeport is the demo project for StarfishQL and showcases the actual data from crates.io.
+
+## License
+
+StarfishQL is licensed under The GNU Affero General Public License Version 3. [Know your rights](https://medium.com/swlh/understanding-the-agpl-the-most-misunderstood-license-86fd1fe91275).
