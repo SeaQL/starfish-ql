@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="docs/SeaQL logo dual.png" width="320"/>
+  <img src="docs/SeaQL logo.png" width="320"/>
 
   <h1>StarfishQL</h1>
 
