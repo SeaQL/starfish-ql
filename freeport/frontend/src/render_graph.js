@@ -65,6 +65,7 @@ export function renderGraph(data, containerElem) {
             .links(data.links)
             .distance((d) => (d.source.weight + d.target.weight) * 1.2)
         )
+        .force("collision", d3.forceCollide().radius((d) => d.weight + 5))
         .force("charge", d3.forceManyBody())
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", () => {
