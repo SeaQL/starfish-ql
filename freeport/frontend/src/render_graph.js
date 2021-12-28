@@ -56,6 +56,7 @@ export function renderGraph(data, containerElem) {
         .text((d) => d.id)
         .style("font-size", (d) => `${d.weight}px`)
         .style("font-family", "Fira Code, monospace")
+        .style("pointer-events", "none")
         .attr("", function(d) { d.bb = this.getBoundingClientRect(); return null; });
     
     const simulation = d3.forceSimulation(data.nodes)

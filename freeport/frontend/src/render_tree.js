@@ -71,6 +71,7 @@ export function renderTree(data, containerElem) {
         .text((d) => d.id)
         .style("font-size", (d) => d.weight + "px")
         .style("font-family", "Fira Code, monospace")
+        .style("pointer-events", "none")
         .attr("", function (d) {
             const bbFull = this.getBoundingClientRect();
             d.bb = { width: bbFull.width, height: bbFull.height };
