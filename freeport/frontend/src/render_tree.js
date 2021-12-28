@@ -53,7 +53,18 @@ export function renderTree(data, containerElem) {
     // Draw circles for the nodes
     node.append("circle")
         .attr("r", 20)
-        .style("fill", "#69b3a2");
+        .style("fill", (d) => {
+            switch (d.type) {
+                case TreeNodeType.Root:
+                    return "#69b3a2";
+                case TreeNodeType.Dependency:
+                    return "#7ac931";
+                case TreeNodeType.Dependent:
+                    return "#288cbd";
+                default:
+                    console.error("Unkonwn Tree Node Type!");
+            }
+        });
 
     // Add names to the nodes
     node.append("text")
