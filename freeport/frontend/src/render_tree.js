@@ -1,4 +1,6 @@
 import * as d3 from "d3";
+import { addDragBehavior } from "./drag";
+import { addZoomBehavior } from "./zoom";
 
 // Denotes which side a node belongs to, relative to the **root** node.
 export const TreeNodeType = {
@@ -19,11 +21,12 @@ export function renderTree(data, containerElem) {
         .append("svg")
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
-        .append("g")
+
+    const group = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // Initialize the links
-    const link = svg
+    const link = group
         .selectAll("line")
         .data(data.links)
         .enter()
@@ -31,7 +34,7 @@ export function renderTree(data, containerElem) {
         .style("stroke", "#aaa");
 
     // Initialize the nodes
-    const node = svg
+    const node = group
         .selectAll("circle")
         .data(data.nodes)
         .enter()
@@ -74,37 +77,40 @@ export function renderTree(data, containerElem) {
             });
         });
 
-    let addedExtraForces = false;
+    let isExtraForcesAdded = false;
 
     simulation.on("tick", function() {
-            link.attr("x1", (d) => d.source.x)
-                .attr("y1", (d) => d.source.y)
-                .attr("x2", (d) => d.target.x)
-                .attr("y2", (d) => d.target.y);
+        link.attr("x1", (d) => d.source.x)
+            .attr("y1", (d) => d.source.y)
+            .attr("x2", (d) => d.target.x)
+            .attr("y2", (d) => d.target.y);
 
-            // Move circles
-            node.select("circle")
-                .attr("cx", (d) => d.x)
-                .attr("cy", (d) => d.y);
+        // Move circles
+        node.select("circle")
+            .attr("cx", (d) => d.x)
+            .attr("cy", (d) => d.y);
 
-            // Move names
-            node.select("text")
-                .attr("x", (d) => d.x - d.bb.width / 2)
-                .attr("y", (d) => d.y + d.bb.height / 4);
+        // Move names
+        node.select("text")
+            .attr("x", (d) => d.x - d.bb.width / 2)
+            .attr("y", (d) => d.y + d.bb.height / 4);
 
-            if (this.alpha() < 0.5 && !addedExtraForces) {
-                this.force("charge", d3.forceManyBody()
+        if (this.alpha() < 0.5 && !isExtraForcesAdded) {
+            this.force("charge", d3.forceManyBody()
                     .strength(-200) // Push away each other
                 )
-                    .force("link", d3.forceLink()
-                        .id((d) => d.id)
-                        .links(data.links)
-                        .distance(50)
-                        .strength(1)
-                    )
-                    // .force("side", null)
+                .force("link", d3.forceLink()
+                    .id((d) => d.id)
+                    .links(data.links)
+                    .distance(50)
+                    .strength(1)
+                )
+                // .force("side", null)
 
-                addedExtraForces = true;
-            }
-        });
+            isExtraForcesAdded = true;
+        }
+    });
+
+    addDragBehavior(node, simulation);
+    addZoomBehavior(group, svg, width, height);
 }

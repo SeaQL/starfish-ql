@@ -1,4 +1,6 @@
 import * as d3 from "d3";
+import { addDragBehavior } from "./drag";
+import { addZoomBehavior } from "./zoom";
 
 /*
 'data' must follow this format:
@@ -24,12 +26,13 @@ export function renderGraph(data, containerElem) {
     const svg = d3.select(containerElem)
         .append("svg")
         .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
+        .attr("height", height + margin.top + margin.bottom);
+    
+    const group = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
     
     // Initialize the links
-    const link = svg
+    const link = group
         .selectAll("line")
         .data(data.links)
         .enter()
@@ -37,7 +40,7 @@ export function renderGraph(data, containerElem) {
         .style("stroke", "#aaa");
     
     // Initialize the nodes
-    const node = svg
+    const node = group
         .selectAll("circle")
         .data(data.nodes)
         .enter()
@@ -79,4 +82,7 @@ export function renderGraph(data, containerElem) {
                 .attr("x", (d) => d.x - d.bb.width / 2)
                 .attr("y", (d) => d.y + d.bb.height / 4);
         });
+
+    addDragBehavior(node, simulation);
+    addZoomBehavior(group, svg, width, height);
 };
