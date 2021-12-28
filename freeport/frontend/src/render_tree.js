@@ -55,28 +55,28 @@ export function renderTree(data, containerElem) {
     // Add names to the nodes
     node.append("text")
         .text((d) => d.id)
-        .style("font-size", (d) => `${d.weight}px`)
+        .style("font-size", (d) => d.weight + "px")
         .style("font-family", "Fira Code, monospace")
-        .attr("", function (d) { d.bb = this.getBoundingClientRect(); return null; });
+        .attr("", function (d) {
+            const bbFull = this.getBoundingClientRect();
+            d.bb = { width: bbFull.width, height: bbFull.height };
+            return null;
+        });
 
     const simulation = d3.forceSimulation(data.nodes)
-        .force("link", d3.forceLink()
-            .id((d) => d.id)
-            .links(data.links)
-            .distance(50)
-        )
-        .force("charge", d3.forceManyBody()) // Push away each other
-        .force("side", (alpha) => { // Dependencies to the left Dependents to the right
-            for (let i = 0, n = data.nodes.length, node, k = alpha * 2.5; i < n; ++i) {
-                node = data.nodes[i];
+        .force("side", (alpha) => { // Dependencies to the left; Dependents to the right
+            data.nodes.forEach(node => {
                 if (node.type === TreeNodeType.Dependency) {
-                    node.vx = -k;
+                    node.vx = -Math.abs(node.vx);
                 } else if (node.type === TreeNodeType.Dependent) {
-                    node.vx = k;
+                    node.vx = Math.abs(node.vx);
                 }
-            }
-        })
-        .on("tick", () => {
+            });
+        });
+
+    let addedExtraForces = false;
+
+    simulation.on("tick", function() {
             link.attr("x1", (d) => d.source.x)
                 .attr("y1", (d) => d.source.y)
                 .attr("x2", (d) => d.target.x)
@@ -91,5 +91,20 @@ export function renderTree(data, containerElem) {
             node.select("text")
                 .attr("x", (d) => d.x - d.bb.width / 2)
                 .attr("y", (d) => d.y + d.bb.height / 4);
+
+            if (this.alpha() < 0.5 && !addedExtraForces) {
+                this.force("charge", d3.forceManyBody()
+                    .strength(-200) // Push away each other
+                )
+                    .force("link", d3.forceLink()
+                        .id((d) => d.id)
+                        .links(data.links)
+                        .distance(50)
+                        .strength(1)
+                    )
+                    // .force("side", null)
+
+                addedExtraForces = true;
+            }
         });
 }

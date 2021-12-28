@@ -25,12 +25,23 @@ const dataTree = {
     nodes: [
         { id: "A", type: TreeNodeType.Root },
         { id: "B", type: TreeNodeType.Dependency },
+        { id: "E", type: TreeNodeType.Dependency },
+        { id: "B1", type: TreeNodeType.Dependency },
+        { id: "B11", type: TreeNodeType.Dependency },
+        { id: "B2", type: TreeNodeType.Dependency },
         { id: "C", type: TreeNodeType.Dependent },
+        { id: "C1", type: TreeNodeType.Dependent },
+        { id: "D", type: TreeNodeType.Dependent },
     ],
     links: [ // source depends on target
         { source: "A", target: "B" },
+        { source: "A", target: "E" },
+        { source: "B", target: "B1" },
+        { source: "B1", target: "B11" },
+        { source: "B", target: "B2" },
         { source: "C", target: "A" },
-        { source: "C", target: "A" },
+        { source: "C1", target: "C" },
+        { source: "D", target: "A" },
     ]
 };
 
