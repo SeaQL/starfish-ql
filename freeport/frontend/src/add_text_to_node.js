@@ -3,10 +3,17 @@
 /// 'textFn': (d) => string
 /// 'fontSizeFn': (d) => number
 /// 'fontFamilyFn': (d) => string
+/// 'delimiter': **additional** delimiters apart from whitespaces (as a string)
 
 import { fitTextInSquare } from "./fit_text";
 
-export function addWrappedTextToNodeAndSetTextRadius(node, textFn, fontSizeFn, fontFamilyFn) {
+export function addWrappedTextToNodeAndSetTextRadius(
+    node,
+    textFn,
+    fontSizeFn,
+    fontFamilyFn,
+    delimiter = "-"
+) {
     const allWrappedLines = []; // An array of arrays of wrapped lines (one array for one node)
 
     const textElem = node.append("text")
@@ -15,7 +22,7 @@ export function addWrappedTextToNodeAndSetTextRadius(node, textFn, fontSizeFn, f
         .style("pointer-events", "none")
         .style("text-anchor", "middle")
         .attr("", (d) => {
-            allWrappedLines.push(fitTextInSquare(textFn(d), fontSizeFn(d)));
+            allWrappedLines.push(fitTextInSquare(textFn(d), fontSizeFn(d), delimiter));
             return null;
         });
 

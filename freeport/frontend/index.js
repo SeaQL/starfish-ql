@@ -3,23 +3,29 @@ import { renderTree, TreeNodeType } from "./src/render_tree";
 
 const dataGraph = {
     nodes: [
-        { id: "AAA-AAA", weight: 15 },
+        { id: "AAA+AAA", weight: 15 },
         { id: "B", weight: 20 },
         { id: "CCCCCCCCC", weight: 25 },
-        { id: "D", weight: 30 },
+        { id: "DDDDDDDDD-DDDDD", weight: 30 },
         { id: "E", weight: 22 },
         { id: "F", weight: 22 },
     ],
     links: [ // source "depends on" target
-        { source: "AAA-AAA", target: "B" },
+        { source: "AAA+AAA", target: "B" },
         { source: "CCCCCCCCC", target: "B" },
-        { source: "B", target: "D" },
+        { source: "B", target: "DDDDDDDDD-DDDDD" },
         { source: "E", target: "F" },
         { source: "F", target: "E" },
     ]
 };
 
-renderGraph(dataGraph, document.getElementById("outputGraph"));
+renderGraph(
+    dataGraph,
+    document.getElementById("outputGraph"),
+    {
+        textDelimiter: "-+"
+    }
+);
 
 const dataTree = {
     nodes: [
@@ -48,7 +54,4 @@ const dataTree = {
 renderTree(
     dataTree,
     document.getElementById("outputTree"),
-    {
-        nodeCircleRadius: 12
-    }
 );

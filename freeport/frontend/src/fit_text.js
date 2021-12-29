@@ -7,9 +7,9 @@ const measureWidth = (text) => {
     return context.measureText(text).width;
 };
 
-export function fitTextInSquare(text, fontSize) {
+export function fitTextInSquare(text, fontSize, delimiter = "-") {
     // Split text into words by '-'
-    const words = text.split(/\s+|(?<=-)/);
+    const words = text.split(new RegExp(`\s+|(?<=[${delimiter}])`));
     if(!words[words.length - 1]) words.pop();
     if(!words[0]) words.shift();
 

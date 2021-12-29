@@ -10,7 +10,14 @@ export const TreeNodeType = {
     Dependent: 2,  // To the Right
 };
 
-export function renderTree(data, containerElem, {nodeCircleRadius}) {
+export function renderTree(
+    data,
+    containerElem,
+    {
+        nodeCircleRadius = 12,
+        textDelimiter = "-"
+    } = {}
+) {
     // set the dimensions and margins of the graph
     const margin = { top: 20, right: 20, bottom: 20, left: 20 },
         width = 400 - margin.left - margin.right,
@@ -73,6 +80,7 @@ export function renderTree(data, containerElem, {nodeCircleRadius}) {
         (d) => d.id,
         (_) => nodeCircleRadius,
         (_) => "Fira Code, monospace",
+        textDelimiter
     );
 
     const simulation = d3.forceSimulation(data.nodes)

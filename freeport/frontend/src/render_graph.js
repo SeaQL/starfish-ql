@@ -18,7 +18,13 @@ The behavior is undefined unless all id's in 'data.nodes' are unique.
 
 'containerElem' is the container (HTMLElement) that contains the constructed svg graph.
 */
-export function renderGraph(data, containerElem) {
+export function renderGraph(
+    data,
+    containerElem,
+    {
+        textDelimiter = "-"
+    } = {}
+) {
     // set the dimensions and margins of the graph
     const margin = { top: 20, right: 20, bottom: 20, left: 20 },
           width = 400 - margin.left - margin.right,
@@ -58,6 +64,7 @@ export function renderGraph(data, containerElem) {
         (d) => d.id,
         (d) => d.weight,
         (_) => "Fira Code, monospace",
+        textDelimiter
     );
     
     const simulation = d3.forceSimulation(data.nodes)
