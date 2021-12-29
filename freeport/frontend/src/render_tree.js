@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { addDragBehavior } from "./drag";
+import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
 import { addZoomBehavior } from "./zoom";
 
 // Denotes which side a node belongs to, relative to the **root** node.
@@ -9,7 +10,7 @@ export const TreeNodeType = {
     Dependent: 2,  // To the Right
 };
 
-export function renderTree(data, containerElem) {
+export function renderTree(data, containerElem, {nodeCircleRadius}) {
     // set the dimensions and margins of the graph
     const margin = { top: 20, right: 20, bottom: 20, left: 20 },
         width = 400 - margin.left - margin.right,
@@ -67,16 +68,12 @@ export function renderTree(data, containerElem) {
         });
 
     // Add names to the nodes
-    node.append("text")
-        .text((d) => d.id)
-        .style("font-size", (d) => d.weight + "px")
-        .style("font-family", "Fira Code, monospace")
-        .style("pointer-events", "none")
-        .attr("", function (d) {
-            const bbFull = this.getBoundingClientRect();
-            d.bb = { width: bbFull.width, height: bbFull.height };
-            return null;
-        });
+    addWrappedTextToNodeAndSetTextRadius(
+        node,
+        (d) => d.id,
+        (_) => nodeCircleRadius,
+        (_) => "Fira Code, monospace",
+    );
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("side", (alpha) => { // Dependencies to the left; Dependents to the right
@@ -104,8 +101,7 @@ export function renderTree(data, containerElem) {
 
         // Move names
         node.select("text")
-            .attr("x", (d) => d.x - d.bb.width / 2)
-            .attr("y", (d) => d.y + d.bb.height / 4);
+            .attr("transform", (d) => `translate(${d.x}, ${d.y}) scale(${nodeCircleRadius / d.textRadius})`);
 
         if (this.alpha() < 0.5 && !isExtraForcesAdded) {
             this.force("charge", d3.forceManyBody()

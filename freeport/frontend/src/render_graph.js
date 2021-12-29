@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
 import { addDragBehavior } from "./drag";
 import { addZoomBehavior } from "./zoom";
 
@@ -52,12 +53,12 @@ export function renderGraph(data, containerElem) {
         .style("fill", "#69b3a2");
     
     // Add names to the nodes
-    node.append("text")
-        .text((d) => d.id)
-        .style("font-size", (d) => `${d.weight}px`)
-        .style("font-family", "Fira Code, monospace")
-        .style("pointer-events", "none")
-        .attr("", function(d) { d.bb = this.getBoundingClientRect(); return null; });
+    addWrappedTextToNodeAndSetTextRadius(
+        node,
+        (d) => d.id,
+        (d) => d.weight,
+        (_) => "Fira Code, monospace",
+    );
     
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink()
@@ -81,8 +82,7 @@ export function renderGraph(data, containerElem) {
 
             // Move names
             node.select("text")
-                .attr("x", (d) => d.x - d.bb.width / 2)
-                .attr("y", (d) => d.y + d.bb.height / 4);
+                .attr("transform", (d) => `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`);
         });
 
     addDragBehavior(node, simulation);
