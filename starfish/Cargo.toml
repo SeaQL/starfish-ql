@@ -1,0 +1,34 @@
+[workspace]
+members = ["."]
+
+[package]
+name = "starfish"
+version = "0.1.0"
+authors = ["Chris Tsang <tyt2y7@gmail.com>"]
+edition = "2021"
+description = "A graph database and query engine"
+license = "AGPL-3.0"
+documentation = "https://docs.rs/starfish"
+repository = "https://github.com/SeaQL/starfish-ql"
+categories = []
+keywords = []
+
+[package.metadata.docs.rs]
+features = ["default"]
+rustdoc-args = ["--cfg", "docsrs"]
+
+[lib]
+name = "starfish"
+path = "lib.rs"
+
+[dependencies]
+sea-query = { version = "^0.20.0", features = ["thread-safe"] }
+sea-orm = { version = "^0.5.0-rc.1", features = ["sqlx-mysql", "runtime-async-std-native-tls", "debug-print"] }
+
+[dev-dependencies]
+starfish = { path = "." }
+pretty_assertions = { version = "^0.7" }
+smol = { version = "^1.2" }
+smol-potat = { version = "^1.1" }
+tracing = { version = "0.1", features = ["log"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
