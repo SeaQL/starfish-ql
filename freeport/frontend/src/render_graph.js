@@ -22,7 +22,7 @@ export function renderGraph(
     data,
     containerElem,
     {
-        textDelimiter = "-"
+        textDelimiters = "-"
     } = {}
 ) {
     // set the dimensions and margins of the graph
@@ -64,7 +64,7 @@ export function renderGraph(
         (d) => d.id,
         (d) => d.weight,
         (_) => "Fira Code, monospace",
-        textDelimiter
+        textDelimiters
     );
     
     const simulation = d3.forceSimulation(data.nodes)

@@ -1,15 +1,15 @@
-/// A function to fit text into a square and find the radius of the enclosing circle.
+/// A function to fit text into a square, lines are only breaked at whitespaces or `delimiters`.
 /// Adapted from https://observablehq.com/@mbostock/fit-text-to-circle
 
 // Prepare an immutable context for measuring text width
-const context = Object.freeze(document.createElement("canvas").getContext("2d"));
+const _context = Object.freeze(document.createElement("canvas").getContext("2d"));
 const measureWidth = (text) => {
-    return context.measureText(text).width;
+    return _context.measureText(text).width;
 };
 
-export function fitTextInSquare(text, fontSize, delimiter = "-") {
+export function fitTextInSquare(text, fontSize, delimiters = "-") {
     // Split text into words by '-'
-    const words = text.split(new RegExp(`\s+|(?<=[${delimiter}])`));
+    const words = text.split(new RegExp(`\s+|(?<=[${delimiters}])`));
     if(!words[words.length - 1]) words.pop();
     if(!words[0]) words.shift();
 
@@ -23,6 +23,7 @@ export function fitTextInSquare(text, fontSize, delimiter = "-") {
     const lines = [];
     for (let i = 0, n = words.length; i < n; ++i) {
         let lineText1 = (line ? line.text : "") + words[i];
+        console.log(lineText1);
         let lineWidth1 = measureWidth(lineText1);
         if ((lineWidth0 + lineWidth1) / 2 < targetWidth) {
             line.width = lineWidth0 = lineWidth1;

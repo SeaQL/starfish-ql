@@ -1,5 +1,4 @@
 import * as d3 from "d3";
-import { TreeNodeType } from "./render_tree";
 
 export function addDragBehavior(element, simulation) {
     const start = function(event) {

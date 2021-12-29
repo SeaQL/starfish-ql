@@ -23,7 +23,7 @@ renderGraph(
     dataGraph,
     document.getElementById("outputGraph"),
     {
-        textDelimiter: "-+"
+        textDelimiters: "-+"
     }
 );
 
