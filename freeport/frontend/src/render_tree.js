@@ -2,6 +2,7 @@ import * as d3 from "d3";
 import { addDragBehavior } from "./drag";
 import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
 import { addZoomBehavior } from "./zoom";
+import { createNodes } from "./create_nodes";
 
 // Denotes which side a node belongs to, relative to the **root** node.
 export const TreeNodeType = {
@@ -42,11 +43,7 @@ export function renderTree(
         .style("stroke", "#aaa");
 
     // Initialize the nodes
-    const node = group
-        .selectAll("circle")
-        .data(data.nodes)
-        .enter()
-        .append("g")
+    const node = createNodes(group, data.nodes)
         .attr("", (d) => {
             if (d.type === TreeNodeType.Root) {
                 d.fx = center.x;

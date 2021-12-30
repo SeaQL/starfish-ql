@@ -1,5 +1,6 @@
 import * as d3 from "d3";
 import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
+import { createNodes } from "./create_nodes";
 import { addDragBehavior } from "./drag";
 import { addZoomBehavior } from "./zoom";
 
@@ -47,11 +48,7 @@ export function renderGraph(
         .style("stroke", "#aaa");
     
     // Initialize the nodes
-    const node = group
-        .selectAll("circle")
-        .data(data.nodes)
-        .enter()
-        .append("g");
+    const node = createNodes(group, data.nodes);
     
     // Draw circles for the nodes
     node.append("circle")
