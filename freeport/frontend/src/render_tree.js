@@ -3,6 +3,7 @@ import { addDragBehavior } from "./drag";
 import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
 import { addZoomBehavior } from "./zoom";
 import { createNodes } from "./create_nodes";
+import { createInfobox, updateInfobox } from "./infobox";
 
 // Denotes which side a node belongs to, relative to the **root** node.
 export const TreeNodeType = {
@@ -79,6 +80,21 @@ export function renderTree(
         (_) => "Fira Code, monospace",
         textDelimiters
     );
+
+    // Setup infobox
+    const infobox = createInfobox(svg);
+    node.on("click.info", function (event, d) {
+        if (event.defaultPrevented) return;
+        
+        updateInfobox(
+            infobox,
+            [
+                "Id: " + d.id,
+                "Testing1",
+                "Testing2 Hihi"
+            ],
+        );
+    });
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("side", (alpha) => { // Dependencies to the left; Dependents to the right

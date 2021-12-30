@@ -3,6 +3,7 @@ import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
 import { createNodes } from "./create_nodes";
 import { addDragBehavior } from "./drag";
 import { addZoomBehavior } from "./zoom";
+import { createInfobox, updateInfobox } from "./infobox";
 
 /*
 'data' must follow this format:
@@ -63,6 +64,21 @@ export function renderGraph(
         (_) => "Fira Code, monospace",
         textDelimiters
     );
+
+    // Setup infobox
+    const infobox = createInfobox(svg);
+    node.on("click.info", function (event, d) {
+        if (event.defaultPrevented) return;
+
+        updateInfobox(
+            infobox,
+            [
+                "Id: " + d.id,
+                "Testing1",
+                "Testing2 Hihi"
+            ],
+        );
+    });
     
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink()
