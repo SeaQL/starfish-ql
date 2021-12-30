@@ -1,3 +1,5 @@
+#![allow(missing_docs)]
+
 //! SeaORM Entities
 
 pub mod entity;

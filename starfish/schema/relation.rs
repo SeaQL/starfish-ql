@@ -1,3 +1,5 @@
+//! Define relation schema
+
 use super::{format_node_table_name, Schema};
 use crate::core::entities::{entity, relation};
 use sea_orm::{
@@ -5,21 +7,28 @@ use sea_orm::{
 };
 use sea_query::{Alias, ColumnDef, ForeignKey, Table};
 
+/// Metadata of relation, deserialized as struct from json
 #[derive(Debug, Clone)]
 pub struct RelationJson {
+    /// Name of relation
     pub name: String,
+    /// Name of related entity (from side)
     pub from_entity: String,
+    /// Name of related entity (to side)
     pub to_entity: String,
+    /// Directed relation
     pub directed: bool,
 }
 
 impl RelationJson {
+    /// Prefix the name of relation table
     pub fn get_table_name(&self) -> String {
         format!("edge_{}", self.name)
     }
 }
 
 impl Schema {
+    /// Insert metadata of relation into database and create a corresponding node table
     pub async fn create_relation(db: &DbConn, relation_json: RelationJson) -> Result<(), DbErr> {
         let relation_json_bak = relation_json.clone();
 
