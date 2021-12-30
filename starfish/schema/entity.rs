@@ -1,6 +1,6 @@
 //! Define entity schema
 
-use super::{format_node_table_name, Schema};
+use super::{format_node_attribute_name, format_node_table_name, Schema};
 use crate::core::entities::{
     entity,
     entity_attribute::{self, Datatype},
@@ -36,7 +36,7 @@ impl EntityJson {
 impl EntityAttrJson {
     /// Prefix the column name of entity attribute
     pub fn get_column_name(&self) -> String {
-        format!("attr_{}", self.name)
+        format_node_attribute_name(&self.name)
     }
 }
 
@@ -55,7 +55,7 @@ impl Schema {
         for attribute in entity_json.attributes.into_iter() {
             entity_attribute::ActiveModel {
                 entity_id: Set(entity.id),
-                name: Set(attribute.get_column_name()),
+                name: Set(attribute.name),
                 datatype: Set(attribute.datatype),
                 ..Default::default()
             }

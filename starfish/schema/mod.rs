@@ -6,7 +6,7 @@ mod relation;
 pub use entity::*;
 pub use relation::*;
 
-/// Unit struct for defining new entity and relation
+/// Define new entity and relation
 #[derive(Debug)]
 pub struct Schema;
 
@@ -16,4 +16,20 @@ where
     T: ToString,
 {
     format!("node_{}", name.to_string())
+}
+
+/// Prefix the name of node attribute column
+pub fn format_node_attribute_name<T>(name: T) -> String
+where
+    T: ToString,
+{
+    format!("attr_{}", name.to_string())
+}
+
+/// Prefix the name of edge table
+pub fn format_edge_table_name<T>(name: T) -> String
+where
+    T: ToString,
+{
+    format!("edge_{}", name.to_string())
 }

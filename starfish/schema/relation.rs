@@ -1,6 +1,6 @@
 //! Define relation schema
 
-use super::{format_node_table_name, Schema};
+use super::{format_edge_table_name, format_node_table_name, Schema};
 use crate::core::entities::{entity, relation};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, QueryFilter, Set,
@@ -23,7 +23,7 @@ pub struct RelationJson {
 impl RelationJson {
     /// Prefix the name of relation table
     pub fn get_table_name(&self) -> String {
-        format!("edge_{}", self.name)
+        format_edge_table_name(&self.name)
     }
 }
 
@@ -90,12 +90,12 @@ impl Schema {
                     .primary_key(),
             )
             .col(
-                ColumnDef::new(Alias::new("from_entity_id"))
+                ColumnDef::new(Alias::new("from_node_id"))
                     .integer()
                     .not_null(),
             )
             .col(
-                ColumnDef::new(Alias::new("to_entity_id"))
+                ColumnDef::new(Alias::new("to_node_id"))
                     .integer()
                     .not_null(),
             )
@@ -107,7 +107,7 @@ impl Schema {
                         from_entity
                     ))
                     .from_tbl(Alias::new(relation_json.get_table_name().as_str()))
-                    .from_col(Alias::new("from_entity_id"))
+                    .from_col(Alias::new("from_node_id"))
                     .to_tbl(Alias::new(from_entity.as_str()))
                     .to_col(Alias::new("id")),
             )
@@ -119,7 +119,7 @@ impl Schema {
                         to_entity
                     ))
                     .from_tbl(Alias::new(relation_json.get_table_name().as_str()))
-                    .from_col(Alias::new("to_entity_id"))
+                    .from_col(Alias::new("to_node_id"))
                     .to_tbl(Alias::new(to_entity.as_str()))
                     .to_col(Alias::new("id")),
             );
