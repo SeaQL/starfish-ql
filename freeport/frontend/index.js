@@ -3,7 +3,7 @@ import { renderTree, TreeNodeType } from "./src/render_tree";
 
 const dataGraph = {
     nodes: [
-        { id: "AAA+AAA", weight: 15 },
+        { id: "AAAA+AAAA+AAAAA", weight: 15 },
         { id: "B", weight: 20 },
         { id: "CCCCCCCCC", weight: 25 },
         { id: "DDDDDDDDD-DDDDD", weight: 30 },
@@ -11,7 +11,7 @@ const dataGraph = {
         { id: "F", weight: 22 },
     ],
     links: [ // source "depends on" target
-        { source: "AAA+AAA", target: "B" },
+        { source: "AAAA+AAAA+AAAAA", target: "B" },
         { source: "CCCCCCCCC", target: "B" },
         { source: "B", target: "DDDDDDDDD-DDDDD" },
         { source: "E", target: "F" },

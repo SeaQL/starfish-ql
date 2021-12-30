@@ -18,20 +18,23 @@ export function fitTextInSquare(text, fontSize, delimiters = "-") {
     const targetWidth = Math.sqrt(measureWidth(text.trim()) * lineHeight);
 
     // Wrap text into lines
-    let line = {};
-    let lineWidth0 = Infinity;
+    let line = words[0];
     const lines = [];
-    for (let i = 0, n = words.length; i < n; ++i) {
-        let lineText1 = (line ? line.text : "") + words[i];
-        console.log(lineText1);
-        let lineWidth1 = measureWidth(lineText1);
-        if ((lineWidth0 + lineWidth1) / 2 < targetWidth) {
-            line.width = lineWidth0 = lineWidth1;
-            line.text = lineText1;
+    for (let i = 1; i < words.length; ++i) {
+        const lineWithWord = line + words[i];
+        // Test if adding a word makes the line too long
+        if (measureWidth(lineWithWord) >= targetWidth) {
+            // Just push the current line
+            lines.push(line);
+            // Start again at next word
+            line = words[i];
         } else {
-            lineWidth0 = measureWidth(words[i]);
-            lines.push(words[i]);
+            // Else, just absorb the word
+            line = lineWithWord;
         }
+    }
+    if (line !== "") {
+        lines.push(line);
     }
 
     return lines;
