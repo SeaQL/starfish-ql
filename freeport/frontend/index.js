@@ -1,4 +1,3 @@
-import { runGitHubAPITests } from "./src/api_access/github_test";
 import { renderGraph } from "./src/gui/render_graph";
 import { renderTree, TreeNodeType } from "./src/gui/render_tree";
 
@@ -56,5 +55,3 @@ renderTree(
     dataTree,
     document.getElementById("outputTree"),
 );
-
-runGitHubAPITests().catch(console.error);
