@@ -30,7 +30,7 @@ name = "starfish-api"
 path = "main.rs"
 
 [dependencies]
-sea-query = { version = "^0.20.0", features = ["thread-safe", "with-json"] }
+sea-query = { version = "^0.20.0", features = ["thread-safe"] }
 sea-orm = { version = "^0.5.0-rc.1", features = ["sqlx-mysql", "runtime-async-std-native-tls", "debug-print"] }
 sea-orm-rocket = { version = "^0.5.0-rc.1" }
 rocket = { version = "^0.5.0-rc.1", features = ["json"] }
