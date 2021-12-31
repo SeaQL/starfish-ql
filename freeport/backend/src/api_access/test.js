@@ -1,11 +1,11 @@
-import { constructUrl } from "./url";
-import { postRequest } from "./util";
+const { constructUrl } = require("./url");
+const { postRequest } = require("./util");
 
-export async function test_api() {
-
-    await create_entity();
-
-}
+module.exports = {
+    test_api: async () => {
+        await create_entity();
+    },
+};
 
 async function create_entity() {
     const data = {

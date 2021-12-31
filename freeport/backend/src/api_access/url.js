@@ -1,11 +1,13 @@
-const BASE_URL = "localhost:8000";
+const BASE_URL = "http://127.0.0.1:8000";
 
-export const constructUrl = (endpoint, queryParams = {}) => {
-    let url = BASE_URL + "/" + endpoint + "?";
+module.exports = {
+    constructUrl: (endpoint, queryParams = {}) => {
+        let url = BASE_URL + "/" + endpoint + "?";
 
-    for (const [k, v] of Object.entries(queryParams)) {
-        url += `${k}=${v}`;
+        for (const [k, v] of Object.entries(queryParams)) {
+            url += `${k}=${v}`;
+        }
+
+        return url;
     }
-
-    return url;
 };
