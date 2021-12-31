@@ -4,7 +4,11 @@ members = ["."]
 [package]
 name = "starfish"
 version = "0.1.0"
-authors = ["Chris Tsang <tyt2y7@gmail.com>"]
+authors = [
+    "Chris Tsang <tyt2y7@gmail.com>",
+    "Sanford Pun <punsanford@gmail.com>",
+    "Billy Chan <ccw.billy.123@gmail.com>",
+]
 edition = "2021"
 description = "A graph database and query engine"
 license = "AGPL-3.0"
