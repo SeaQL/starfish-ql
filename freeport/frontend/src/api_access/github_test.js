@@ -19,9 +19,9 @@ async function retrieveAllFiles() {
     const treeAtMostRecentCommit = await getRequestJson(
         constructUrl(
             "git/trees/" + mostRecentCommitSha,
-            [
-                "recursive=true"
-            ]
+            {
+                recursive: true
+            }
         )
     );
     console.dir(treeAtMostRecentCommit);
@@ -42,7 +42,9 @@ async function fetchPagesIterative(endpoint, pageArrayFromDataFn = (data) => dat
     for (let i = 1;;) {
         const url = constructUrl(
             endpoint,
-            [`page=${i}`]
+            {
+                page: i
+            }
         );
 
         const data = await getRequestJson(url);

@@ -1,8 +1,10 @@
-export const makeConstructUrl = (repo_url) => (endpoint, queryParams) => {
+export const makeConstructUrl = (repo_url) => (endpoint, queryParams = {}) => {
     let url = repo_url + "/" + endpoint + "?";
-    if (queryParams !== undefined) {
-        url += queryParams.join("&");
+
+    for (const [k, v] of Object.entries(queryParams)) {
+        url += `${k}=${v}`;
     }
+    
     return url;
 };
 
