@@ -1,13 +1,3 @@
-export const makeConstructUrl = (repo_url) => (endpoint, queryParams = {}) => {
-    let url = repo_url + "/" + endpoint + "?";
-
-    for (const [k, v] of Object.entries(queryParams)) {
-        url += `${k}=${v}`;
-    }
-    
-    return url;
-};
-
 export const getRequestJson = async (
     url,
     err = (e) => console.error("Error " + e)
