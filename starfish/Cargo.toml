@@ -14,8 +14,8 @@ description = "A graph database and query engine"
 license = "AGPL-3.0"
 documentation = "https://docs.rs/starfish"
 repository = "https://github.com/SeaQL/starfish-ql"
-categories = []
-keywords = []
+categories = ["database"]
+keywords = ["async", "graph", "graph-database", "graph-query-engine", "mysql", "postgres", "sqlite"]
 
 [package.metadata.docs.rs]
 features = ["default"]
