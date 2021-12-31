@@ -1,0 +1,23 @@
+{
+  "name": "starfishql-frontend",
+  "version": "0.1.0",
+  "description": "StarfishQL Frontend",
+  "author": "Sanford Pun <punsanford@gmail.com>",
+  "license": "proprietary",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "build": "webpack"
+  },
+  "keywords": [],
+  "dependencies": {
+    "ajax": "^0.0.4",
+    "d3": "^7.2.1",
+    "webpack": "^4.41.5"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.11",
+    "webpack-dev-server": "^3.10.1"
+  }
+}

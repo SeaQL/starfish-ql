@@ -1,0 +1,12 @@
+svg {
+    border: 2px solid black;
+    border-radius: 10px;
+}
+
+.flex-container {
+    display: flex;
+}
+
+.flex-child {
+    flex: 1;
+}
