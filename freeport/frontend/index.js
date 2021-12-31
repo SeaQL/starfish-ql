@@ -1,5 +1,5 @@
-import { renderGraph } from "./src/render_graph";
-import { renderTree, TreeNodeType } from "./src/render_tree";
+import { renderGraph } from "./src/gui/render_graph";
+import { renderTree, TreeNodeType } from "./src/gui/render_tree";
 
 const dataGraph = {
     nodes: [

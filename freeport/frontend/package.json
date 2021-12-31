@@ -12,7 +12,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "ajax": "^0.0.4",
     "d3": "^7.2.1",
     "webpack": "^4.41.5"
   },
