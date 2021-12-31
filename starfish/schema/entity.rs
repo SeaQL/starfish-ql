@@ -7,9 +7,10 @@ use crate::core::entities::{
 };
 use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, Set};
 use sea_query::{Alias, ColumnDef, Table};
+use serde::{Deserialize, Serialize};
 
 /// Metadata of entity, deserialized as struct from json
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityJson {
     /// Name of entity
     pub name: String,
@@ -18,7 +19,7 @@ pub struct EntityJson {
 }
 
 /// Metadata of entity attribute, deserialized as struct from json
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityAttrJson {
     /// Name of attribute
     pub name: String,

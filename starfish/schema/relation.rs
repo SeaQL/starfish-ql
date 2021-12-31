@@ -6,9 +6,10 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, QueryFilter, Set,
 };
 use sea_query::{Alias, ColumnDef, ForeignKey, Table};
+use serde::{Deserialize, Serialize};
 
 /// Metadata of relation, deserialized as struct from json
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelationJson {
     /// Name of relation
     pub name: String,

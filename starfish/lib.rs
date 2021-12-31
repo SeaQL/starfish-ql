@@ -10,6 +10,7 @@
 //!
 //! Copyright (c) 2021 Tsang Hao Fung
 
+pub mod api;
 pub mod core;
 pub mod mutate;
 pub mod query;

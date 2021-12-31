@@ -1,21 +1,26 @@
 use super::Mutate;
 use crate::{
-    core::entities::{entity, entity_attribute},
+    core::entities::{
+        entity,
+        entity_attribute::{self, Datatype},
+    },
     schema::{format_node_attribute_name, format_node_table_name},
 };
-use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, QueryFilter, Value};
+use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, QueryFilter};
 use sea_query::{Alias, Expr, Query};
+use serde::{Deserialize, Serialize};
+use serde_json::Value as JsonValue;
 use std::collections::HashMap;
 
 /// Metadata of a node, deserialized as struct from json
-#[derive(Debug)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeJson {
     /// Name of entity this node belongs to
     pub of: String,
     /// Name of node
     pub name: String,
     /// Additional attributes
-    pub attributes: HashMap<String, Value>,
+    pub attributes: HashMap<String, JsonValue>,
 }
 
 impl Mutate {
@@ -41,8 +46,12 @@ impl Mutate {
         for attribute in attributes.iter() {
             let name = &attribute.name;
             if let Some(val) = node_json.attributes.get(name) {
+                let val = match attribute.datatype {
+                    Datatype::Int => val.as_i64().into(),
+                    Datatype::String => val.as_str().into(),
+                };
                 cols.push(Alias::new(&format_node_attribute_name(name)));
-                vals.push(val.clone());
+                vals.push(val);
             }
         }
 

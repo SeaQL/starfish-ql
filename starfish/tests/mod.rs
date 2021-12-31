@@ -1,8 +1,9 @@
 mod common;
 
-use common::{schema::create_tables, TestContext};
+use common::TestContext;
 use sea_orm::{DbConn, DbErr};
 use starfish::{
+    api::db::schema::create_tables,
     core::entities::entity_attribute::Datatype,
     mutate::{EdgeJson, Mutate, NodeJson},
     schema::{EntityAttrJson, EntityJson, RelationJson, Schema},
