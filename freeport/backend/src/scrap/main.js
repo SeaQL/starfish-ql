@@ -8,11 +8,18 @@ const scrap = async ({
 }) => {
     const REPO_NAME = "crates.io-index";
     const REPO_URL = "git clone https://github.com/rust-lang/crates.io-index.git";
-    const DATA_PATH = "data/"; // Scrapped data storage
+    const DATA_PATH = "data/"; // Scrapped data storage, must end with '/'
     const META_NAME = ".meta";
 
+    const folders = await promisedExec("ls");
+
+    // DEBUG ONLY - Remove data
+    if (folders.find((folder) => DATA_PATH.search(folder))) {
+        await promisedExec(`rm -rf ${DATA_PATH}`);
+    }
+
     // Make sure the repo is ready.
-    if (!(await promisedExec("ls")).find((folder) => folder === REPO_NAME)) {
+    if (!folders.find((folder) => folder === REPO_NAME)) {
         // Clone the repo
         shouldLog && console.log("Repo not found, cloning...");
         await promisedExec(REPO_URL);
@@ -21,16 +28,13 @@ const scrap = async ({
     }
 
     // Make sure the repo is up to date
-    await promisedExecInFolder(REPO_NAME, "git pull && git merge --ff-only");
-
-    // Store the hash of the most recent commit
-    const mostRecentCommitHash = (await promisedExecInFolder(REPO_NAME, "git rev-parse --verify HEAD"))[0];
+    await promisedExecInFolder(REPO_NAME, "git checkout master && git pull && git merge --ff-only");
 
     // Branch on whether the metadata file is verified
     if (await verifyMetadata(DATA_PATH + META_NAME, shouldLog)) {
         await updateScrap(shouldLog);
     } else {
-        await initialScrap(shouldLog, DATA_PATH, META_NAME);
+        await initialScrap(shouldLog, DATA_PATH, META_NAME, REPO_NAME);
     }
 };
 
