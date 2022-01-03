@@ -1,7 +1,7 @@
 // const { test_api } = require("./src/api_access/test");
 // test_api().catch(console.error);
 
-const { test_scrap } = require("./src/scrap/test");
+const { scrap: test_scrap } = require("./src/scrap/main");
 test_scrap({
-    log: true
+    shouldLog: true
 }).catch(console.error);
