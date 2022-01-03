@@ -1,4 +1,4 @@
-const { readFileLineByLine } = require("./file_reader");
+const { readFileLineByLine, writeToEndOfFile, readLastLineOfFile } = require("./file_reader");
 const { createMetadata } = require("./meta");
 const { promisedExec } = require("./util");
 
@@ -37,9 +37,14 @@ const initialScrap = async (shouldLog, dataPath, metaName, repo_path) => {
     // Store the last entry of each crate file into entries
     const numFiles = allFilePaths.length;
     for (let i = 0; i < numFiles; ++i) {
-        await promisedExec(`tail -n 1 ${allFilePaths[i]} >> ${dataPath}entries`);
+        // Read from allFilePaths[i]
+        let lastLine = await readLastLineOfFile(allFilePaths[i]);
+
+        // Write to 'entries'
+        await writeToEndOfFile(`${dataPath}entries`, lastLine + "\n");
+
         shouldLog
-            && (i+1) % 1000 === 0
+            && ((i+1) % 1000 === 0 || (i+1) === numFiles)
             && console.log(`Data entries loading... ${i+1}/${numFiles}`);
     }
     shouldLog && console.log("All data entries loaded.");
