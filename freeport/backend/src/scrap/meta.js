@@ -13,7 +13,7 @@ const NUM_METADATA = 1;
 const createMetadata = async (
     path,
     shouldLog,
-    repo_path
+    repoPath
 ) => {
     // Create a file at 'path'
     await promisedExec(`touch ${path}`);
@@ -21,7 +21,7 @@ const createMetadata = async (
     // Write entries to 'path'
 
     // Store the hash of the most recent commit
-    const mostRecentCommitHash = (await promisedExecInFolder(repo_path, "git rev-parse --verify HEAD"))[0];
+    const mostRecentCommitHash = (await promisedExecInFolder(repoPath, "git rev-parse --verify HEAD"))[0];
     shouldLog && console.log(`Most recent commit hash found: ${mostRecentCommitHash}`);
     await promisedExec(`echo ${mostRecentCommitHash} >> ${path}`);
 

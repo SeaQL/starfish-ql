@@ -1,8 +1,9 @@
-const { readFileLineByLine, writeToEndOfFile, readLastLineOfFile } = require("./file_reader");
+const { insertDataIntoDatabase } = require("../api_access/main");
+const { readFileLineByLine, readLastLineOfFile } = require("./file_reader");
 const { createMetadata } = require("./meta");
 const { promisedExec } = require("./util");
 
-const initialScrap = async (shouldLog, dataPath, metaName, repo_path) => {
+const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     shouldLog && console.log("Commencing initial scrap...");
 
     // Clear data and metadata
@@ -11,23 +12,22 @@ const initialScrap = async (shouldLog, dataPath, metaName, repo_path) => {
         await promisedExec(`rm -rf ${dataPath} && rm ${dataPath + metaName}`);
     } catch (e) {}
 
-    // Create data and metadata
-    shouldLog && console.log("Creating data folder and metadata file...");
+    // Create data
+    shouldLog && console.log("Creating data folder...");
     await promisedExec(`mkdir -p ${dataPath}`);
-    await createMetadata(dataPath + metaName, shouldLog, repo_path);
 
     // Create necessary data files
     shouldLog && console.log(`Creating intermediate data files...`);
     await promisedExec(`touch ${dataPath}paths`);
 
     // Store all crate files in an array
-    await promisedExec(`find ${repo_path}/* -type f >> ${dataPath}paths`);
+    await promisedExec(`find ${repoPath}/* -type f >> ${dataPath}paths`);
     const allFilePaths = [];
     await readFileLineByLine(
         `${dataPath}paths`,
         (line) => {
             // There should be no "." in the file path
-            if (!line.substring(repo_path.length).includes(".")) {
+            if (!line.substring(repoPath.length).includes(".")) {
                 allFilePaths.push(line);
             }
         });
@@ -45,6 +45,12 @@ const initialScrap = async (shouldLog, dataPath, metaName, repo_path) => {
         entries.push(JSON.parse(entry));
     };
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
+
+    await insertDataIntoDatabase(entries, shouldLog);
+
+    // Create metadata when everything is ready
+    shouldLog && console.log("Creating metadata...");
+    await createMetadata(dataPath + metaName, shouldLog, repoPath);
 };
 
 module.exports = {

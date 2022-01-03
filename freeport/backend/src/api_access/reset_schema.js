@@ -36,8 +36,8 @@ const createRelation = async () => {
 
 const resetSchema = async () => {
     // await resetDatabase();
-    // await createEntity();
-    // await createRelation();
+    await createEntity();
+    await createRelation();
 };
 
 module.exports = {
