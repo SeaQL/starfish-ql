@@ -1,4 +1,4 @@
-const updateScrap = async (path) => {
+const updateScrap = async (shouldLog, path) => {
     console.log("Update scrap");
 };
 

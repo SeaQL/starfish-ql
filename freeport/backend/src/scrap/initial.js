@@ -1,4 +1,6 @@
-const initialScrap = async (path) => {
+const { promisedExec } = require("./util");
+
+const initialScrap = async (shouldLog, path) => {
     console.log("Initial scrap");
 };
 
