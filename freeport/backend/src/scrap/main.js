@@ -9,7 +9,7 @@ const scrap = async ({
     const REPO_NAME = "crates.io-index";
     const REPO_URL = "git clone https://github.com/rust-lang/crates.io-index.git";
     const DATA_PATH = "data/"; // Scrapped data storage, must end with '/'
-    const META_NAME = ".meta";
+    const META_NAME = "meta";
 
     const folders = await promisedExec("ls");
 

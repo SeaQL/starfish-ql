@@ -1,7 +1,8 @@
-// const { test_api } = require("./src/api_access/test");
-// test_api().catch(console.error);
+const { resetSchema } = require("./src/api_access/reset_schema");
+const { scrap } = require("./src/scrap/main");
 
-const { scrap: test_scrap } = require("./src/scrap/main");
-test_scrap({
+resetSchema()
+.then(() => scrap({
     shouldLog: true
-}).catch(console.error);
+}))
+.catch(console.error);

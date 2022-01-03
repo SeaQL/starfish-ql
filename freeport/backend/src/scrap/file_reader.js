@@ -22,13 +22,13 @@ const readFileLineByLine = (path, handleLine) => {
 const readLastLineOfFile = (path) => {
     const lineReader = createLineReader(path);
     let lastLine = "";
-
+    
     return new Promise((resolve) => {
         lineReader.on("line", (line) => {
             lastLine = line;
         });
         lineReader.on("close", () => {
-            resolve(lastLine)
+            resolve(lastLine);
         });
     });
 }

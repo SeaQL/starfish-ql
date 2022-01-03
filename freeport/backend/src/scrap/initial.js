@@ -17,8 +17,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repo_path) => {
     await createMetadata(dataPath + metaName, shouldLog, repo_path);
 
     // Create necessary data files
-    shouldLog && console.log(`Creating data files...`);
-    await promisedExec(`touch ${dataPath}entries`);
+    shouldLog && console.log(`Creating intermediate data files...`);
     await promisedExec(`touch ${dataPath}paths`);
 
     // Store all crate files in an array
@@ -35,19 +34,17 @@ const initialScrap = async (shouldLog, dataPath, metaName, repo_path) => {
     shouldLog && console.log("All file paths loaded.");
 
     // Store the last entry of each crate file into entries
-    const numFiles = allFilePaths.length;
-    for (let i = 0; i < numFiles; ++i) {
-        // Read from allFilePaths[i]
-        let lastLine = await readLastLineOfFile(allFilePaths[i]);
-
-        // Write to 'entries'
-        await writeToEndOfFile(`${dataPath}entries`, lastLine + "\n");
-
+    const numPaths = allFilePaths.length;
+    const entries = []
+    for (let i = 0; i < numPaths; ++i) {
         shouldLog
-            && ((i+1) % 1000 === 0 || (i+1) === numFiles)
-            && console.log(`Data entries loading... ${i+1}/${numFiles}`);
-    }
-    shouldLog && console.log("All data entries loaded.");
+        && ((i+1) % 1000 === 0 || (i+1) === numPaths)
+        && console.log(`Data entries loading... ${i+1}/${numPaths}`);
+        
+        const entry = await readLastLineOfFile(allFilePaths[i]);
+        entries.push(JSON.parse(entry));
+    };
+    shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 };
 
 module.exports = {
