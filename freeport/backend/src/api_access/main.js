@@ -11,14 +11,14 @@ const insertDataIntoDatabase = async (
 ) => {
     const numData = data.length;
 
-    const nodesBatch = new AsyncBatch(batchReleaseThreshold, insertNodesBatch, shouldLog);
-    const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertEdgesBatch, shouldLog);
+    const nodes = [];
+    const edges = [];
 
     for (let i = 0; i < numData; ++i) {
         const datum = data[i];
 
         // Create own node
-        await nodesBatch.push(
+        nodes.push(
             createCrateNode(datum.name, {
                 version: datum.vers,
             })
@@ -26,23 +26,25 @@ const insertDataIntoDatabase = async (
 
         const depNames = new Set();
         for (let dep of datum.deps) {
-            if (dep.kind === "dev" || depNames.has(datum.name)) {
+            // In cargo.toml, 'package' stores the true crate name of a dependency when an alias is given to it.
+            const depName = dep.package !== undefined ? dep.package : dep.name;
+            if (dep.kind === "dev" || depNames.has(depName)) {
                 continue;
             }
-            depNames.add(datum.name);
+            depNames.add(depName);
             // Create depends edge
-            await edgesBatch.push(
-                createDependsEdge(datum.name, dep.name)
+            edges.push(
+                createDependsEdge(datum.name, depName)
             );
         }
-
-        shouldLog
-            && ((i + 1) % 100 === 0 || (i + 1) === numData)
-            && console.log(`Adding to batch for insertion... ${i + 1}/${numData}`);
     };
+    shouldLog && console.log(`Collected ${nodes.length} nodes and ${edges.length} edges.`);
 
-    await nodesBatch.release();
-    await edgesBatch.release();
+    const nodesBatch = new AsyncBatch(batchReleaseThreshold, insertNodesBatch, shouldLog);
+    const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertEdgesBatch, shouldLog);
+
+    await nodesBatch.consumeArray(nodes, "nodes");
+    await edgesBatch.consumeArray(edges, "edges");
 }
 
 module.exports = {
