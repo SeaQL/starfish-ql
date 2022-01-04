@@ -46,7 +46,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     };
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 
-    await insertDataIntoDatabase(entries, shouldLog);
+    await insertDataIntoDatabase(entries, { shouldLog });
 
     // Create metadata when everything is ready
     shouldLog && console.log("Creating metadata...");
