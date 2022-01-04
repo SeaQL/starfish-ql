@@ -5,7 +5,7 @@ use crate::core::entities::{entity, relation};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, QueryFilter, Set,
 };
-use sea_query::{Alias, ColumnDef, ForeignKey, Table};
+use sea_query::{Alias, ColumnDef, ForeignKey, Index, Table};
 use serde::{Deserialize, Serialize};
 
 /// Metadata of relation, deserialized as struct from json
@@ -99,6 +99,16 @@ impl Schema {
                 ColumnDef::new(Alias::new("to_node_id"))
                     .integer()
                     .not_null(),
+            )
+            .index(
+                Index::create()
+                    .unique()
+                    .name(&format!(
+                        "idx-{}-from_node_id-to_node_id",
+                        relation_json.get_table_name()
+                    ))
+                    .col(Alias::new("from_node_id"))
+                    .col(Alias::new("to_node_id")),
             )
             .foreign_key(
                 ForeignKey::create()

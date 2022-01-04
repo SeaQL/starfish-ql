@@ -32,6 +32,7 @@ pub fn rocket() -> Rocket<Build> {
         .attach(AdHoc::try_on_ignite("Migrations", run_migrations))
         .mount("/schema", handler::schema::routes())
         .mount("/mutate", handler::mutate::routes())
+        .mount("/util", handler::util::routes())
         .register("/", catchers![not_found])
 }
 
