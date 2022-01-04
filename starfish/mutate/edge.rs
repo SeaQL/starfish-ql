@@ -1,4 +1,4 @@
-use super::{Mutate, NodeJson};
+use super::Mutate;
 use crate::{
     core::entities::{entity, relation},
     schema::{format_edge_table_name, format_node_table_name},
@@ -149,52 +149,23 @@ impl Mutate {
                 ))
             })?;
 
-        let from_node = if let Some(from_node) =
-            Self::try_get_node(db, &from_entity, &edge_json.from_node).await?
-        {
-            from_node
-        } else {
-            Mutate::insert_node(
-                db,
-                NodeJson {
-                    of: from_entity.name.to_owned(),
-                    name: edge_json.from_node.to_owned(),
-                    attributes: Default::default(),
-                },
-            )
-            .await?;
-            Self::try_get_node(db, &from_entity, &edge_json.from_node)
-                .await?
-                .ok_or_else(|| {
-                    DbErr::Custom(format!(
-                        "Node of name '{}' could not be found",
-                        edge_json.from_node
-                    ))
-                })?
-        };
+        let from_node = Self::try_get_node(db, &from_entity, &edge_json.from_node)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!(
+                    "Node of name '{}' could not be found",
+                    edge_json.from_node
+                ))
+            })?;
 
-        let to_node =
-            if let Some(to_node) = Self::try_get_node(db, &to_entity, &edge_json.to_node).await? {
-                to_node
-            } else {
-                Mutate::insert_node(
-                    db,
-                    NodeJson {
-                        of: to_entity.name.to_owned(),
-                        name: edge_json.to_node.to_owned(),
-                        attributes: Default::default(),
-                    },
-                )
-                .await?;
-                Self::try_get_node(db, &to_entity, &edge_json.to_node)
-                    .await?
-                    .ok_or_else(|| {
-                        DbErr::Custom(format!(
-                            "Node of name '{}' could not be found",
-                            edge_json.to_node
-                        ))
-                    })?
-            };
+        let to_node = Self::try_get_node(db, &to_entity, &edge_json.to_node)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!(
+                    "Node of name '{}' could not be found",
+                    edge_json.to_node
+                ))
+            })?;
 
         Ok((relation.name, from_node, to_node))
     }
@@ -210,10 +181,10 @@ impl Mutate {
         stmt.expr(Expr::col(Alias::new("id")))
             .from(Alias::new(&format_node_table_name(entity.name.as_str())))
             .and_where(Expr::col(Alias::new("name")).eq(node_name));
-        let node = Node::find_by_statement(builder.build(&stmt))
+        let to_node = Node::find_by_statement(builder.build(&stmt))
             .one(db)
             .await?;
 
-        Ok(node)
+        Ok(to_node)
     }
 }
