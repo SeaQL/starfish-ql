@@ -1,6 +1,6 @@
 use crate::api::db::pool::Db;
 use crate::api::ErrorResponder;
-use crate::mutate::{EdgeJson, Mutate, NodeJson, ClearEdgeJson};
+use crate::mutate::{ClearEdgeJson, EdgeJson, Mutate, NodeJson};
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;

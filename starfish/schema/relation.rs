@@ -5,7 +5,7 @@ use crate::core::entities::{entity, relation};
 use sea_orm::{
     ActiveModelTrait, ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, QueryFilter, Set,
 };
-use sea_query::{Alias, ColumnDef, ForeignKey, Table};
+use sea_query::{Alias, ColumnDef, ForeignKey, Index, Table};
 use serde::{Deserialize, Serialize};
 
 /// Metadata of relation, deserialized as struct from json

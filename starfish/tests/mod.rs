@@ -5,7 +5,7 @@ use sea_orm::{DbConn, DbErr};
 use starfish::{
     api::db::schema::create_tables,
     core::entities::entity_attribute::Datatype,
-    mutate::{EdgeJson, Mutate, NodeJson, ClearEdgeJson},
+    mutate::{ClearEdgeJson, EdgeJson, Mutate, NodeJson},
     schema::{EntityAttrJson, EntityJson, RelationJson, Schema},
 };
 use std::collections::HashMap;
