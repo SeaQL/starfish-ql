@@ -37,6 +37,9 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     // Update metadata when everything is ready
     shouldLog && console.log("Updating metadata...");
     await createMetadata(metadata.filePath, shouldLog, repoPath);
+
+    // Clean up
+    await promisedExecInFolder(dataPath, "rm diff");
 };
 
 module.exports = {
