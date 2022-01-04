@@ -12,13 +12,18 @@ const insertDataIntoDatabase = async (data, shouldLog = true) => {
             version: datum.vers,
         });
 
+        const depNames = new Set();
         for (let dep of datum.deps) {
+            if (dep.kind === "dev" || depNames.has(datum.name)) {
+                continue;
+            }
+            depNames.add(datum.name);
             // Create depends edge
             await insertDependsEdge(datum.name, dep.name);
         }
 
         shouldLog
-            && ((i + 1) % 50 === 0 || (i + 1) === numData)
+            && ((i + 1) % 100 === 0 || (i + 1) === numData)
             && console.log(`Inserting into Database... ${i + 1}/${numData}`);
     };
 }

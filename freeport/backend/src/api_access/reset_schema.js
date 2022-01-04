@@ -35,7 +35,7 @@ const createRelation = async () => {
 };
 
 const resetSchema = async () => {
-    // await resetDatabase();
+    await resetDatabase();
     await createEntity();
     await createRelation();
 };
