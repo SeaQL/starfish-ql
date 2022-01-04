@@ -149,26 +149,32 @@ impl Mutate {
                 ))
             })?;
 
-        let builder = db.get_database_backend();
-
-        let mut stmt = Query::select();
-        stmt.expr(Expr::col(Alias::new("id")))
-            .from(Alias::new(&format_node_table_name(
-                from_entity.name.as_str(),
-            )))
-            .and_where(Expr::col(Alias::new("name")).eq(edge_json.from_node.as_str()));
-        let from_node = Node::find_by_statement(builder.build(&stmt))
-            .one(db)
-            .await?
-            .ok_or_else(|| {
-                DbErr::Custom(format!(
-                    "Node of name '{}' could not be found",
-                    edge_json.from_node
-                ))
-            })?;
+        let from_node = if let Some(from_node) =
+            Self::try_get_node(db, &from_entity, &edge_json.from_node).await?
+        {
+            from_node
+        } else {
+            Mutate::insert_node(
+                db,
+                NodeJson {
+                    of: from_entity.name.to_owned(),
+                    name: edge_json.from_node.to_owned(),
+                    attributes: Default::default(),
+                },
+            )
+            .await?;
+            Self::try_get_node(db, &from_entity, &edge_json.from_node)
+                .await?
+                .ok_or_else(|| {
+                    DbErr::Custom(format!(
+                        "Node of name '{}' could not be found",
+                        edge_json.from_node
+                    ))
+                })?
+        };
 
         let to_node =
-            if let Some(to_node) = Self::try_get_to_node(db, &to_entity, &edge_json).await? {
+            if let Some(to_node) = Self::try_get_node(db, &to_entity, &edge_json.to_node).await? {
                 to_node
             } else {
                 Mutate::insert_node(
@@ -180,7 +186,7 @@ impl Mutate {
                     },
                 )
                 .await?;
-                Self::try_get_to_node(db, &to_entity, &edge_json)
+                Self::try_get_node(db, &to_entity, &edge_json.to_node)
                     .await?
                     .ok_or_else(|| {
                         DbErr::Custom(format!(
@@ -193,17 +199,17 @@ impl Mutate {
         Ok((relation.name, from_node, to_node))
     }
 
-    async fn try_get_to_node(
+    async fn try_get_node(
         db: &DbConn,
-        to_entity: &entity::Model,
-        edge_json: &EdgeJson,
+        entity: &entity::Model,
+        node_name: &str,
     ) -> Result<Option<Node>, DbErr> {
         let builder = db.get_database_backend();
 
         let mut stmt = Query::select();
         stmt.expr(Expr::col(Alias::new("id")))
-            .from(Alias::new(&format_node_table_name(to_entity.name.as_str())))
-            .and_where(Expr::col(Alias::new("name")).eq(edge_json.to_node.as_str()));
+            .from(Alias::new(&format_node_table_name(entity.name.as_str())))
+            .and_where(Expr::col(Alias::new("name")).eq(node_name));
         let to_node = Node::find_by_statement(builder.build(&stmt))
             .one(db)
             .await?;
