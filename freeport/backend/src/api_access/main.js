@@ -18,7 +18,7 @@ const insertDataIntoDatabase = async (data, shouldLog = true) => {
         }
 
         shouldLog
-            && ((i + 1) % 1000 === 0 || (i + 1) === numData)
+            && ((i + 1) % 50 === 0 || (i + 1) === numData)
             && console.log(`Inserting into Database... ${i + 1}/${numData}`);
     };
 }

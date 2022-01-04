@@ -34,7 +34,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     shouldLog && console.log("All file paths loaded.");
 
     // Store the last entry of each crate file into entries
-    const numPaths = allFilePaths.length;
+    const numPaths = 100; //allFilePaths.length;
     const entries = []
     for (let i = 0; i < numPaths; ++i) {
         shouldLog

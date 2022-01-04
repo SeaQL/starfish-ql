@@ -1,5 +1,5 @@
 const { promisedExec, promisedExecInFolder } = require("./util");
-const { verifyMetadata } = require("./meta");
+const { parseMetadata } = require("./meta");
 const { initialScrap } = require("./initial");
 const { updateScrap } = require("./update");
 
@@ -12,11 +12,6 @@ const scrap = async ({
     const META_NAME = "meta";
 
     const folders = await promisedExec("ls");
-
-    // DEBUG ONLY - Remove data
-    if (folders.find((folder) => DATA_PATH.search(folder))) {
-        await promisedExec(`rm -rf ${DATA_PATH}`);
-    }
 
     // Make sure the repo is ready.
     if (!folders.find((folder) => folder === REPO_NAME)) {
@@ -31,10 +26,11 @@ const scrap = async ({
     await promisedExecInFolder(REPO_NAME, "git checkout master && git pull && git merge --ff-only");
 
     // Branch on whether the metadata file is verified
-    if (await verifyMetadata(DATA_PATH + META_NAME, shouldLog)) {
-        await updateScrap(shouldLog);
-    } else {
+    const metadata = await parseMetadata(DATA_PATH + META_NAME, shouldLog);
+    if (metadata === null) {
         await initialScrap(shouldLog, DATA_PATH, META_NAME, REPO_NAME);
+    } else {
+        await updateScrap(shouldLog, metadata, DATA_PATH, REPO_NAME);
     }
 };
 

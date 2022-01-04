@@ -9,13 +9,16 @@ const { promisedExec, promisedExecInFolder } = require("./util");
 const NUM_METADATA = 1;
 
 /// Assumes that a folder exists at 'path' and `touch 'path'` does not throw.
-/// If a file already exists at 'path', it is appended.
+/// If a file already exists at 'path', it is removed before a new one is created.
 const createMetadata = async (
     path,
     shouldLog,
     repoPath
 ) => {
     // Create a file at 'path'
+    try {
+        await promisedExec(`rm ${path}`);
+    } catch (e) {}
     await promisedExec(`touch ${path}`);
 
     // Write entries to 'path'
@@ -28,33 +31,35 @@ const createMetadata = async (
     shouldLog && console.log(`Metadata file created at ${path}`);
 };
 
-const verifyMetadata = async (path, shouldLog) => {
+const parseMetadata = async (path, shouldLog) => {
     // Test for existence
     try {
         await promisedExec(`ls ${path}`);
     } catch (e) {
         shouldLog && console.log(`Metadata does not exist at ${path}.`);
-        return false;
+        return null;
     }
 
     // Test for correctness
-    const metadata = await promisedExec(`cat ${path}`);
-    if (metadata.length !== NUM_METADATA) {
+    const metadata = { filePath: path };
+    const metadataLines = await promisedExec(`cat ${path}`);
+
+    if (metadataLines.length !== NUM_METADATA) {
         shouldLog && console.log("Bad number of metadata.");
-        return false;
+        return null;
     }
 
-    const lastCommitHash = metadata[0];
-    if (lastCommitHash.length !== 40) {
+    metadata.lastCommitHash = metadataLines[0];
+    if (metadata.lastCommitHash.length !== 40) {
         shouldLog && console.log("Bad last commit hash.");
-        return false;
+        return null;
     }
 
     shouldLog && console.log("Metadata is verified");
-    return true;
+    return metadata;
 };
 
 module.exports = {
     createMetadata,
-    verifyMetadata,
+    parseMetadata,
 };
