@@ -32,7 +32,7 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     const data = Array.from(dataMap.values());
 
     shouldLog && console.log("Updating crates: ", data.map((datum) => datum.name));
-    // await insertDataIntoDatabase(data, { shouldLog });
+    await insertDataIntoDatabase(data, { shouldLog });
 
     // Update metadata when everything is ready
     shouldLog && console.log("Updating metadata...");
