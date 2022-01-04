@@ -1,6 +1,7 @@
 use crate::api::db::pool::Db;
 use crate::api::ErrorResponder;
 use crate::mutate::{ClearEdgeJson, EdgeJson, Mutate, NodeJson};
+use rocket::futures::future::try_join_all;
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;
@@ -38,11 +39,13 @@ async fn insert_node_batch(
     let db = conn.into_inner();
     let node_jsons = input_data.clone();
 
-    for node_json in node_jsons {
-        Mutate::insert_node(db, node_json)
-            .await
-            .map_err(Into::into)?;
-    }
+    try_join_all(
+        node_jsons
+            .into_iter()
+            .map(|node_json| Mutate::insert_node(db, node_json)),
+    )
+    .await
+    .map_err(Into::into)?;
 
     Ok(())
 }
@@ -70,11 +73,13 @@ async fn insert_edge_batch(
     let db = conn.into_inner();
     let edge_jsons = input_data.clone();
 
-    for edge_json in edge_jsons {
-        Mutate::insert_edge(db, edge_json)
-            .await
-            .map_err(Into::into)?;
-    }
+    try_join_all(
+        edge_jsons
+            .into_iter()
+            .map(|edge_json| Mutate::insert_edge(db, edge_json)),
+    )
+    .await
+    .map_err(Into::into)?;
 
     Ok(())
 }
