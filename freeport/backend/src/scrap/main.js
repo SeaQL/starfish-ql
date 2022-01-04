@@ -23,7 +23,7 @@ const scrap = async ({
     }
 
     // Make sure the repo is up to date
-    await promisedExecInFolder(REPO_NAME, "git checkout master && git pull && git merge --ff-only");
+    await promisedExecInFolder(REPO_NAME, "git checkout master && git pull");
 
     // Branch on whether the metadata file is verified
     const metadata = await parseMetadata(DATA_PATH + META_NAME, shouldLog);
