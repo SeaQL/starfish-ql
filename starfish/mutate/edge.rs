@@ -210,10 +210,10 @@ impl Mutate {
         stmt.expr(Expr::col(Alias::new("id")))
             .from(Alias::new(&format_node_table_name(entity.name.as_str())))
             .and_where(Expr::col(Alias::new("name")).eq(node_name));
-        let to_node = Node::find_by_statement(builder.build(&stmt))
+        let node = Node::find_by_statement(builder.build(&stmt))
             .one(db)
             .await?;
 
-        Ok(to_node)
+        Ok(node)
     }
 }
