@@ -20,6 +20,15 @@ pub struct EdgeJson {
     pub to_node: String,
 }
 
+/// Metadata of a edge, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct ClearEdgeJson {
+    /// Name of relation
+    pub name: String,
+    /// Name of node
+    pub node: String,
+}
+
 /// Storing temporary query result
 #[derive(Debug, FromQueryResult)]
 struct Node {
@@ -50,6 +59,57 @@ impl Mutate {
         stmt.from_table(Alias::new(&format_edge_table_name(relation_name)))
             .and_where(Expr::col(Alias::new("from_node_id")).eq(from_node.id))
             .and_where(Expr::col(Alias::new("to_node_id")).eq(to_node.id));
+
+        let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+
+        Ok(())
+    }
+
+    /// Clear edge
+    pub async fn clear_edge(db: &DbConn, clear_edge_json: ClearEdgeJson) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
+
+        let relation = relation::Entity::find()
+            .filter(relation::Column::Name.eq(clear_edge_json.name.as_str()))
+            .one(db)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!(
+                    "Relation of name '{}' could not be found",
+                    clear_edge_json.name
+                ))
+            })?;
+
+        let from_entity = entity::Entity::find_by_id(relation.from_entity_id)
+            .one(db)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!(
+                    "Entity of id '{}' could not be found",
+                    relation.from_entity_id
+                ))
+            })?;
+
+        let mut stmt = Query::select();
+        stmt.expr(Expr::col(Alias::new("id")))
+            .from(Alias::new(&format_node_table_name(
+                from_entity.name.as_str(),
+            )))
+            .and_where(Expr::col(Alias::new("name")).eq(clear_edge_json.node.as_str()));
+        let from_node = Node::find_by_statement(builder.build(&stmt))
+            .one(db)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!(
+                    "Node of name '{}' could not be found",
+                    clear_edge_json.node
+                ))
+            })?;
+
+        let mut stmt = Query::delete();
+        stmt.from_table(Alias::new(&format_edge_table_name(clear_edge_json.name)))
+            .and_where(Expr::col(Alias::new("from_node_id")).eq(from_node.id));
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;

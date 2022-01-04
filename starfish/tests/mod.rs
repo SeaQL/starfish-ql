@@ -5,7 +5,7 @@ use sea_orm::{DbConn, DbErr};
 use starfish::{
     api::db::schema::create_tables,
     core::entities::entity_attribute::Datatype,
-    mutate::{EdgeJson, Mutate, NodeJson},
+    mutate::{EdgeJson, Mutate, NodeJson, ClearEdgeJson},
     schema::{EntityAttrJson, EntityJson, RelationJson, Schema},
 };
 use std::collections::HashMap;
@@ -23,6 +23,7 @@ async fn main() -> Result<(), DbErr> {
     test_delete_node(db).await?;
     test_insert_edge(db).await?;
     test_delete_edge(db).await?;
+    test_clear_edge(db).await?;
 
     Ok(())
 }
@@ -157,6 +158,19 @@ async fn test_delete_edge(db: &DbConn) -> Result<(), DbErr> {
             name: "depends".to_owned(),
             from_node: "sea-orm".to_owned(),
             to_node: "sea-schema".to_owned(),
+        },
+    )
+    .await?;
+
+    Ok(())
+}
+
+async fn test_clear_edge(db: &DbConn) -> Result<(), DbErr> {
+    Mutate::clear_edge(
+        db,
+        ClearEdgeJson {
+            name: "depends".to_owned(),
+            node: "sea-orm".to_owned(),
         },
     )
     .await?;
