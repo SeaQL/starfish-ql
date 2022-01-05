@@ -1,7 +1,6 @@
 use crate::api::db::pool::Db;
 use crate::api::ErrorResponder;
-use crate::mutate::{ClearEdgeJson, EdgeJson, Mutate, NodeJson};
-use rocket::futures::future::try_join_all;
+use crate::mutate::{ClearEdgeJson, EdgeJson, EdgeJsonBatch, Mutate, NodeJson, NodeJsonBatch};
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;
@@ -34,18 +33,14 @@ async fn insert_node(
 #[post("/insert-node-batch", data = "<input_data>")]
 async fn insert_node_batch(
     conn: Connection<'_, Db>,
-    input_data: Json<Vec<NodeJson>>,
+    input_data: Json<NodeJsonBatch>,
 ) -> Result<(), ErrorResponder> {
     let db = conn.into_inner();
-    let node_jsons = input_data.clone();
+    let node_json_batch = input_data.clone();
 
-    try_join_all(
-        node_jsons
-            .into_iter()
-            .map(|node_json| Mutate::insert_node(db, node_json)),
-    )
-    .await
-    .map_err(Into::into)?;
+    Mutate::insert_node_batch(db, node_json_batch)
+        .await
+        .map_err(Into::into)?;
 
     Ok(())
 }
@@ -68,18 +63,14 @@ async fn insert_edge(
 #[post("/insert-edge-batch", data = "<input_data>")]
 async fn insert_edge_batch(
     conn: Connection<'_, Db>,
-    input_data: Json<Vec<EdgeJson>>,
+    input_data: Json<EdgeJsonBatch>,
 ) -> Result<(), ErrorResponder> {
     let db = conn.into_inner();
-    let edge_jsons = input_data.clone();
+    let edge_json_batch = input_data.clone();
 
-    try_join_all(
-        edge_jsons
-            .into_iter()
-            .map(|edge_json| Mutate::insert_edge(db, edge_json)),
-    )
-    .await
-    .map_err(Into::into)?;
+    Mutate::insert_edge_batch(db, edge_json_batch)
+        .await
+        .map_err(Into::into)?;
 
     Ok(())
 }

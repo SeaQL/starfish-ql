@@ -57,24 +57,24 @@ pub async fn create_relation_table(db: &DbConn) -> Result<ExecResult, DbErr> {
                 .not_null()
                 .unique_key(),
         )
-        .col(ColumnDef::new(Column::FromEntityId).integer().not_null())
-        .col(ColumnDef::new(Column::ToEntityId).integer().not_null())
+        .col(ColumnDef::new(Column::FromEntity).string().not_null())
+        .col(ColumnDef::new(Column::ToEntity).string().not_null())
         .col(ColumnDef::new(Column::Directed).boolean().not_null())
         .foreign_key(
             ForeignKeyCreateStatement::new()
-                .name("fk-relation-entity-1")
+                .name("fk-relation-from_entity")
                 .from_tbl(Entity)
-                .from_col(Column::FromEntityId)
+                .from_col(Column::FromEntity)
                 .to_tbl(entity::Entity)
-                .to_col(entity::Column::Id),
+                .to_col(entity::Column::Name),
         )
         .foreign_key(
             ForeignKeyCreateStatement::new()
-                .name("fk-relation-entity-2")
+                .name("fk-relation-to_entity")
                 .from_tbl(Entity)
-                .from_col(Column::ToEntityId)
+                .from_col(Column::ToEntity)
                 .to_tbl(entity::Entity)
-                .to_col(entity::Column::Id),
+                .to_col(entity::Column::Name),
         )
         .to_owned();
 
