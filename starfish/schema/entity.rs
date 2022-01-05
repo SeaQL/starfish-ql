@@ -83,6 +83,18 @@ impl Schema {
                     .string()
                     .not_null()
                     .unique_key(),
+            )
+            .col(
+                ColumnDef::new(Alias::new("in_conn"))
+                    .integer()
+                    .not_null()
+                    .default(0),
+            )
+            .col(
+                ColumnDef::new(Alias::new("out_conn"))
+                    .integer()
+                    .not_null()
+                    .default(0),
             );
 
         for attribute in entity_json.attributes.into_iter() {
