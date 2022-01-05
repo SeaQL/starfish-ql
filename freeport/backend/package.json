@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node .",
+    "restart": "rm -rf data && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
