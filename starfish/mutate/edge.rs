@@ -15,6 +15,24 @@ pub struct EdgeJson {
     pub to_node: String,
 }
 
+/// Metadata of edges in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EdgeJsonBatch {
+    /// Name of relation
+    pub name: String,
+    /// Vector of edges
+    pub edges: Vec<Edge>,
+}
+
+/// Metadata of a edge in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Edge {
+    /// Name of related node (from side)
+    pub from_node: String,
+    /// Name of related node (to side)
+    pub to_node: String,
+}
+
 /// Metadata of a edge, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ClearEdgeJson {
@@ -27,10 +45,31 @@ pub struct ClearEdgeJson {
 impl Mutate {
     /// Insert edge
     pub async fn insert_edge(db: &DbConn, edge_json: EdgeJson) -> Result<(), DbErr> {
+        Self::insert_edge_batch(
+            db,
+            EdgeJsonBatch {
+                name: edge_json.name,
+                edges: vec![Edge {
+                    from_node: edge_json.from_node,
+                    to_node: edge_json.to_node,
+                }],
+            },
+        )
+        .await
+    }
+
+    /// Insert edge in batch
+    pub async fn insert_edge_batch(
+        db: &DbConn,
+        edge_json_batch: EdgeJsonBatch,
+    ) -> Result<(), DbErr> {
         let mut stmt = Query::insert();
-        stmt.into_table(Alias::new(&format_edge_table_name(edge_json.name)))
-            .columns([Alias::new("from_node"), Alias::new("to_node")])
-            .values_panic([edge_json.from_node.into(), edge_json.to_node.into()]);
+        stmt.into_table(Alias::new(&format_edge_table_name(edge_json_batch.name)))
+            .columns([Alias::new("from_node"), Alias::new("to_node")]);
+
+        for edge_json in edge_json_batch.edges.into_iter() {
+            stmt.values_panic([edge_json.from_node.into(), edge_json.to_node.into()]);
+        }
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
