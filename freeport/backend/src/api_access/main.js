@@ -75,13 +75,15 @@ const insertDataIntoDatabaseAndLogErrors = async (
     if (errors.length > 0) {
         await promisedExecInFolder(logPath, "touch errors")
         for (let e of errors) {
-            const jsonString = JSON.stringify(e, (key, value) => {
-                if (key === "config") {
-                    return { ... value, errorMsg: value.request.data };
-                }
-                return value;
-            });
-            await writeToEndOfFile(logPath + "errors", jsonString + "\n");
+            e.errMsg = e.response.data;
+            e.tempToJSON = e.toJSON;
+            e.toJSON = () => {
+                const json = e.tempToJSON();
+                json.errMsg = e.response.data;
+                return json;
+            };
+            console.log(Object.keys(e));
+            await writeToEndOfFile(logPath + "errors", JSON.stringify(e) + "\n");
         }
     }
 };
