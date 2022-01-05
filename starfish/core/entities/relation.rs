@@ -8,8 +8,8 @@ pub struct Model {
     pub id: i32,
     #[sea_orm(unique)]
     pub name: String,
-    pub from_entity_id: i32,
-    pub to_entity_id: i32,
+    pub from_entity: String,
+    pub to_entity: String,
     pub directed: bool,
 }
 
@@ -17,14 +17,14 @@ pub struct Model {
 pub enum Relation {
     #[sea_orm(
         belongs_to = "super::entity::Entity",
-        from = "Column::FromEntityId",
-        to = "super::entity::Column::Id"
+        from = "Column::FromEntity",
+        to = "super::entity::Column::Name"
     )]
     FromEntity,
     #[sea_orm(
         belongs_to = "super::entity::Entity",
-        from = "Column::ToEntityId",
-        to = "super::entity::Column::Id"
+        from = "Column::ToEntity",
+        to = "super::entity::Column::Name"
     )]
     ToEntity,
 }
