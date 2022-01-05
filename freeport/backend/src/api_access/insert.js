@@ -21,7 +21,10 @@ const createCrateNode = createNode("crate");
 const insertNodesBatch = async (nodes) => {
     await postRequest(
         constructUrl("mutate/insert-node-batch"),
-        nodes
+        {
+            of: "crate",
+            nodes,
+        }
     )
 };
 
@@ -45,7 +48,10 @@ const createDependsEdge = createEdge("depends");
 const insertEdgesBatch = async (edges) => {
     await postRequest(
         constructUrl("mutate/insert-edge-batch"),
-        edges
+        {
+            name: "depends",
+            edges,
+        }
     )
 };
 

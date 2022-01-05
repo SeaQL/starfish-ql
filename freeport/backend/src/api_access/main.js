@@ -5,7 +5,7 @@ const { insertNodesBatch, insertEdgesBatch, createCrateNode, createDependsEdge }
 const insertDataIntoDatabase = async (
     data,
     {
-        batchReleaseThreshold = 1000,
+        batchReleaseThreshold = 10000,
         shouldLog = true
     } = {}
 ) => {
