@@ -7,8 +7,8 @@ const now = () => (new Date()).getTime();
 /// 'data' is obtained from the 'scrap/main' module.
 const insertDataIntoDatabase = async (
     data,
+    batchReleaseThreshold,
     {
-        batchReleaseThreshold = 3000,
         shouldLog = true
     } = {}
 ) => {
@@ -70,7 +70,7 @@ const insertDataIntoDatabaseAndLogErrors = async (
         shouldLog = true
     } = {}
 ) => {
-    const errors = await insertDataIntoDatabase(data, { batchReleaseThreshold, shouldLog });
+    const errors = await insertDataIntoDatabase(data, batchReleaseThreshold, { shouldLog });
     if (errors.length > 0) {
         await promisedExecInFolder(logPath, "touch errors")
         for (let e of errors) {

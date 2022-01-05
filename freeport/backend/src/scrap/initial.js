@@ -1,9 +1,14 @@
 const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
+const { resetSchema } = require("../api_access/reset_schema");
 const { readFileLineByLine, readLastLineOfFile } = require("./file_reader");
 const { createMetadata } = require("./meta");
 const { promisedExec, promisedExecInFolder } = require("./util");
 
 const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
+    // Reset database
+    await resetSchema();
+    shouldLog && console.log("Resetting database...");
+
     shouldLog && console.log("Commencing initial scrap...");
 
     // Clear data and metadata
@@ -46,7 +51,14 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     };
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 
-    await insertDataIntoDatabaseAndLogErrors(entries, dataPath, { shouldLog });
+    await insertDataIntoDatabaseAndLogErrors(
+        entries,
+        dataPath,
+        {
+            batchReleaseThreshold: 4000,
+            shouldLog
+        }
+    );
 
     // Create metadata when everything is ready
     shouldLog && console.log("Creating metadata...");

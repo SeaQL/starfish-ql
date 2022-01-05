@@ -39,7 +39,7 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     await createMetadata(metadata.filePath, shouldLog, repoPath);
 
     // Clean up
-    await promisedExecInFolder(dataPath, "diff");
+    await promisedExecInFolder(dataPath, "rm diff");
 };
 
 module.exports = {
