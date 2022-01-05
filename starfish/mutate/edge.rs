@@ -1,6 +1,6 @@
 use super::Mutate;
 use crate::schema::format_edge_table_name;
-use sea_orm::{ConnectionTrait, DbConn, DbErr};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, Statement};
 use sea_query::{Alias, Expr, Query};
 use serde::{Deserialize, Serialize};
 
@@ -74,6 +74,8 @@ impl Mutate {
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
 
+        Self::update_connectivity(db).await?;
+
         Ok(())
     }
 
@@ -87,6 +89,8 @@ impl Mutate {
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
 
+        Self::update_connectivity(db).await?;
+
         Ok(())
     }
 
@@ -98,6 +102,18 @@ impl Mutate {
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
+
+        Self::update_connectivity(db).await?;
+
+        Ok(())
+    }
+
+    async fn update_connectivity(db: &DbConn) -> Result<(), DbErr> {
+        db.execute(Statement::from_string(db.get_database_backend(), [
+            "UPDATE node_crate",
+            "SET in_conn = (SELECT COUNT(*) FROM edge_depends WHERE to_node = node_crate.name),",
+            "out_conn = (SELECT COUNT(*) FROM edge_depends WHERE from_node = node_crate.name)",
+        ].join(" "))).await?;
 
         Ok(())
     }
