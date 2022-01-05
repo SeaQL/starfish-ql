@@ -49,7 +49,7 @@ const insertDataIntoDatabase = async (
     const errors = [];
     const errorHandler = (e) => {
         errors.push(e);
-        console.error(e);
+        console.error(e.response.data);
     };
     const nodesBatch = new AsyncBatch(batchReleaseThreshold, insertNodesBatch, shouldLog, errorHandler);
     const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertEdgesBatch, shouldLog, errorHandler);
@@ -60,10 +60,10 @@ const insertDataIntoDatabase = async (
     shouldLog && console.log(
         `Inserted ${nodes.length + edges.length} items into database in ${Math.round((now() - startTime) / 1000)}s with ${errors.length} errors caught.`
     );
-    return errors;
+    return { nodes, edges, errors };
 }
 
-const insertDataIntoDatabaseAndLogErrors = async (
+const insertDataIntoDatabaseAndLog = async (
     data,
     logPath,
     {
@@ -71,10 +71,9 @@ const insertDataIntoDatabaseAndLogErrors = async (
         shouldLog = true
     } = {}
 ) => {
-    const errors = await insertDataIntoDatabase(data, batchReleaseThreshold, { shouldLog });
-    if (errors.length > 0) {
-        await promisedExecInFolder(logPath, "touch errors")
-        for (let e of errors) {
+    const result = await insertDataIntoDatabase(data, batchReleaseThreshold, { shouldLog });
+    if (result.errors.length > 0) {
+        for (let e of result.errors) {
             e.errMsg = e.response.data;
             e.tempToJSON = e.toJSON;
             e.toJSON = () => {
@@ -82,13 +81,18 @@ const insertDataIntoDatabaseAndLogErrors = async (
                 json.errMsg = e.response.data;
                 return json;
             };
-            console.log(Object.keys(e));
-            await writeToEndOfFile(logPath + "errors", JSON.stringify(e) + "\n");
         }
     }
+
+    await promisedExecInFolder(logPath, "touch log.js");
+    await writeToEndOfFile(logPath + "log.js",
+        "// This file's nodes and edges only reflect the items after the last initialScrap() operation.\n" +
+        "// Some edges in this file contain non-existent nodes (e.g. 'ptable').\n"
+    );
+    await writeToEndOfFile(logPath + "log.js", JSON.stringify(result) + "\n");
 };
 
 module.exports = {
     insertDataIntoDatabase,
-    insertDataIntoDatabaseAndLogErrors,
+    insertDataIntoDatabaseAndLog,
 };

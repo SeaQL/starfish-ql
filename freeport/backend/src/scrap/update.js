@@ -1,4 +1,4 @@
-const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
+const { insertDataIntoDatabaseAndLog } = require("../api_access/main");
 const { readFileLineByLine } = require("./file_io");
 const { createMetadata } = require("./meta");
 const { promisedExecInFolder } = require("./util");
@@ -32,7 +32,7 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     const data = Array.from(dataMap.values());
 
     shouldLog && console.log("Updating crates: ", data.map((datum) => datum.name));
-    await insertDataIntoDatabaseAndLogErrors(data, dataPath, { shouldLog });
+    await insertDataIntoDatabaseAndLog(data, dataPath, { shouldLog });
 
     // Update metadata when everything is ready
     shouldLog && console.log("Updating metadata...");

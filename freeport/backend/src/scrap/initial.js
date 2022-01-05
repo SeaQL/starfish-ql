@@ -1,4 +1,4 @@
-const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
+const { insertDataIntoDatabaseAndLog } = require("../api_access/main");
 const { resetSchema } = require("../api_access/reset_schema");
 const { readFileLineByLine, readLastLineOfFile } = require("./file_io");
 const { createMetadata } = require("./meta");
@@ -43,7 +43,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     const entries = [];
     for (let i = 0; i < numPaths; ++i) {
         shouldLog
-        && ((i+1) % 1000 === 0 || (i+1) === numPaths)
+        && ((i+1) % 10000 === 0 || (i+1) === numPaths)
         && console.log(`Data entries loading... ${i+1}/${numPaths}`);
         
         const entry = await readLastLineOfFile(allFilePaths[i]);
@@ -51,7 +51,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     };
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 
-    await insertDataIntoDatabaseAndLogErrors(
+    await insertDataIntoDatabaseAndLog(
         entries,
         dataPath,
         {
