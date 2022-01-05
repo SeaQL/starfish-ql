@@ -30,7 +30,7 @@ const scrap = async ({
     if (metadata === null) {
         await initialScrap(shouldLog, DATA_PATH, META_NAME, REPO_NAME);
     } else {
-        await updateScrap(shouldLog, metadata, DATA_PATH, META_NAME, REPO_NAME);
+        await updateScrap(shouldLog, metadata, DATA_PATH, REPO_NAME);
     }
 };
 

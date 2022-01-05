@@ -1,4 +1,4 @@
-const { insertDataIntoDatabase } = require("../api_access/main");
+const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
 const { readFileLineByLine, readLastLineOfFile } = require("./file_reader");
 const { createMetadata } = require("./meta");
 const { promisedExec, promisedExecInFolder } = require("./util");
@@ -46,14 +46,14 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     };
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 
-    await insertDataIntoDatabase(entries, { shouldLog });
+    await insertDataIntoDatabaseAndLogErrors(entries, dataPath, { shouldLog });
 
     // Create metadata when everything is ready
     shouldLog && console.log("Creating metadata...");
     await createMetadata(dataPath + metaName, shouldLog, repoPath);
 
     // Clean up
-    await promisedExecInFolder(dataPath, `ls | grep -v '${metaName}' | xargs rm`);
+    await promisedExecInFolder(dataPath, `rm paths`);
 };
 
 module.exports = {

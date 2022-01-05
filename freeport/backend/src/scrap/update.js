@@ -1,9 +1,9 @@
-const { insertDataIntoDatabase } = require("../api_access/main");
+const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
 const { readFileLineByLine } = require("./file_reader");
 const { createMetadata } = require("./meta");
 const { promisedExecInFolder } = require("./util");
 
-const updateScrap = async (shouldLog, metadata, dataPath, metaName, repoPath) => {
+const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
 
     const lastCommitHash = metadata.lastCommitHash;
     shouldLog && console.log(`Last commit hash found: ${lastCommitHash}`);
@@ -17,10 +17,10 @@ const updateScrap = async (shouldLog, metadata, dataPath, metaName, repoPath) =>
     }
 
     // Do a git diff from last commit to the most recent commit
-    (await promisedExecInFolder(repoPath, `git diff ${lastCommitHash}...${mostRecentCommitHash} > ../${dataPath}diff`))
+    await promisedExecInFolder(repoPath, `git diff ${lastCommitHash}...${mostRecentCommitHash} > ../${dataPath}diff`);
     
+    // Keep only the last entry for each crate name
     const dataMap = new Map();
-
     await readFileLineByLine(dataPath + "diff", (line) => {
         // Keep only lines starting with exactly 1 '+'
         if (line.length >= 2 && line[0] === '+' && line[1] !== '+') {
@@ -32,14 +32,14 @@ const updateScrap = async (shouldLog, metadata, dataPath, metaName, repoPath) =>
     const data = Array.from(dataMap.values());
 
     shouldLog && console.log("Updating crates: ", data.map((datum) => datum.name));
-    await insertDataIntoDatabase(data, { shouldLog });
+    await insertDataIntoDatabaseAndLogErrors(data, dataPath, { shouldLog });
 
     // Update metadata when everything is ready
     shouldLog && console.log("Updating metadata...");
     await createMetadata(metadata.filePath, shouldLog, repoPath);
 
     // Clean up
-    await promisedExecInFolder(dataPath, `ls | grep -v '${metaName}' | xargs rm`);
+    await promisedExecInFolder(dataPath, "diff");
 };
 
 module.exports = {
