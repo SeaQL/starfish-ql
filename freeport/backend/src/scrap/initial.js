@@ -53,7 +53,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     await createMetadata(dataPath + metaName, shouldLog, repoPath);
 
     // Clean up
-    await promisedExecInFolder(dataPath, "rm paths");
+    await promisedExecInFolder(dataPath, `ls | grep -v '${metaName}' | xargs rm`);
 };
 
 module.exports = {

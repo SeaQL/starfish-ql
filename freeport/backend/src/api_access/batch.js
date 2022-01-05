@@ -28,7 +28,7 @@ class AsyncBatch {
         for (let i = 0; i < numItems; ++i) {
             await this.push(items[i]);
             this.shouldLog
-                && (i+1) % 1000 === 0    
+                && (i+1) % this.releaseThreshold === 0    
                 && console.log(`Consuming ${name}: ${i+1}/${numItems}`);
         }
         await this.release();

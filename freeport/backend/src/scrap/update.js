@@ -3,7 +3,7 @@ const { readFileLineByLine } = require("./file_reader");
 const { createMetadata } = require("./meta");
 const { promisedExecInFolder } = require("./util");
 
-const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
+const updateScrap = async (shouldLog, metadata, dataPath, metaName, repoPath) => {
 
     const lastCommitHash = metadata.lastCommitHash;
     shouldLog && console.log(`Last commit hash found: ${lastCommitHash}`);
@@ -39,7 +39,7 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     await createMetadata(metadata.filePath, shouldLog, repoPath);
 
     // Clean up
-    await promisedExecInFolder(dataPath, "rm diff");
+    await promisedExecInFolder(dataPath, `ls | grep -v '${metaName}' | xargs rm`);
 };
 
 module.exports = {
