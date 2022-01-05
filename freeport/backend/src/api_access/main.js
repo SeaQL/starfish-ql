@@ -78,6 +78,7 @@ const insertDataIntoDatabaseAndLog = async (
             e.tempToJSON = e.toJSON;
             e.toJSON = () => {
                 const json = e.tempToJSON();
+                json.logTime = new Date();
                 json.errMsg = e.response.data;
                 return json;
             };
@@ -86,10 +87,9 @@ const insertDataIntoDatabaseAndLog = async (
 
     await promisedExecInFolder(logPath, "touch log.js");
     await writeToEndOfFile(logPath + "log.js",
-        "// This file's nodes and edges only reflect the items after the last initialScrap() operation.\n" +
-        "// Some edges in this file contain non-existent nodes (e.g. 'ptable').\n"
+        "// Some edges in this file may contain non-existent nodes (e.g. 'ptable').\n"
     );
-    await writeToEndOfFile(logPath + "log.js", JSON.stringify(result) + "\n");
+    await writeToEndOfFile(logPath + "log.js", JSON.stringify(result) + ";\n\n");
 };
 
 module.exports = {

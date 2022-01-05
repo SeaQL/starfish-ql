@@ -6,10 +6,10 @@ const { promisedExecInFolder } = require("./util");
 const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
 
     const lastCommitHash = metadata.lastCommitHash;
-    shouldLog && console.log(`Last commit hash found: ${lastCommitHash}`);
+    shouldLog && console.log(`${lastCommitHash} (Last update commit hash)`);
 
     const mostRecentCommitHash = (await promisedExecInFolder(repoPath, "git rev-parse --verify HEAD"))[0];
-    shouldLog && console.log(`Most recent commit hash found: ${mostRecentCommitHash}`);
+    shouldLog && console.log(`${mostRecentCommitHash} (Most recent commit hash)`);
 
     if (lastCommitHash === mostRecentCommitHash) {
         shouldLog && console.log("Commit hashes match. No need to update.");
