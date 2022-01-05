@@ -1,5 +1,5 @@
 const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
-const { readFileLineByLine } = require("./file_reader");
+const { readFileLineByLine } = require("./file_io");
 const { createMetadata } = require("./meta");
 const { promisedExecInFolder } = require("./util");
 

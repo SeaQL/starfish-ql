@@ -1,6 +1,6 @@
 const { insertDataIntoDatabaseAndLogErrors } = require("../api_access/main");
 const { resetSchema } = require("../api_access/reset_schema");
-const { readFileLineByLine, readLastLineOfFile } = require("./file_reader");
+const { readFileLineByLine, readLastLineOfFile } = require("./file_io");
 const { createMetadata } = require("./meta");
 const { promisedExec, promisedExecInFolder } = require("./util");
 
@@ -55,7 +55,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
         entries,
         dataPath,
         {
-            batchReleaseThreshold: 4000,
+            batchReleaseThreshold: 10000,
             shouldLog
         }
     );

@@ -1,3 +1,4 @@
+const { writeToEndOfFile } = require("../scrap/file_io");
 const { promisedExecInFolder } = require("../scrap/util");
 const { AsyncBatch } = require("./batch");
 const { insertNodesBatch, insertEdgesBatch, createCrateNode, createDependsEdge } = require("./insert");
@@ -74,7 +75,13 @@ const insertDataIntoDatabaseAndLogErrors = async (
     if (errors.length > 0) {
         await promisedExecInFolder(logPath, "touch errors")
         for (let e of errors) {
-            await promisedExecInFolder(logPath, `echo "${JSON.stringify(e)}" >> errors`);
+            const jsonString = JSON.stringify(e, (key, value) => {
+                if (key === "config") {
+                    return { ... value, errorMsg: value.request.data };
+                }
+                return value;
+            });
+            await writeToEndOfFile(logPath + "errors", jsonString + "\n");
         }
     }
 };
