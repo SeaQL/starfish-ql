@@ -111,11 +111,7 @@ impl Query {
         let mut links = HashSet::new();
         let mut node_stmt = sea_query::Query::select();
         node_stmt
-            .columns([
-                Alias::new("name"),
-                Alias::new("in_conn"),
-                Alias::new("out_conn"),
-            ])
+            .columns([Alias::new("name"), Alias::new("in_conn")])
             .from(Alias::new("node_crate"));
         let mut edge_stmt = sea_query::Query::select();
         edge_stmt
