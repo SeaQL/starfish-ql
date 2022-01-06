@@ -1,10 +1,11 @@
 //! Graph query engine
 
 use async_recursion::async_recursion;
-use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Order, Statement, Value, Values};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Order, Statement};
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashSet, mem};
+use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::collections::HashSet;
 
 /// Query graph data
 #[derive(Debug)]
@@ -47,7 +48,8 @@ pub struct TreeNodeData {
 }
 
 /// Denotes which side a node belongs to, relative to the **root** node
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
 pub enum TreeNodeType {
     /// Centered
     Root = 0,
@@ -70,7 +72,6 @@ pub struct LinkData {
 struct Node {
     name: String,
     in_conn: i32,
-    out_conn: i32,
 }
 
 #[derive(Debug, FromQueryResult)]
@@ -84,7 +85,7 @@ impl Into<GraphNodeData> for Node {
     fn into(self) -> GraphNodeData {
         GraphNodeData {
             id: self.name,
-            weight: self.in_conn + self.out_conn,
+            weight: self.in_conn,
         }
     }
 }
@@ -112,11 +113,7 @@ impl Query {
         let mut links = HashSet::new();
         let mut node_stmt = sea_query::Query::select();
         node_stmt
-            .columns([
-                Alias::new("name"),
-                Alias::new("in_conn"),
-                Alias::new("out_conn"),
-            ])
+            .columns([Alias::new("name"), Alias::new("in_conn")])
             .from(Alias::new("node_crate"));
         let mut edge_stmt = sea_query::Query::select();
         edge_stmt
@@ -231,139 +228,176 @@ impl Query {
         Ok(())
     }
 
-    // /// Get tree
-    // pub async fn get_tree(db: &DbConn, root_node: String, depth: i32) -> Result<TreeData, DbErr> {
-    //     let mut pending_lib_nodes = Vec::new();
-    //     let mut pending_app_nodes = Vec::new();
-    //     let mut nodes = Vec::new();
-    //     let mut links = Vec::new();
-    //     let mut node_stmt = sea_query::Query::select();
-    //     node_stmt
-    //         .columns([
-    //             Alias::new("name"),
-    //             Alias::new("in_conn"),
-    //             Alias::new("out_conn"),
-    //         ])
-    //         .from(Alias::new("node_crate"));
-    //     let mut edge_stmt = sea_query::Query::select();
-    //     edge_stmt
-    //         .columns([Alias::new("from_node"), Alias::new("to_node")])
-    //         .from(Alias::new("edge_depends"));
+    /// Get tree
+    pub async fn get_tree(
+        db: &DbConn,
+        root_node: String,
+        limit: i32,
+        depth: i32,
+    ) -> Result<TreeData, DbErr> {
+        let builder = db.get_database_backend();
+        let mut pending_lib_nodes = vec![root_node.clone()];
+        let mut pending_app_nodes = vec![root_node.clone()];
+        let mut nodes = HashSet::new();
+        let mut links = Vec::new();
+        let mut node_stmt = sea_query::Query::select();
+        node_stmt
+            .columns([Alias::new("name"), Alias::new("in_conn")])
+            .from(Alias::new("node_crate"));
+        let mut edge_stmt = sea_query::Query::select();
+        edge_stmt
+            .columns([Alias::new("from_node"), Alias::new("to_node")])
+            .from(Alias::new("edge_depends"));
 
-    //     Self::traverse_tree(
-    //         db,
-    //         &mut pending_lib_nodes,
-    //         &mut nodes,
-    //         &mut links,
-    //         &node_stmt,
-    //         &edge_stmt,
-    //         &TreeNodeType::Dependency,
-    //         depth,
-    //     )
-    //     .await?;
+        let mut stmt = node_stmt.clone();
+        stmt.and_where(Expr::col(Alias::new("name")).eq(root_node.as_str()));
+        let node = Node::find_by_statement(builder.build(&stmt))
+            .one(db)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!(
+                    "Root node of name '{}' could not be found",
+                    root_node
+                ))
+            })?;
+        nodes.insert(TreeNodeData {
+            id: node.name,
+            r#type: TreeNodeType::Root,
+        });
 
-    //     Self::traverse_tree(
-    //         db,
-    //         &mut pending_app_nodes,
-    //         &mut nodes,
-    //         &mut links,
-    //         &node_stmt,
-    //         &edge_stmt,
-    //         &TreeNodeType::Dependent,
-    //         depth,
-    //     )
-    //     .await?;
+        if depth > 0 {
+            Self::traverse_tree(
+                db,
+                &mut pending_lib_nodes,
+                &mut nodes,
+                &mut links,
+                &node_stmt,
+                &edge_stmt,
+                &TreeNodeType::Dependency,
+                limit,
+                depth - 1,
+            )
+            .await?;
+        }
 
-    //     Ok(TreeData { nodes, links })
-    // }
+        if depth > 0 {
+            Self::traverse_tree(
+                db,
+                &mut pending_app_nodes,
+                &mut nodes,
+                &mut links,
+                &node_stmt,
+                &edge_stmt,
+                &TreeNodeType::Dependent,
+                limit,
+                depth - 1,
+            )
+            .await?;
+        }
 
-    // #[async_recursion]
-    // #[allow(clippy::too_many_arguments)]
-    // async fn traverse_tree(
-    //     db: &DbConn,
-    //     pending_nodes: &mut Vec<String>,
-    //     nodes: &mut Vec<TreeNodeData>,
-    //     links: &mut Vec<LinkData>,
-    //     node_stmt: &SelectStatement,
-    //     edge_stmt: &SelectStatement,
-    //     node_type: &TreeNodeType,
-    //     depth: i32,
-    // ) -> Result<(), DbErr> {
-    //     if depth <= 0 || pending_nodes.is_empty() {
-    //         return Ok(());
-    //     }
+        Ok(TreeData {
+            nodes: nodes.into_iter().collect(),
+            links,
+        })
+    }
 
-    //     // let pending_nodes = dbg!(pending_nodes);
+    #[async_recursion]
+    #[allow(clippy::too_many_arguments)]
+    async fn traverse_tree(
+        db: &DbConn,
+        pending_nodes: &mut Vec<String>,
+        nodes: &mut HashSet<TreeNodeData>,
+        links: &mut Vec<LinkData>,
+        node_stmt: &SelectStatement,
+        edge_stmt: &SelectStatement,
+        node_type: &TreeNodeType,
+        limit: i32,
+        depth: i32,
+    ) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
 
-    //     let builder = db.get_database_backend();
-    //     let mut node_stmt = node_stmt.clone();
-    //     let target_nodes = mem::take(pending_nodes);
-    //     node_stmt.and_where(Expr::col(Alias::new("name")).is_in(target_nodes));
+        if !pending_nodes.is_empty() {
+            let mut stmts = Vec::new();
+            for node in pending_nodes.iter() {
+                let mut stmt = edge_stmt.clone();
+                match node_type {
+                    TreeNodeType::Root => unreachable!(),
+                    TreeNodeType::Dependency => {
+                        stmt.and_where(Expr::col(Alias::new("from_node")).eq(node.as_str()))
+                    }
+                    TreeNodeType::Dependent => {
+                        stmt.and_where(Expr::col(Alias::new("to_node")).eq(node.as_str()))
+                    }
+                };
+                stmt.limit(limit as u64);
+                let stmt = builder.build(&stmt).to_string();
+                stmts.push(stmt);
+            }
+            let stmt = Statement::from_string(builder, format!("({})", stmts.join(") UNION (")));
+            pending_nodes.clear();
 
-    //     // dbg!(builder.build(&node_stmt));
+            links.extend(
+                Link::find_by_statement(stmt)
+                    .all(db)
+                    .await
+                    .map(|links| {
+                        links
+                            .into_iter()
+                            .map(|edge| {
+                                match node_type {
+                                    TreeNodeType::Root => unreachable!(),
+                                    TreeNodeType::Dependency => {
+                                        pending_nodes.push(edge.to_node.clone())
+                                    }
+                                    TreeNodeType::Dependent => {
+                                        pending_nodes.push(edge.from_node.clone())
+                                    }
+                                }
+                                edge.into()
+                            })
+                            .collect::<Vec<_>>()
+                    })?
+                    .into_iter(),
+            );
+        }
 
-    //     nodes.extend(
-    //         Node::find_by_statement(builder.build(&node_stmt))
-    //             .all(db)
-    //             .await
-    //             .map(|nodes| {
-    //                 nodes
-    //                     .into_iter()
-    //                     .map(|node| {
-    //                         pending_nodes.push(node.name.clone());
-    //                         TreeNodeData {
-    //                             id: node.name,
-    //                             r#type: node_type.clone(),
-    //                         }
-    //                     })
-    //                     .collect::<Vec<_>>()
-    //             })?
-    //             .into_iter(),
-    //     );
+        let mut stmt = node_stmt.clone();
+        stmt.and_where(Expr::col(Alias::new("name")).is_in(pending_nodes.clone()));
 
-    //     let mut edge_stmt = edge_stmt.clone();
-    //     let from_nodes = mem::take(pending_nodes);
-    //     // let from_nodes = dbg!(from_nodes);
-    //     match node_type {
-    //         TreeNodeType::Root => todo!(),
-    //         TreeNodeType::Dependency => todo!(),
-    //         TreeNodeType::Dependent => todo!(),
-    //     }
-    //     edge_stmt.and_where(Expr::col(Alias::new("from_node")).is_in(from_nodes));
+        nodes.extend(
+            Node::find_by_statement(builder.build(&stmt))
+                .all(db)
+                .await
+                .map(|nodes| {
+                    nodes
+                        .into_iter()
+                        .map(|node| {
+                            pending_nodes.push(node.name.clone());
+                            TreeNodeData {
+                                id: node.name,
+                                r#type: node_type.clone(),
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                })?
+                .into_iter(),
+        );
 
-    //     // dbg!(builder.build(&edge_stmt));
+        if depth > 0 && !pending_nodes.is_empty() {
+            Self::traverse_tree(
+                db,
+                pending_nodes,
+                nodes,
+                links,
+                node_stmt,
+                edge_stmt,
+                node_type,
+                limit,
+                depth - 1,
+            )
+            .await?;
+        }
 
-    //     let mut pending_nodes = Vec::new();
-    //     links.extend(
-    //         Link::find_by_statement(builder.build(&edge_stmt))
-    //             .all(db)
-    //             .await
-    //             .map(|links| {
-    //                 links
-    //                     .into_iter()
-    //                     .map(|edge| {
-    //                         pending_nodes.push(edge.to_node.clone());
-    //                         edge.into()
-    //                     })
-    //                     .collect::<Vec<_>>()
-    //             })?
-    //             .into_iter(),
-    //     );
-
-    //     // let mut pending_nodes = dbg!(pending_nodes);
-
-    //     Self::traverse_tree(
-    //         db,
-    //         &mut pending_nodes,
-    //         nodes,
-    //         links,
-    //         &node_stmt,
-    //         &edge_stmt,
-    //         node_type,
-    //         depth - 1,
-    //     )
-    //     .await?;
-
-    //     Ok(())
-    // }
+        Ok(())
+    }
 }

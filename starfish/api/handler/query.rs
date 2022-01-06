@@ -6,7 +6,7 @@ use rocket::{get, routes};
 use sea_orm_rocket::Connection;
 
 pub fn routes() -> Vec<rocket::Route> {
-    routes![get_graph]
+    routes![get_graph, get_tree]
 }
 
 #[get("/get-graph?<top_n>&<limit>&<depth>")]
@@ -28,19 +28,21 @@ async fn get_graph(
     ))
 }
 
-// #[get("/get-tree?<root_node>&<depth>")]
-// async fn get_tree(
-//     conn: Connection<'_, Db>,
-//     root_node: Option<String>,
-//     depth: Option<i32>,
-// ) -> Result<Json<TreeData>, ErrorResponder> {
-//     let db = conn.into_inner();
-//     let root_node = root_node.unwrap_or_else(|| "serde".to_owned());
-//     let depth = depth.unwrap_or(0);
+#[get("/get-tree?<root_node>&<limit>&<depth>")]
+async fn get_tree(
+    conn: Connection<'_, Db>,
+    root_node: Option<String>,
+    limit: Option<i32>,
+    depth: Option<i32>,
+) -> Result<Json<TreeData>, ErrorResponder> {
+    let db = conn.into_inner();
+    let root_node = root_node.unwrap_or_else(|| "serde".to_owned());
+    let limit = limit.unwrap_or(0);
+    let depth = depth.unwrap_or(0);
 
-//     Ok(Json(
-//         Query::get_tree(db, root_node, depth)
-//             .await
-//             .map_err(Into::into)?,
-//     ))
-// }
+    Ok(Json(
+        Query::get_tree(db, root_node, limit, depth)
+            .await
+            .map_err(Into::into)?,
+    ))
+}
