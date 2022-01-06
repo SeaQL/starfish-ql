@@ -70,7 +70,6 @@ pub struct LinkData {
 struct Node {
     name: String,
     in_conn: i32,
-    out_conn: i32,
 }
 
 #[derive(Debug, FromQueryResult)]
@@ -84,7 +83,7 @@ impl Into<GraphNodeData> for Node {
     fn into(self) -> GraphNodeData {
         GraphNodeData {
             id: self.name,
-            weight: self.in_conn + self.out_conn,
+            weight: self.in_conn,
         }
     }
 }
