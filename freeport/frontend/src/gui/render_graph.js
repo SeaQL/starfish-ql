@@ -104,10 +104,7 @@ export function renderGraph(
 
             // Move names
             node.select("text")
-                .attr("transform", (d) => {
-                    // console.log(d.weight, d.textRadius);
-                    return `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`;
-                });
+                .attr("transform", (d) => `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`);
         });
 
     addDragBehavior(node, simulation);
