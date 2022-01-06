@@ -27,7 +27,6 @@ const main = async () => {
 // };
 
 const dataGraph = await getGraphSimple(10, 10, 5);
-console.log("Raw: ", dataGraph);
 normalizeData(
     dataGraph,
     (data) => data.nodes.map((node) => node.weight),
@@ -41,7 +40,6 @@ normalizeData(
         newMax: WEIGHT_MAX,
     }
 );
-console.log("Normalized: ", dataGraph);
 
 renderGraph(
     dataGraph,
