@@ -9,7 +9,8 @@ const measureWidth = (text) => {
 
 export function fitTextInSquare(text, fontSize, delimiters = "-") {
     // Split text into words by '-'
-    const words = text.split(new RegExp(`\s+|(?<=[${delimiters}])`));
+    const words = text.split(new RegExp(`\\s+|(?<=[${delimiters}])`));
+    console.log(text);
     if(!words[words.length - 1]) words.pop();
     if(!words[0]) words.shift();
 

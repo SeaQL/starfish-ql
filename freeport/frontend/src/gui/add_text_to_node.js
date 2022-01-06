@@ -46,7 +46,10 @@ export function addWrappedTextToNodeAndSetTextRadius(
 
     textElem.attr("", function (d) {
         const bb = this.getBoundingClientRect();
-        d.textRadius = Math.sqrt((bb.width / 2) ** 2 + (bb.height / 2) ** 2);
+        d.textRadius = (bb.width + bb.height) / 2;
+        if (d.textRadius === 0) {
+            d.textRadius = minFontSize;
+        }
     });
 
     return textElem;

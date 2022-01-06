@@ -1,6 +1,10 @@
 import { getGraphSimple } from "./src/api_access/get_graph";
+import { normalizeData } from "./src/data/normalize";
 import { renderGraph } from "./src/gui/render_graph";
 import { renderTree, TreeNodeType } from "./src/gui/render_tree";
+
+const WEIGHT_MIN = 12;
+const WEIGHT_MAX = 128;
 
 const main = async () => {
 
@@ -22,13 +26,29 @@ const main = async () => {
 //     ]
 // };
 
-const dataGraph = await getGraphSimple(8);
+const dataGraph = await getGraphSimple(10, 10, 5);
+console.log("Raw: ", dataGraph);
+normalizeData(
+    dataGraph,
+    (data) => data.nodes.map((node) => node.weight),
+    (data, normalizedWeights) => {
+        normalizedWeights.forEach((normalizedWeight, i) => {
+            data.nodes[i].weight = normalizedWeight;
+        });
+    },
+    {
+        newMin: WEIGHT_MIN,
+        newMax: WEIGHT_MAX,
+    }
+);
+console.log("Normalized: ", dataGraph);
 
 renderGraph(
     dataGraph,
     document.getElementById("outputGraph"),
     {
-        textDelimiters: "-+"
+        textDelimiters: "-+",
+        minFontSize: WEIGHT_MIN,
     }
 );
 
