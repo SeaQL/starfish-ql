@@ -1,12 +1,13 @@
 import { getRequestJson } from "./util";
 import { constructUrl } from "./url";
 
-export const getGraphSimple = async (topN) => {
+export const getGraphSimple = async (topN, limit, depth) => {
     const url = constructUrl(
         "query/get-graph",
         {
             top_n: topN,
-            depth: 2,
+            limit,
+            depth,
         }
     );
 
