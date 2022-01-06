@@ -190,13 +190,8 @@ impl Query {
 
         let mut stmt = node_stmt.clone();
         if first {
-            stmt.order_by_expr(
-                Expr::col(Alias::new("in_conn"))
-                    .into_simple_expr()
-                    .add(Expr::col(Alias::new("out_conn"))),
-                Order::Desc,
-            )
-            .limit(top_n as u64);
+            stmt.order_by(Alias::new("in_conn"), Order::Desc)
+                .limit(top_n as u64);
         } else {
             stmt.and_where(Expr::col(Alias::new("name")).is_in(pending_nodes.clone()));
         }
