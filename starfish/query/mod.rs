@@ -1,10 +1,10 @@
 //! Graph query engine
 
 use async_recursion::async_recursion;
-use sea_orm::{Condition, ConnectionTrait, DbConn, DbErr, FromQueryResult};
+use sea_orm::{Condition, ConnectionTrait, DbConn, DbErr, FromQueryResult, Order};
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
-use std::mem;
+use std::{collections::HashSet, mem};
 
 /// Query graph data
 #[derive(Debug)]
@@ -15,12 +15,12 @@ pub struct Query;
 pub struct GraphData {
     /// Node data
     nodes: Vec<NodeData>,
-    /// Edge data
-    links: Vec<EdgeData>,
+    /// Link data
+    links: Vec<LinkData>,
 }
 
 /// Node data
-#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Deserialize, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct NodeData {
     /// Name of node
     id: String,
@@ -28,9 +28,9 @@ pub struct NodeData {
     weight: i32,
 }
 
-/// Edge data
-#[derive(Debug, Clone, PartialOrd, Ord, PartialEq, Eq, Deserialize, Serialize)]
-pub struct EdgeData {
+/// Link data
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub struct LinkData {
     /// Source node
     source: String,
     /// Target node
@@ -45,7 +45,7 @@ struct Node {
 }
 
 #[derive(Debug, FromQueryResult)]
-struct Edge {
+struct Link {
     from_node: String,
     to_node: String,
 }
@@ -61,9 +61,9 @@ impl Into<NodeData> for Node {
 }
 
 #[allow(clippy::from_over_into)]
-impl Into<EdgeData> for Edge {
-    fn into(self) -> EdgeData {
-        EdgeData {
+impl Into<LinkData> for Link {
+    fn into(self) -> LinkData {
+        LinkData {
             source: self.from_node,
             target: self.to_node,
         }
@@ -72,49 +72,39 @@ impl Into<EdgeData> for Edge {
 
 impl Query {
     /// Get graph
-    pub async fn get_graph(
-        db: &DbConn,
-        root_min_in_conn: i32,
-        root_min_out_conn: i32,
-        depth: i32,
-    ) -> Result<GraphData, DbErr> {
+    pub async fn get_graph(db: &DbConn, top_n: i32, depth: i32) -> Result<GraphData, DbErr> {
         let mut pending_nodes = Vec::new();
-        let mut nodes = Vec::new();
-        let mut edges = Vec::new();
+        let mut nodes = HashSet::new();
+        let mut links = HashSet::new();
         let mut node_stmt = sea_query::Query::select();
-        node_stmt.from(Alias::new("node_crate")).columns([
-            Alias::new("name"),
-            Alias::new("in_conn"),
-            Alias::new("out_conn"),
-        ]);
+        node_stmt
+            .columns([
+                Alias::new("name"),
+                Alias::new("in_conn"),
+                Alias::new("out_conn"),
+            ])
+            .from(Alias::new("node_crate"));
         let mut edge_stmt = sea_query::Query::select();
         edge_stmt
-            .from(Alias::new("edge_depends"))
-            .columns([Alias::new("from_node"), Alias::new("to_node")]);
+            .columns([Alias::new("from_node"), Alias::new("to_node")])
+            .from(Alias::new("edge_depends"));
 
         Self::traverse_graph(
             db,
             &mut pending_nodes,
             &mut nodes,
-            &mut edges,
+            &mut links,
             &node_stmt,
             &edge_stmt,
-            root_min_in_conn,
-            root_min_out_conn,
+            top_n,
             depth,
             true,
         )
         .await?;
 
-        nodes.sort();
-        edges.sort();
-
-        nodes.dedup();
-        edges.dedup();
-
         Ok(GraphData {
-            nodes,
-            links: edges,
+            nodes: nodes.into_iter().collect(),
+            links: links.into_iter().collect(),
         })
     }
 
@@ -123,12 +113,11 @@ impl Query {
     async fn traverse_graph(
         db: &DbConn,
         pending_nodes: &mut Vec<String>,
-        nodes: &mut Vec<NodeData>,
-        edges: &mut Vec<EdgeData>,
+        nodes: &mut HashSet<NodeData>,
+        links: &mut HashSet<LinkData>,
         node_stmt: &SelectStatement,
         edge_stmt: &SelectStatement,
-        root_min_in_conn: i32,
-        root_min_out_conn: i32,
+        top_n: i32,
         depth: i32,
         first: bool,
     ) -> Result<(), DbErr> {
@@ -140,11 +129,19 @@ impl Query {
 
         let builder = db.get_database_backend();
         let mut node_stmt = node_stmt.clone();
-        node_stmt.cond_where(
-            Condition::any()
-                .add(Expr::col(Alias::new("in_conn")).gte(root_min_in_conn))
-                .add(Expr::col(Alias::new("out_conn")).gte(root_min_out_conn)),
-        );
+        if first {
+            node_stmt
+                .order_by_expr(
+                    Expr::col(Alias::new("in_conn"))
+                        .into_simple_expr()
+                        .add(Expr::col(Alias::new("out_conn"))),
+                    Order::Desc,
+                )
+                .limit(top_n as u64);
+        } else {
+            let target_nodes = mem::take(pending_nodes);
+            node_stmt.and_where(Expr::col(Alias::new("name")).is_in(target_nodes));
+        }
 
         // dbg!(builder.build(&node_stmt));
 
@@ -172,12 +169,12 @@ impl Query {
         // dbg!(builder.build(&edge_stmt));
 
         let mut pending_nodes = Vec::new();
-        edges.extend(
-            Edge::find_by_statement(builder.build(&edge_stmt))
+        links.extend(
+            Link::find_by_statement(builder.build(&edge_stmt))
                 .all(db)
                 .await
-                .map(|edges| {
-                    edges
+                .map(|links| {
+                    links
                         .into_iter()
                         .map(|edge| {
                             pending_nodes.push(edge.to_node.clone());
@@ -194,11 +191,10 @@ impl Query {
             db,
             &mut pending_nodes,
             nodes,
-            edges,
+            links,
             &node_stmt,
             &edge_stmt,
-            root_min_in_conn,
-            root_min_out_conn,
+            top_n,
             depth - 1,
             false,
         )
