@@ -78,7 +78,7 @@ impl Fairing for Cors {
     async fn on_response<'r>(&self, _: &'r Request<'_>, response: &mut Response<'r>) {
         response.set_header(Header::new(
             "access-control-allow-origin",
-            "http://localhost:8080/",
+            "*",
         ));
         response.set_header(Header::new(
             "access-control-allow-methods",
