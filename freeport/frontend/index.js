@@ -1,4 +1,5 @@
 import { getGraphSimple } from "./src/api_access/get_graph";
+import { getTree } from "./src/api_access/get_tree";
 import { normalizeData } from "./src/data/normalize";
 import { renderGraph } from "./src/gui/render_graph";
 import { renderTree, TreeNodeType } from "./src/gui/render_tree";
@@ -50,29 +51,44 @@ renderGraph(
     }
 );
 
-const dataTree = {
-    nodes: [
-        { id: "A", type: TreeNodeType.Root },
-        { id: "B", type: TreeNodeType.Dependency },
-        { id: "E", type: TreeNodeType.Dependency },
-        { id: "B1", type: TreeNodeType.Dependency },
-        { id: "B11", type: TreeNodeType.Dependency },
-        { id: "B2", type: TreeNodeType.Dependency },
-        { id: "C", type: TreeNodeType.Dependent },
-        { id: "C1", type: TreeNodeType.Dependent },
-        { id: "D", type: TreeNodeType.Dependent },
-    ],
-    links: [ // source depends on target
-        { source: "A", target: "B" },
-        { source: "A", target: "E" },
-        { source: "B", target: "B1" },
-        { source: "B1", target: "B11" },
-        { source: "B", target: "B2" },
-        { source: "C", target: "A" },
-        { source: "C1", target: "C" },
-        { source: "D", target: "A" },
-    ]
-};
+// const dataTree = {
+//     nodes: [
+//         { id: "A", type: TreeNodeType.Root },
+//         { id: "B", type: TreeNodeType.Dependency },
+//         { id: "E", type: TreeNodeType.Dependency },
+//         { id: "B1", type: TreeNodeType.Dependency },
+//         { id: "B11", type: TreeNodeType.Dependency },
+//         { id: "B2", type: TreeNodeType.Dependency },
+//         { id: "C", type: TreeNodeType.Dependent },
+//         { id: "C1", type: TreeNodeType.Dependent },
+//         { id: "D", type: TreeNodeType.Dependent },
+//     ],
+//     links: [ // source depends on target
+//         { source: "A", target: "B" },
+//         { source: "A", target: "E" },
+//         { source: "B", target: "B1" },
+//         { source: "B1", target: "B11" },
+//         { source: "B", target: "B2" },
+//         { source: "C", target: "A" },
+//         { source: "C1", target: "C" },
+//         { source: "D", target: "A" },
+//     ]
+// };
+
+const dataTree = await getTree("serde", 10, 5);
+normalizeData(
+    dataTree,
+    (data) => data.nodes.map((node) => node.weight),
+    (data, normalizedWeights) => {
+        normalizedWeights.forEach((normalizedWeight, i) => {
+            data.nodes[i].weight = normalizedWeight;
+        });
+    },
+    {
+        newMin: WEIGHT_MIN,
+        newMax: WEIGHT_MAX,
+    }
+);
 
 renderTree(
     dataTree,
