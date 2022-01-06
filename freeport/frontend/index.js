@@ -1,23 +1,28 @@
+import { getGraphSimple } from "./src/api_access/get_graph";
 import { renderGraph } from "./src/gui/render_graph";
 import { renderTree, TreeNodeType } from "./src/gui/render_tree";
 
-const dataGraph = {
-    nodes: [
-        { id: "AAAA+AAAA+AAAAA", weight: 15 },
-        { id: "B", weight: 20 },
-        { id: "CCCCCCCCC", weight: 25 },
-        { id: "DDDDDDDDD-DDDDD", weight: 30 },
-        { id: "E", weight: 22 },
-        { id: "F", weight: 22 },
-    ],
-    links: [ // source "depends on" target
-        { source: "AAAA+AAAA+AAAAA", target: "B" },
-        { source: "CCCCCCCCC", target: "B" },
-        { source: "B", target: "DDDDDDDDD-DDDDD" },
-        { source: "E", target: "F" },
-        { source: "F", target: "E" },
-    ]
-};
+const main = async () => {
+
+// const dataGraph = {
+//     nodes: [
+//         { id: "AAAA+AAAA+AAAAA", weight: 15 },
+//         { id: "B", weight: 20 },
+//         { id: "CCCCCCCCC", weight: 25 },
+//         { id: "DDDDDDDDD-DDDDD", weight: 30 },
+//         { id: "E", weight: 22 },
+//         { id: "F", weight: 22 },
+//     ],
+//     links: [ // source "depends on" target
+//         { source: "AAAA+AAAA+AAAAA", target: "B" },
+//         { source: "CCCCCCCCC", target: "B" },
+//         { source: "B", target: "DDDDDDDDD-DDDDD" },
+//         { source: "E", target: "F" },
+//         { source: "F", target: "E" },
+//     ]
+// };
+
+const dataGraph = await getGraphSimple(8);
 
 renderGraph(
     dataGraph,
@@ -55,3 +60,7 @@ renderTree(
     dataTree,
     document.getElementById("outputTree"),
 );
+
+}; // End of main()
+
+main().catch(console.error);
