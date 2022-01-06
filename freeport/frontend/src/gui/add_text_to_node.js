@@ -12,17 +12,20 @@ export function addWrappedTextToNodeAndSetTextRadius(
     textFn,
     fontSizeFn,
     fontFamilyFn,
-    delimiter = "-"
+    delimiter = "-",
+    minFontSize = 12,
 ) {
     const allWrappedLines = []; // An array of arrays of wrapped lines (one array for one node)
 
+    const actualFontSizeFn = (d) => Math.max(fontSizeFn(d), minFontSize)
+
     const textElem = node.append("text")
-        .style("font-size", (d) => fontSizeFn(d) + "px")
+        .style("font-size", (d) => actualFontSizeFn(d) + "px")
         .style("font-family", (d) => fontFamilyFn(d))
         .style("pointer-events", "none")
         .style("text-anchor", "middle")
         .attr("", (d) => {
-            allWrappedLines.push(fitTextInSquare(textFn(d), fontSizeFn(d), delimiter));
+            allWrappedLines.push(fitTextInSquare(textFn(d), actualFontSizeFn(d), delimiter));
             return null;
         });
 
@@ -31,7 +34,7 @@ export function addWrappedTextToNodeAndSetTextRadius(
             return {
                 line,
                 numLines: allWrappedLines[i].length,
-                fontSize: fontSizeFn(d)
+                fontSize: actualFontSizeFn(d)
             }
         }))
         .enter().append("tspan")
