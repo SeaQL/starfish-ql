@@ -13,6 +13,24 @@
         <h1>Graph Visualization</h1>
         <a href="index.html">Back</a>
     </div>
-    <div id="output"></div>
+    <div id="view" class="flex-container">
+        <div id="output" class="flex-child"></div>
+        <div id="controls" class="flex-child">
+            <ul>
+                <li>
+                    <input type="text" id="graphTopN" name="graphTopN" value=10 />
+                    <label for="graphTopN">Top N root nodes</label>
+                </li>
+                <li>
+                    <input type="text" id="limit" name="limit" value=10 />
+                    <label for="limit">Node limit on each layer</label>
+                </li>
+                <li>
+                    <input type="text" id="depth" name="depth" value=5 />
+                    <label for="depth">Recursion depth</label>
+                </li>
+            </ul>
+        </div>
+    </div>
 </body>
 </html>
