@@ -164,7 +164,6 @@ impl Query {
         first: bool,
     ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
-
         let mut new_pending_nodes = Vec::new();
         while !pending_nodes.is_empty() {
             let mut temp_pending_nodes = Vec::new();
