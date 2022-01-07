@@ -1,12 +1,22 @@
-svg {
-    border: 2px solid black;
-    border-radius: 10px;
+li {
+  margin: 10px 0;
 }
 
 .flex-container {
     display: flex;
 }
 
-.flex-child {
+.flex-container > .flex-child {
     flex: 1;
+    border: 2px solid black;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+#controls {
+    padding: 1em;
+}
+
+#controls input {
+    width: 40px;
 }
