@@ -30,8 +30,8 @@ export function renderGraph(
 ) {
     // set the dimensions and margins of the graph
     const margin = { top: 20, right: 20, bottom: 20, left: 20 },
-          width = 400 - margin.left - margin.right,
-          height = 400 - margin.top - margin.bottom;
+          width = 1000 - margin.left - margin.right,
+          height = 700 - margin.top - margin.bottom;
     
     const svg = d3.select(containerElem)
         .append("svg")
