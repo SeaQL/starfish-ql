@@ -5,7 +5,7 @@ use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Order, Statement}
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::collections::HashSet;
+use std::{cmp::min, collections::HashSet};
 
 /// Query graph data
 #[derive(Debug)]
@@ -118,7 +118,16 @@ impl Query {
         let mut edge_stmt = sea_query::Query::select();
         edge_stmt
             .columns([Alias::new("from_node"), Alias::new("to_node")])
-            .from(Alias::new("edge_depends"));
+            .from(Alias::new("edge_depends"))
+            .inner_join(
+                Alias::new("node_crate"),
+                Expr::tbl(Alias::new("node_crate"), Alias::new("name"))
+                    .equals(Alias::new("edge_depends"), Alias::new("from_node")),
+            )
+            .order_by(
+                (Alias::new("node_crate"), Alias::new("in_conn")),
+                Order::Desc,
+            );
 
         Self::traverse_graph(
             db,
@@ -156,9 +165,13 @@ impl Query {
     ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
 
-        if !pending_nodes.is_empty() {
+        let mut new_pending_nodes = Vec::new();
+        while !pending_nodes.is_empty() {
+            let mut temp_pending_nodes = Vec::new();
+            let len = min(100, pending_nodes.len());
+            let drained_nodes = pending_nodes.drain(..len);
             let mut stmts = Vec::new();
-            for node in pending_nodes.iter() {
+            for node in drained_nodes {
                 let mut stmt = edge_stmt.clone();
                 stmt.and_where(Expr::col(Alias::new("to_node")).eq(node.as_str()))
                     .limit(limit as u64);
@@ -166,8 +179,6 @@ impl Query {
                 stmts.push(stmt);
             }
             let stmt = Statement::from_string(builder, format!("({})", stmts.join(") UNION (")));
-            pending_nodes.clear();
-
             links.extend(
                 Link::find_by_statement(stmt)
                     .all(db)
@@ -176,38 +187,48 @@ impl Query {
                         links
                             .into_iter()
                             .map(|edge| {
-                                pending_nodes.push(edge.from_node.clone());
+                                temp_pending_nodes.push(edge.from_node.clone());
                                 edge.into()
                             })
                             .collect::<Vec<_>>()
                     })?
                     .into_iter(),
             );
-        }
 
-        let mut stmt = node_stmt.clone();
+            let mut stmt = node_stmt.clone();
+            stmt.and_where(Expr::col(Alias::new("name")).is_in(temp_pending_nodes.clone()));
+            nodes.extend(
+                Node::find_by_statement(builder.build(&stmt))
+                    .all(db)
+                    .await
+                    .map(|nodes| nodes.into_iter().map(Into::into).collect::<Vec<_>>())?
+                    .into_iter(),
+            );
+            new_pending_nodes.extend(temp_pending_nodes);
+        }
+        assert!(pending_nodes.is_empty());
+        pending_nodes.extend(new_pending_nodes);
+
         if first {
+            let mut stmt = node_stmt.clone();
             stmt.order_by(Alias::new("in_conn"), Order::Desc)
                 .limit(top_n as u64);
-        } else {
-            stmt.and_where(Expr::col(Alias::new("name")).is_in(pending_nodes.clone()));
+            nodes.extend(
+                Node::find_by_statement(builder.build(&stmt))
+                    .all(db)
+                    .await
+                    .map(|nodes| {
+                        nodes
+                            .into_iter()
+                            .map(|node| {
+                                pending_nodes.push(node.name.clone());
+                                node.into()
+                            })
+                            .collect::<Vec<_>>()
+                    })?
+                    .into_iter(),
+            );
         }
-
-        nodes.extend(
-            Node::find_by_statement(builder.build(&stmt))
-                .all(db)
-                .await
-                .map(|nodes| {
-                    nodes
-                        .into_iter()
-                        .map(|node| {
-                            pending_nodes.push(node.name.clone());
-                            node.into()
-                        })
-                        .collect::<Vec<_>>()
-                })?
-                .into_iter(),
-        );
 
         if depth > 0 && !pending_nodes.is_empty() {
             Self::traverse_graph(
@@ -316,26 +337,40 @@ impl Query {
     ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
 
-        if !pending_nodes.is_empty() {
+        let mut new_pending_nodes = Vec::new();
+        while !pending_nodes.is_empty() {
+            let mut temp_pending_nodes = Vec::new();
+            let len = min(100, pending_nodes.len());
+            let drained_nodes = pending_nodes.drain(..len);
             let mut stmts = Vec::new();
-            for node in pending_nodes.iter() {
+            for node in drained_nodes {
                 let mut stmt = edge_stmt.clone();
+                stmt.order_by(
+                    (Alias::new("node_crate"), Alias::new("in_conn")),
+                    Order::Desc,
+                );
                 match node_type {
                     TreeNodeType::Root => unreachable!(),
-                    TreeNodeType::Dependency => {
-                        stmt.and_where(Expr::col(Alias::new("from_node")).eq(node.as_str()))
-                    }
-                    TreeNodeType::Dependent => {
-                        stmt.and_where(Expr::col(Alias::new("to_node")).eq(node.as_str()))
-                    }
+                    TreeNodeType::Dependency => stmt
+                        .and_where(Expr::col(Alias::new("from_node")).eq(node.as_str()))
+                        .inner_join(
+                            Alias::new("node_crate"),
+                            Expr::tbl(Alias::new("node_crate"), Alias::new("name"))
+                                .equals(Alias::new("edge_depends"), Alias::new("to_node")),
+                        ),
+                    TreeNodeType::Dependent => stmt
+                        .and_where(Expr::col(Alias::new("to_node")).eq(node.as_str()))
+                        .inner_join(
+                            Alias::new("node_crate"),
+                            Expr::tbl(Alias::new("node_crate"), Alias::new("name"))
+                                .equals(Alias::new("edge_depends"), Alias::new("from_node")),
+                        ),
                 };
                 stmt.limit(limit as u64);
                 let stmt = builder.build(&stmt).to_string();
                 stmts.push(stmt);
             }
             let stmt = Statement::from_string(builder, format!("({})", stmts.join(") UNION (")));
-            pending_nodes.clear();
-
             links.extend(
                 Link::find_by_statement(stmt)
                     .all(db)
@@ -347,10 +382,10 @@ impl Query {
                                 match node_type {
                                     TreeNodeType::Root => unreachable!(),
                                     TreeNodeType::Dependency => {
-                                        pending_nodes.push(edge.to_node.clone())
+                                        temp_pending_nodes.push(edge.to_node.clone())
                                     }
                                     TreeNodeType::Dependent => {
-                                        pending_nodes.push(edge.from_node.clone())
+                                        temp_pending_nodes.push(edge.from_node.clone())
                                     }
                                 }
                                 edge.into()
@@ -359,29 +394,28 @@ impl Query {
                     })?
                     .into_iter(),
             );
-        }
 
-        let mut stmt = node_stmt.clone();
-        stmt.and_where(Expr::col(Alias::new("name")).is_in(pending_nodes.clone()));
-
-        nodes.extend(
-            Node::find_by_statement(builder.build(&stmt))
-                .all(db)
-                .await
-                .map(|nodes| {
-                    nodes
-                        .into_iter()
-                        .map(|node| {
-                            pending_nodes.push(node.name.clone());
-                            TreeNodeData {
+            let mut stmt = node_stmt.clone();
+            stmt.and_where(Expr::col(Alias::new("name")).is_in(temp_pending_nodes.clone()));
+            nodes.extend(
+                Node::find_by_statement(builder.build(&stmt))
+                    .all(db)
+                    .await
+                    .map(|nodes| {
+                        nodes
+                            .into_iter()
+                            .map(|node| TreeNodeData {
                                 id: node.name,
                                 r#type: node_type.clone(),
-                            }
-                        })
-                        .collect::<Vec<_>>()
-                })?
-                .into_iter(),
-        );
+                            })
+                            .collect::<Vec<_>>()
+                    })?
+                    .into_iter(),
+            );
+            new_pending_nodes.extend(temp_pending_nodes);
+        }
+        assert!(pending_nodes.is_empty());
+        pending_nodes.extend(new_pending_nodes);
 
         if depth > 0 && !pending_nodes.is_empty() {
             Self::traverse_tree(
