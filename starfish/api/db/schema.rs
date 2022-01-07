@@ -1,9 +1,9 @@
 use crate::core::entities::{self, *};
 use sea_orm::{
-    error::*, sea_query, ConnectionTrait, DatabaseConnection, DbBackend, DbConn, EntityTrait,
-    ExecResult, Schema,
+    error::*, sea_query, ConnectionTrait, DatabaseConnection, DbBackend, DbConn, DeriveIden,
+    EntityTrait, ExecResult, Schema,
 };
-use sea_query::{ColumnDef, ForeignKeyCreateStatement, Table, TableCreateStatement};
+use sea_query::{ColumnDef, ForeignKeyCreateStatement, Index, Table, TableCreateStatement};
 
 #[cfg(test)]
 use pretty_assertions::assert_eq;
@@ -34,6 +34,16 @@ pub async fn create_entity_table(db: &DbConn) -> Result<ExecResult, DbErr> {
                 .not_null()
                 .unique_key(),
         )
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::Name.to_string()
+                ))
+                .table(Entity)
+                .col(Column::Name),
+        )
         .to_owned();
 
     create_table(db, &stmt, Entity).await
@@ -60,6 +70,46 @@ pub async fn create_relation_table(db: &DbConn) -> Result<ExecResult, DbErr> {
         .col(ColumnDef::new(Column::FromEntity).string().not_null())
         .col(ColumnDef::new(Column::ToEntity).string().not_null())
         .col(ColumnDef::new(Column::Directed).boolean().not_null())
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::Name.to_string()
+                ))
+                .table(Entity)
+                .col(Column::Name),
+        )
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::FromEntity.to_string()
+                ))
+                .table(Entity)
+                .col(Column::FromEntity),
+        )
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::ToEntity.to_string()
+                ))
+                .table(Entity)
+                .col(Column::ToEntity),
+        )
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::Directed.to_string()
+                ))
+                .table(Entity)
+                .col(Column::Directed),
+        )
         .foreign_key(
             ForeignKeyCreateStatement::new()
                 .name("fk-relation-from_entity")
@@ -98,6 +148,36 @@ pub async fn create_entity_attribute_table(db: &DbConn) -> Result<ExecResult, Db
         .col(ColumnDef::new(Column::EntityId).integer().not_null())
         .col(ColumnDef::new(Column::Name).string().not_null())
         .col(ColumnDef::new(Column::Datatype).string().not_null())
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::EntityId.to_string()
+                ))
+                .table(Entity)
+                .col(Column::EntityId),
+        )
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::Name.to_string()
+                ))
+                .table(Entity)
+                .col(Column::Name),
+        )
+        .index(
+            Index::create()
+                .name(&format!(
+                    "idx-{}-{}",
+                    Entity.to_string(),
+                    Column::Datatype.to_string()
+                ))
+                .table(Entity)
+                .col(Column::Datatype),
+        )
         .foreign_key(
             ForeignKeyCreateStatement::new()
                 .name("fk-entity_attribute-entity")

@@ -15,8 +15,11 @@ pub enum Datatype {
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
+    #[sea_orm(indexed)]
     pub entity_id: i32,
+    #[sea_orm(indexed)]
     pub name: String,
+    #[sea_orm(indexed)]
     pub datatype: Datatype,
 }
 

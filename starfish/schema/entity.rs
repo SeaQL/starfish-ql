@@ -5,8 +5,8 @@ use crate::core::entities::{
     entity,
     entity_attribute::{self, Datatype},
 };
-use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, Set};
-use sea_query::{Alias, ColumnDef, Table};
+use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
+use sea_query::{Alias, ColumnDef, Index, Table};
 use serde::{Deserialize, Serialize};
 
 /// Metadata of entity, deserialized as struct from json
@@ -68,9 +68,9 @@ impl Schema {
     }
 
     async fn create_node_table(db: &DbConn, entity_json: EntityJson) -> Result<(), DbErr> {
+        let table = Alias::new(entity_json.get_table_name().as_str());
         let mut stmt = Table::create();
-
-        stmt.table(Alias::new(entity_json.get_table_name().as_str()))
+        stmt.table(table.clone())
             .col(
                 ColumnDef::new(Alias::new("id"))
                     .integer()
@@ -95,6 +95,24 @@ impl Schema {
                     .integer()
                     .not_null()
                     .default(0),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "name"))
+                    .table(table.clone())
+                    .col(Alias::new("name")),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn"))
+                    .table(table.clone())
+                    .col(Alias::new("in_conn")),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "out_conn"))
+                    .table(table.clone())
+                    .col(Alias::new("out_conn")),
             );
 
         for attribute in entity_json.attributes.into_iter() {

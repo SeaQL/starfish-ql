@@ -2,7 +2,7 @@
 
 use super::{format_edge_table_name, format_node_table_name, Schema};
 use crate::core::entities::relation;
-use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, Set};
+use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
 use sea_query::{Alias, ColumnDef, ForeignKey, Index, Table};
 use serde::{Deserialize, Serialize};
 
@@ -54,9 +54,9 @@ impl Schema {
         from_entity: String,
         to_entity: String,
     ) -> Result<(), DbErr> {
+        let table = Alias::new(relation_json.get_table_name().as_str());
         let mut stmt = Table::create();
-
-        stmt.table(Alias::new(relation_json.get_table_name().as_str()))
+        stmt.table(table.clone())
             .col(
                 ColumnDef::new(Alias::new("id"))
                     .integer()
@@ -66,6 +66,18 @@ impl Schema {
             )
             .col(ColumnDef::new(Alias::new("from_node")).string().not_null())
             .col(ColumnDef::new(Alias::new("to_node")).string().not_null())
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "from_node"))
+                    .table(table.clone())
+                    .col(Alias::new("from_node")),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "to_node"))
+                    .table(table.clone())
+                    .col(Alias::new("to_node")),
+            )
             .index(
                 Index::create()
                     .unique()
