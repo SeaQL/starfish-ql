@@ -1,20 +1,36 @@
 import * as d3 from "d3";
 
+let tempForces = {};
+const modifyForces = (simulation) => {
+    tempForces = {};
+    (["link", "charge"]).forEach((forceName) => {
+        tempForces[forceName] = simulation.force(forceName);
+        simulation.force(forceName, null);
+    });
+};
+const restoreForces = (simulation) => {
+    for (let [name, force] of Object.entries(tempForces)) {
+        simulation.force(name, force);
+    }
+};
+
 export function addDragBehavior(element, simulation) {
     const start = function(event) {
+        modifyForces(simulation);
         if (!event.active) {
-            simulation.alphaTarget(0.3).restart();
+            simulation.alphaTarget(0.1).restart();
         }
         event.subject.fx = event.subject.x;
         event.subject.fy = event.subject.y;
     };
 
-    const drag = function(event) {
+    const drag = function (event) {
         event.subject.fx = event.x;
         event.subject.fy = event.y;
     };
 
-    const end = function(event) {
+    const end = function (event) {
+        restoreForces(simulation);
         if (!event.active) {
             simulation.alphaTarget(0);
         }
