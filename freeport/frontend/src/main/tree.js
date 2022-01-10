@@ -1,20 +1,28 @@
-import { getTree } from "../api_access/get_tree";
+import { getMockTreeSimple, getTree } from "../api_access/get_tree";
 import { normalizeData } from "../data/normalize";
 import { Input } from "../gui/input";
 import { renderTree } from "../gui/render_tree";
 import { clearChildNodes } from "../gui/util";
 
-export const treeMain = async(GlobalConfig) => {
+export const treeMain = async (GlobalConfig) => {
+
+    const outputElem = document.getElementById(GlobalConfig.outputElemId);
 
     const run = () => {
         clearChildNodes(GlobalConfig.outputElemId);
 
-        getTree(
-            Input.treeRootNode.parseString(),
-            Input.limit.parseInt(),
-            Input.depth.parseInt(),
-        )
+        outputElem.innerText = "Loading...";
+
+        // getTree(
+        //     Input.treeRootNode.parseString(),
+        //     Input.limit.parseInt(),
+        //     Input.depth.parseInt(),
+        // )
+        getMockTreeSimple()
         .then((dataTree) => {
+
+            outputElem.innerText = "";
+
             normalizeData(
                 dataTree,
                 (data) => data.nodes.map((node) => node.weight),
@@ -32,7 +40,8 @@ export const treeMain = async(GlobalConfig) => {
                 dataTree,
                 document.getElementById(GlobalConfig.outputElemId),
             );
-        });
+        })
+        .catch(console.error);
     };
     run();
 

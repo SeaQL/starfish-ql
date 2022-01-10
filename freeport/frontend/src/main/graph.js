@@ -1,20 +1,28 @@
-import { getGraphSimple } from "../api_access/get_graph";
+import { getGraphSimple, getMockGraphSimple } from "../api_access/get_graph";
 import { normalizeData } from "../data/normalize";
 import { Input } from "../gui/input";
 import { renderGraph } from "../gui/render_graph";
 import { clearChildNodes } from "../gui/util";
 
-export const graphMain = async(GlobalConfig) => {
+export const graphMain = async (GlobalConfig) => {
+
+    const outputElem = document.getElementById(GlobalConfig.outputElemId);
 
     const run = () => {
         clearChildNodes(GlobalConfig.outputElemId);
+
+        outputElem.innerText = "Loading...";
         
         getGraphSimple(
             Input.graphTopN.parseInt(),
             Input.limit.parseInt(),
             Input.depth.parseInt(),
         )
+        // getMockGraphSimple()
         .then((dataGraph) => {
+            
+            outputElem.innerText = "";
+            
             normalizeData(
                 dataGraph,
                 (data) => data.nodes.map((node) => node.weight),
@@ -36,7 +44,8 @@ export const graphMain = async(GlobalConfig) => {
                     minFontSize: GlobalConfig.minWeight,
                 }
             );
-        });
+        })
+        .catch(console.error);
     };
     run();
     

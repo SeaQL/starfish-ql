@@ -4,6 +4,7 @@ import { createNodes } from "./create_nodes";
 import { addDragBehavior } from "./drag";
 import { addZoomBehavior } from "./zoom";
 import { createInfobox, updateInfobox } from "./infobox";
+import { isColorLight, stringToColour } from "./util";
 
 /*
 'data' must follow this format:
@@ -55,7 +56,11 @@ export function renderGraph(
     // Draw circles for the nodes
     node.append("circle")
         .attr("r", (d) => d.weight)
-        .style("fill", "#69b3a2");
+        .style("fill", (d) => {
+            const backgroundColor = stringToColour(d.id);
+            d.isBackgroundLight = isColorLight(backgroundColor);
+            return backgroundColor;
+        });
     
     // Add names to the nodes
     addWrappedTextToNodeAndSetTextRadius(
@@ -81,6 +86,14 @@ export function renderGraph(
             ],
         );
     });
+
+    const getSourceX = (d) => d.source.x;
+    const getSourceY = (d) => d.source.y;
+    const getTargetX = (d) => d.target.x;
+    const getTargetY = (d) => d.target.y;
+    const getX = (d) => d.x;
+    const getY = (d) => d.y;
+    const translateAndScale = (d) => `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`;
     
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink()
@@ -92,19 +105,19 @@ export function renderGraph(
         .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", () => {
-            link.attr("x1", (d) => d.source.x)
-                .attr("y1", (d) => d.source.y)
-                .attr("x2", (d) => d.target.x)
-                .attr("y2", (d) => d.target.y);
+            link.attr("x1", getSourceX)
+                .attr("y1", getSourceY)
+                .attr("x2", getTargetX)
+                .attr("y2", getTargetY);
 
             // Move circles
             node.select("circle")
-                .attr("cx", (d) => d.x)
-                .attr("cy", (d) => d.y);
+                .attr("cx", getX)
+                .attr("cy", getY);
 
             // Move names
             node.select("text")
-                .attr("transform", (d) => `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`);
+                .attr("transform", translateAndScale);
         });
 
     addDragBehavior(node, simulation);
