@@ -6,6 +6,8 @@ import { clearChildNodes } from "../gui/util";
 
 export const graphMain = async(GlobalConfig) => {
 
+    const outputElem = document.getElementById(GlobalConfig.outputElemId);
+
     const run = () => {
         clearChildNodes(GlobalConfig.outputElemId);
         
@@ -15,7 +17,11 @@ export const graphMain = async(GlobalConfig) => {
         //     Input.depth.parseInt(),
         // )
         getMockGraphSimple()
+        outputElem.innerText = "Loading...";
         .then((dataGraph) => {
+            
+            outputElem.innerText = "";
+            
             normalizeData(
                 dataGraph,
                 (data) => data.nodes.map((node) => node.weight),

@@ -4,10 +4,14 @@ import { Input } from "../gui/input";
 import { renderTree } from "../gui/render_tree";
 import { clearChildNodes } from "../gui/util";
 
-export const treeMain = async(GlobalConfig) => {
+export const treeMain = async (GlobalConfig) => {
+
+    const outputElem = document.getElementById(GlobalConfig.outputElemId);
 
     const run = () => {
         clearChildNodes(GlobalConfig.outputElemId);
+
+        outputElem.innerText = "Loading...";
 
         getTree(
             Input.treeRootNode.parseString(),
@@ -15,6 +19,9 @@ export const treeMain = async(GlobalConfig) => {
             Input.depth.parseInt(),
         )
         .then((dataTree) => {
+
+            outputElem.innerText = "";
+
             normalizeData(
                 dataTree,
                 (data) => data.nodes.map((node) => node.weight),
