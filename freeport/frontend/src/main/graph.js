@@ -4,7 +4,7 @@ import { Input } from "../gui/input";
 import { renderGraph } from "../gui/render_graph";
 import { clearChildNodes } from "../gui/util";
 
-export const graphMain = async(GlobalConfig) => {
+export const graphMain = async (GlobalConfig) => {
 
     const outputElem = document.getElementById(GlobalConfig.outputElemId);
 
@@ -13,12 +13,12 @@ export const graphMain = async(GlobalConfig) => {
 
         outputElem.innerText = "Loading...";
         
-        // getGraphSimple(
-        //     Input.graphTopN.parseInt(),
-        //     Input.limit.parseInt(),
-        //     Input.depth.parseInt(),
-        // )
-        getMockGraphSimple()
+        getGraphSimple(
+            Input.graphTopN.parseInt(),
+            Input.limit.parseInt(),
+            Input.depth.parseInt(),
+        )
+        // getMockGraphSimple()
         .then((dataGraph) => {
             
             outputElem.innerText = "";

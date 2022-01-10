@@ -4,6 +4,7 @@ import { createNodes } from "./create_nodes";
 import { addDragBehavior } from "./drag";
 import { addZoomBehavior } from "./zoom";
 import { createInfobox, updateInfobox } from "./infobox";
+import { isColorLight, stringToColour } from "./util";
 
 /*
 'data' must follow this format:
@@ -55,7 +56,11 @@ export function renderGraph(
     // Draw circles for the nodes
     node.append("circle")
         .attr("r", (d) => d.weight)
-        .style("fill", "#69b3a2");
+        .style("fill", (d) => {
+            const backgroundColor = stringToColour(d.id);
+            d.isBackgroundLight = isColorLight(backgroundColor);
+            return backgroundColor;
+        });
     
     // Add names to the nodes
     addWrappedTextToNodeAndSetTextRadius(

@@ -22,6 +22,7 @@ export function addWrappedTextToNodeAndSetTextRadius(
     const textElem = node.append("text")
         .style("font-size", (d) => actualFontSizeFn(d) + "px")
         .style("font-family", (d) => fontFamilyFn(d))
+        .style("fill", (d) => d.isBackgroundLight? "#333333" : "#eeeeee")
         .style("pointer-events", "none")
         .style("text-anchor", "middle")
         .attr("", (d) => {
