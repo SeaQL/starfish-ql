@@ -1,11 +1,21 @@
 //! Graph query engine
 
 use async_recursion::async_recursion;
+use rocket::futures::executor;
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Order, Statement};
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{cmp::min, collections::HashSet};
+use std::mem;
+use std::sync::mpsc::{channel, Receiver, Sender};
+use std::{
+    cmp::min,
+    collections::{HashSet, VecDeque},
+    thread,
+};
+
+const BATCH_SIZE: usize = 100;
+const DEBUG: bool = false;
 
 /// Query graph data
 #[derive(Debug)]
@@ -68,13 +78,13 @@ pub struct LinkData {
     target: String,
 }
 
-#[derive(Debug, FromQueryResult)]
+#[derive(Debug, Clone, FromQueryResult)]
 struct Node {
     name: String,
     in_conn: i32,
 }
 
-#[derive(Debug, FromQueryResult)]
+#[derive(Debug, Clone, FromQueryResult)]
 struct Link {
     from_node: String,
     to_node: String,
@@ -100,6 +110,129 @@ impl Into<LinkData> for Link {
     }
 }
 
+#[derive(Debug)]
+enum ExecutorMsg {
+    Execute {
+        depth: i32,
+        pending_nodes: Vec<String>,
+    },
+    Quit,
+}
+
+#[derive(Debug)]
+enum ResultMsg {
+    Done {
+        depth: i32,
+        nodes: HashSet<GraphNodeData>,
+        links: HashSet<LinkData>,
+    },
+}
+
+fn start_executor(
+    i: usize,
+    db: DbConn,
+    limit: i32,
+    result_sender: Sender<ResultMsg>,
+) -> Sender<ExecutorMsg> {
+    let (executor_sender, executor_receiver) = channel();
+    let _ = thread::Builder::new().spawn(move || {
+        if DEBUG {
+            println!("Thread {} | spawning thread", i);
+        }
+        let mut executor = WorkflowExecutor {
+            i,
+            db,
+            limit,
+            tasks: Default::default(),
+            executor_receiver,
+            result_sender,
+        };
+        while executor.run() {
+            // Running...
+        }
+    });
+    executor_sender
+}
+
+struct WorkflowExecutor {
+    i: usize,
+    db: DbConn,
+    limit: i32,
+    tasks: VecDeque<(i32, Vec<String>)>,
+    executor_receiver: Receiver<ExecutorMsg>,
+    result_sender: Sender<ResultMsg>,
+}
+
+impl WorkflowExecutor {
+    fn handle_msg(&mut self) -> bool {
+        match self.executor_receiver.try_recv() {
+            Ok(ExecutorMsg::Execute {
+                depth,
+                pending_nodes,
+            }) => {
+                if DEBUG {
+                    println!(
+                        "Thread {} | received task\ndepth: {}, nodes: {:#?}",
+                        self.i, depth, pending_nodes
+                    );
+                }
+                self.tasks.push_back((depth, pending_nodes));
+            }
+            Ok(ExecutorMsg::Quit) => {
+                if DEBUG {
+                    println!("Thread {} | received quit signal", self.i);
+                }
+                return false;
+            }
+            Err(_) => {}
+        }
+        true
+    }
+
+    fn execute_task(&mut self) {
+        if let Some((depth, pending_nodes)) = self.tasks.pop_front() {
+            if DEBUG {
+                println!(
+                    "Thread {} | execute task\ndepth: {}, nodes: {:#?}",
+                    self.i, depth, pending_nodes
+                );
+            }
+            executor::block_on(async {
+                let mut nodes = Default::default();
+                let mut links = Default::default();
+
+                Query::traverse_graph(
+                    &self.db,
+                    pending_nodes,
+                    &mut nodes,
+                    &mut links,
+                    0,
+                    self.limit,
+                    false,
+                )
+                .await
+                .unwrap();
+
+                self.result_sender
+                    .send(ResultMsg::Done {
+                        depth,
+                        nodes,
+                        links,
+                    })
+                    .unwrap();
+            });
+        }
+    }
+
+    fn run(&mut self) -> bool {
+        if !self.handle_msg() {
+            return false;
+        }
+        self.execute_task();
+        true
+    }
+}
+
 impl Query {
     /// Get graph
     pub async fn get_graph(
@@ -108,9 +241,105 @@ impl Query {
         limit: i32,
         depth: i32,
     ) -> Result<GraphData, DbErr> {
-        let mut pending_nodes = Vec::new();
         let mut nodes = HashSet::new();
         let mut links = HashSet::new();
+
+        Self::traverse_graph(db, vec![], &mut nodes, &mut links, top_n, limit, true).await?;
+
+        if depth <= 0 {
+            return Ok(GraphData {
+                nodes: nodes.into_iter().collect(),
+                links: links.into_iter().collect(),
+            });
+        }
+
+        let (results_sender, results_receiver) = channel();
+
+        let mut executors: VecDeque<Sender<ExecutorMsg>> = vec![
+            start_executor(1, db.clone(), limit, results_sender.clone()),
+            start_executor(2, db.clone(), limit, results_sender.clone()),
+            start_executor(3, db.clone(), limit, results_sender.clone()),
+            start_executor(4, db.clone(), limit, results_sender),
+        ]
+        .into_iter()
+        .collect();
+
+        let mut pending_tasks: VecDeque<ExecutorMsg> = vec![ExecutorMsg::Execute {
+            depth,
+            pending_nodes: nodes.iter().map(|node| node.id.clone()).collect(),
+        }]
+        .into_iter()
+        .collect();
+        let mut running_tasks = 0u32;
+
+        loop {
+            if let Some(task) = pending_tasks.pop_front() {
+                if DEBUG {
+                    println!("Main | sending task: {:#?}", task);
+                }
+                if let Some(executor) = executors.pop_front() {
+                    if executor.send(task).is_ok() {
+                        executors.push_back(executor);
+                        running_tasks += 1;
+                    }
+                }
+            }
+            if let Ok(ResultMsg::Done {
+                depth,
+                nodes: rev_nodes,
+                links: rev_links,
+            }) = results_receiver.try_recv()
+            {
+                if DEBUG {
+                    println!(
+                        "Main | received result\nnodes: {:#?}\nlinks: {:#?}",
+                        rev_nodes, rev_links
+                    );
+                }
+                if depth > 0 {
+                    let mut rev_nodes_clone = rev_nodes.iter().collect::<Vec<_>>();
+                    while !rev_nodes_clone.is_empty() {
+                        let len = min(BATCH_SIZE, rev_nodes_clone.len());
+                        pending_tasks.push_back(ExecutorMsg::Execute {
+                            depth: depth - 1,
+                            pending_nodes: rev_nodes_clone
+                                .drain(..len)
+                                .map(|node| node.id.clone())
+                                .collect(),
+                        });
+                    }
+                }
+                nodes.extend(rev_nodes);
+                links.extend(rev_links);
+                running_tasks -= 1;
+            }
+            if pending_tasks.is_empty() && running_tasks == 0 {
+                for executor in executors {
+                    executor.send(ExecutorMsg::Quit).unwrap();
+                }
+                break;
+            }
+        }
+
+        Ok(GraphData {
+            nodes: nodes.into_iter().collect(),
+            links: links.into_iter().collect(),
+        })
+    }
+
+    #[async_recursion]
+    #[allow(clippy::too_many_arguments)]
+    async fn traverse_graph(
+        db: &DbConn,
+        mut pending_nodes: Vec<String>,
+        nodes: &mut HashSet<GraphNodeData>,
+        links: &mut HashSet<LinkData>,
+        top_n: i32,
+        limit: i32,
+        first: bool,
+    ) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
+        let mut new_nodes = Vec::new();
         let mut node_stmt = sea_query::Query::select();
         node_stmt
             .columns([Alias::new("name"), Alias::new("in_conn")])
@@ -129,50 +358,13 @@ impl Query {
                 Order::Desc,
             );
 
-        Self::traverse_graph(
-            db,
-            &mut pending_nodes,
-            &mut nodes,
-            &mut links,
-            &node_stmt,
-            &edge_stmt,
-            top_n,
-            limit,
-            depth,
-            true,
-        )
-        .await?;
+        assert!(pending_nodes.len() <= BATCH_SIZE);
 
-        Ok(GraphData {
-            nodes: nodes.into_iter().collect(),
-            links: links.into_iter().collect(),
-        })
-    }
-
-    #[async_recursion]
-    #[allow(clippy::too_many_arguments)]
-    async fn traverse_graph(
-        db: &DbConn,
-        pending_nodes: &mut Vec<String>,
-        nodes: &mut HashSet<GraphNodeData>,
-        links: &mut HashSet<LinkData>,
-        node_stmt: &SelectStatement,
-        edge_stmt: &SelectStatement,
-        top_n: i32,
-        limit: i32,
-        depth: i32,
-        first: bool,
-    ) -> Result<(), DbErr> {
-        let builder = db.get_database_backend();
-        let mut new_pending_nodes = Vec::new();
-        while !pending_nodes.is_empty() {
-            let mut temp_pending_nodes = Vec::new();
-            let len = min(100, pending_nodes.len());
-            let drained_nodes = pending_nodes.drain(..len);
+        if !pending_nodes.is_empty() {
             let mut stmts = Vec::new();
-            for node in drained_nodes {
+            for node in mem::take(&mut pending_nodes) {
                 let mut stmt = edge_stmt.clone();
-                stmt.and_where(Expr::col(Alias::new("to_node")).eq(node.as_str()))
+                stmt.and_where(Expr::col(Alias::new("to_node")).eq(node))
                     .limit(limit as u64);
                 let stmt = builder.build(&stmt).to_string();
                 stmts.push(stmt);
@@ -186,7 +378,7 @@ impl Query {
                         links
                             .into_iter()
                             .map(|edge| {
-                                temp_pending_nodes.push(edge.from_node.clone());
+                                new_nodes.push(edge.from_node.clone());
                                 edge.into()
                             })
                             .collect::<Vec<_>>()
@@ -195,7 +387,7 @@ impl Query {
             );
 
             let mut stmt = node_stmt.clone();
-            stmt.and_where(Expr::col(Alias::new("name")).is_in(temp_pending_nodes.clone()));
+            stmt.and_where(Expr::col(Alias::new("name")).is_in(mem::take(&mut new_nodes)));
             nodes.extend(
                 Node::find_by_statement(builder.build(&stmt))
                     .all(db)
@@ -203,10 +395,8 @@ impl Query {
                     .map(|nodes| nodes.into_iter().map(Into::into).collect::<Vec<_>>())?
                     .into_iter(),
             );
-            new_pending_nodes.extend(temp_pending_nodes);
         }
         assert!(pending_nodes.is_empty());
-        pending_nodes.extend(new_pending_nodes);
 
         if first {
             let mut stmt = node_stmt.clone();
@@ -216,33 +406,9 @@ impl Query {
                 Node::find_by_statement(builder.build(&stmt))
                     .all(db)
                     .await
-                    .map(|nodes| {
-                        nodes
-                            .into_iter()
-                            .map(|node| {
-                                pending_nodes.push(node.name.clone());
-                                node.into()
-                            })
-                            .collect::<Vec<_>>()
-                    })?
+                    .map(|nodes| nodes.into_iter().map(Into::into).collect::<Vec<_>>())?
                     .into_iter(),
             );
-        }
-
-        if depth > 0 && !pending_nodes.is_empty() {
-            Self::traverse_graph(
-                db,
-                pending_nodes,
-                nodes,
-                links,
-                node_stmt,
-                edge_stmt,
-                top_n,
-                limit,
-                depth - 1,
-                false,
-            )
-            .await?;
         }
 
         Ok(())

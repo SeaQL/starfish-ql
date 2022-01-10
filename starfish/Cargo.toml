@@ -31,7 +31,12 @@ path = "main.rs"
 
 [dependencies]
 sea-query = { version = "^0.20.0", features = ["thread-safe"] }
-sea-orm = { version = "^0.5.0", features = ["sqlx-mysql", "runtime-async-std-native-tls", "debug-print"] }
+sea-orm = { version = "^0.5.0", default-features = false, features = [
+    "macros",
+    "sqlx-mysql",
+    "runtime-async-std-native-tls",
+    "debug-print",
+]}
 sea-orm-rocket = { version = "^0.5.0" }
 rocket = { version = "^0.5.0-rc.1", features = ["json"] }
 async-trait = { version = "^0.1" }
