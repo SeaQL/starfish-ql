@@ -10,6 +10,8 @@ export const graphMain = async(GlobalConfig) => {
 
     const run = () => {
         clearChildNodes(GlobalConfig.outputElemId);
+
+        outputElem.innerText = "Loading...";
         
         // getGraphSimple(
         //     Input.graphTopN.parseInt(),
@@ -17,7 +19,6 @@ export const graphMain = async(GlobalConfig) => {
         //     Input.depth.parseInt(),
         // )
         getMockGraphSimple()
-        outputElem.innerText = "Loading...";
         .then((dataGraph) => {
             
             outputElem.innerText = "";
