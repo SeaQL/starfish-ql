@@ -1,4 +1,4 @@
-import { getGraphSimple } from "../api_access/get_graph";
+import { getGraphSimple, getMockGraphSimple } from "../api_access/get_graph";
 import { normalizeData } from "../data/normalize";
 import { Input } from "../gui/input";
 import { renderGraph } from "../gui/render_graph";
@@ -9,11 +9,12 @@ export const graphMain = async(GlobalConfig) => {
     const run = () => {
         clearChildNodes(GlobalConfig.outputElemId);
         
-        getGraphSimple(
-            Input.graphTopN.parseInt(),
-            Input.limit.parseInt(),
-            Input.depth.parseInt(),
-        )
+        // getGraphSimple(
+        //     Input.graphTopN.parseInt(),
+        //     Input.limit.parseInt(),
+        //     Input.depth.parseInt(),
+        // )
+        getMockGraphSimple()
         .then((dataGraph) => {
             normalizeData(
                 dataGraph,
