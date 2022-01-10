@@ -27,7 +27,7 @@ pub struct GraphData {
     /// Graph node data
     nodes: Vec<GraphNodeData>,
     /// Link data
-    links: Vec<LinkData>,
+    links: Vec<GraphLinkData>,
 }
 
 /// Graph node data
@@ -45,7 +45,7 @@ pub struct TreeData {
     /// Tree node data
     nodes: Vec<TreeNodeData>,
     /// Link data
-    links: Vec<LinkData>,
+    links: Vec<TreeLinkData>,
 }
 
 /// Tree node data
@@ -69,13 +69,24 @@ pub enum TreeNodeType {
     Dependent = 2,
 }
 
-/// Link data
+/// Graph link data
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
-pub struct LinkData {
+pub struct GraphLinkData {
     /// Source node
     source: String,
     /// Target node
     target: String,
+}
+
+/// Tree link data
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+pub struct TreeLinkData {
+    /// Source node
+    source: String,
+    /// Target node
+    target: String,
+    /// Edge type
+    r#type: TreeNodeType,
 }
 
 #[derive(Debug, Clone, FromQueryResult)]
@@ -100,16 +111,6 @@ impl Into<GraphNodeData> for Node {
     }
 }
 
-#[allow(clippy::from_over_into)]
-impl Into<LinkData> for Link {
-    fn into(self) -> LinkData {
-        LinkData {
-            source: self.from_node,
-            target: self.to_node,
-        }
-    }
-}
-
 #[derive(Debug)]
 enum ExecutorMsg {
     Execute {
@@ -124,7 +125,7 @@ enum ResultMsg {
     Done {
         depth: i32,
         nodes: Vec<GraphNodeData>,
-        links: Vec<LinkData>,
+        links: Vec<GraphLinkData>,
     },
 }
 
@@ -260,8 +261,8 @@ fn into_graph_node(node: Node) -> GraphNodeData {
     }
 }
 
-fn into_graph_link(link: Link) -> LinkData {
-    LinkData {
+fn into_graph_link(link: Link) -> GraphLinkData {
+    GraphLinkData {
         source: link.from_node,
         target: link.to_node,
     }
@@ -519,7 +520,7 @@ impl Query {
         db: &DbConn,
         pending_nodes: &mut Vec<String>,
         nodes: &mut HashSet<TreeNodeData>,
-        links: &mut Vec<LinkData>,
+        links: &mut Vec<TreeLinkData>,
         node_stmt: &SelectStatement,
         edge_stmt: &SelectStatement,
         node_type: &TreeNodeType,
@@ -579,7 +580,11 @@ impl Query {
                                         temp_pending_nodes.push(edge.from_node.clone())
                                     }
                                 }
-                                edge.into()
+                                TreeLinkData {
+                                    source: edge.from_node,
+                                    target: edge.to_node,
+                                    r#type: node_type.clone(),
+                                }
                             })
                             .collect::<Vec<_>>()
                     })?
