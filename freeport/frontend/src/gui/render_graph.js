@@ -81,6 +81,14 @@ export function renderGraph(
             ],
         );
     });
+
+    const getSourceX = (d) => d.source.x;
+    const getSourceY = (d) => d.source.y;
+    const getTargetX = (d) => d.target.x;
+    const getTargetY = (d) => d.target.y;
+    const getX = (d) => d.x;
+    const getY = (d) => d.y;
+    const translateAndScale = (d) => `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`;
     
     const simulation = d3.forceSimulation(data.nodes)
         .force("link", d3.forceLink()
@@ -92,19 +100,19 @@ export function renderGraph(
         .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", () => {
-            link.attr("x1", (d) => d.source.x)
-                .attr("y1", (d) => d.source.y)
-                .attr("x2", (d) => d.target.x)
-                .attr("y2", (d) => d.target.y);
+            link.attr("x1", getSourceX)
+                .attr("y1", getSourceY)
+                .attr("x2", getTargetX)
+                .attr("y2", getTargetY);
 
             // Move circles
             node.select("circle")
-                .attr("cx", (d) => d.x)
-                .attr("cy", (d) => d.y);
+                .attr("cx", getX)
+                .attr("cy", getY);
 
             // Move names
             node.select("text")
-                .attr("transform", (d) => `translate(${d.x}, ${d.y}) scale(${d.weight / d.textRadius})`);
+                .attr("transform", translateAndScale);
         });
 
     addDragBehavior(node, simulation);
