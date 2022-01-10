@@ -23,19 +23,6 @@ export const treeMain = async (GlobalConfig) => {
 
             outputElem.innerText = "";
 
-            normalizeData(
-                dataTree,
-                (data) => data.nodes.map((node) => node.weight),
-                (data, normalizedWeights) => {
-                    normalizedWeights.forEach((normalizedWeight, i) => {
-                        data.nodes[i].weight = normalizedWeight;
-                    });
-                },
-                {
-                    newMin: GlobalConfig.minWeight,
-                    newMax: GlobalConfig.maxWeight,
-                }
-            );
             renderTree(
                 dataTree,
                 document.getElementById(GlobalConfig.outputElemId),
