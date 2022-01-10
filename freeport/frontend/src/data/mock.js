@@ -82304,3 +82304,1118 @@ export const MOCK_GRAPH = {
     }
   ]
 };
+
+export const MOCK_TREE = {
+  "nodes": [
+    {
+      "id": "driver-cp2130",
+      "type": 2
+    },
+    {
+      "id": "lemmy_utils",
+      "type": 2
+    },
+    {
+      "id": "rusoto_ec2",
+      "type": 2
+    },
+    {
+      "id": "solana-test-validator",
+      "type": 2
+    },
+    {
+      "id": "substrate-prometheus-endpoint",
+      "type": 2
+    },
+    {
+      "id": "time",
+      "type": 2
+    },
+    {
+      "id": "core-foundation",
+      "type": 2
+    },
+    {
+      "id": "amethyst_core",
+      "type": 2
+    },
+    {
+      "id": "aquatic_cli_helpers",
+      "type": 2
+    },
+    {
+      "id": "oauth2",
+      "type": 2
+    },
+    {
+      "id": "lemmy_db_schema",
+      "type": 2
+    },
+    {
+      "id": "qifi-rs",
+      "type": 2
+    },
+    {
+      "id": "quote",
+      "type": 1
+    },
+    {
+      "id": "prometheus",
+      "type": 2
+    },
+    {
+      "id": "redact-crypto",
+      "type": 2
+    },
+    {
+      "id": "serde",
+      "type": 0
+    },
+    {
+      "id": "chrono",
+      "type": 2
+    },
+    {
+      "id": "proc-macro2",
+      "type": 1
+    },
+    {
+      "id": "io-uring",
+      "type": 2
+    },
+    {
+      "id": "native-tls",
+      "type": 2
+    },
+    {
+      "id": "tracing-subscriber",
+      "type": 2
+    },
+    {
+      "id": "sardonyx_core",
+      "type": 2
+    },
+    {
+      "id": "solana-rpc",
+      "type": 2
+    },
+    {
+      "id": "rust_icu_sys",
+      "type": 2
+    },
+    {
+      "id": "aws-smithy-http",
+      "type": 2
+    },
+    {
+      "id": "rust-embed",
+      "type": 2
+    },
+    {
+      "id": "aoc_data",
+      "type": 2
+    },
+    {
+      "id": "tokio",
+      "type": 2
+    },
+    {
+      "id": "wasm-bindgen",
+      "type": 2
+    },
+    {
+      "id": "libunftp",
+      "type": 2
+    },
+    {
+      "id": "tetcore-utils",
+      "type": 2
+    },
+    {
+      "id": "rand",
+      "type": 2
+    },
+    {
+      "id": "cpclib-disc",
+      "type": 2
+    },
+    {
+      "id": "sp-utils",
+      "type": 2
+    },
+    {
+      "id": "serde_qs",
+      "type": 2
+    },
+    {
+      "id": "serde_json",
+      "type": 2
+    },
+    {
+      "id": "diesel",
+      "type": 2
+    },
+    {
+      "id": "mongodb",
+      "type": 2
+    },
+    {
+      "id": "tracing",
+      "type": 2
+    },
+    {
+      "id": "rocket_contrib",
+      "type": 2
+    },
+    {
+      "id": "openidconnect",
+      "type": 2
+    },
+    {
+      "id": "statrs",
+      "type": 2
+    },
+    {
+      "id": "embedded-graphics-core",
+      "type": 2
+    },
+    {
+      "id": "serde_with",
+      "type": 2
+    },
+    {
+      "id": "solana-cli-output",
+      "type": 2
+    },
+    {
+      "id": "aws-smithy-types",
+      "type": 2
+    },
+    {
+      "id": "descriptor-wallet",
+      "type": 2
+    },
+    {
+      "id": "actix-web",
+      "type": 2
+    },
+    {
+      "id": "schemars",
+      "type": 2
+    },
+    {
+      "id": "js-sys",
+      "type": 2
+    },
+    {
+      "id": "holo_hash",
+      "type": 2
+    },
+    {
+      "id": "solana-gossip",
+      "type": 2
+    },
+    {
+      "id": "rust_decimal",
+      "type": 2
+    },
+    {
+      "id": "serenity",
+      "type": 2
+    },
+    {
+      "id": "nalgebra",
+      "type": 2
+    },
+    {
+      "id": "lnpbp",
+      "type": 2
+    },
+    {
+      "id": "env_logger",
+      "type": 2
+    },
+    {
+      "id": "mongodb-cursor-pagination",
+      "type": 2
+    },
+    {
+      "id": "unicode-xid",
+      "type": 1
+    },
+    {
+      "id": "rusqlite",
+      "type": 2
+    },
+    {
+      "id": "rusoto_sqs",
+      "type": 2
+    },
+    {
+      "id": "simplelog",
+      "type": 2
+    },
+    {
+      "id": "sdl2-sys",
+      "type": 2
+    },
+    {
+      "id": "reqwest",
+      "type": 2
+    },
+    {
+      "id": "rusoto_core",
+      "type": 2
+    },
+    {
+      "id": "google-storage1",
+      "type": 2
+    },
+    {
+      "id": "maud",
+      "type": 2
+    },
+    {
+      "id": "holochain_types",
+      "type": 2
+    },
+    {
+      "id": "rd-util",
+      "type": 2
+    },
+    {
+      "id": "mdbook",
+      "type": 2
+    },
+    {
+      "id": "solana-client",
+      "type": 2
+    },
+    {
+      "id": "zip",
+      "type": 2
+    },
+    {
+      "id": "actix-files",
+      "type": 2
+    },
+    {
+      "id": "bigdecimal",
+      "type": 2
+    },
+    {
+      "id": "rusoto_dynamodb",
+      "type": 2
+    },
+    {
+      "id": "prost-build",
+      "type": 2
+    },
+    {
+      "id": "actix-web-actors",
+      "type": 2
+    },
+    {
+      "id": "songbird",
+      "type": 2
+    },
+    {
+      "id": "cargo",
+      "type": 2
+    },
+    {
+      "id": "rusoto_sts",
+      "type": 2
+    },
+    {
+      "id": "splinter",
+      "type": 2
+    },
+    {
+      "id": "tempfile",
+      "type": 2
+    },
+    {
+      "id": "mysql_common",
+      "type": 2
+    },
+    {
+      "id": "google-cloudkms1",
+      "type": 2
+    },
+    {
+      "id": "pyo3",
+      "type": 2
+    },
+    {
+      "id": "rocket",
+      "type": 2
+    },
+    {
+      "id": "aoc_discord_bot",
+      "type": 2
+    },
+    {
+      "id": "quickcheck",
+      "type": 2
+    },
+    {
+      "id": "getrandom",
+      "type": 2
+    },
+    {
+      "id": "bindgen",
+      "type": 2
+    },
+    {
+      "id": "google-youtube3",
+      "type": 2
+    },
+    {
+      "id": "prometheus-endpoint",
+      "type": 2
+    },
+    {
+      "id": "structopt-flags",
+      "type": 2
+    },
+    {
+      "id": "libsqlite3-sys",
+      "type": 2
+    },
+    {
+      "id": "mongo-file-center",
+      "type": 2
+    },
+    {
+      "id": "rusoto_s3",
+      "type": 2
+    },
+    {
+      "id": "num",
+      "type": 2
+    },
+    {
+      "id": "wrangler",
+      "type": 2
+    },
+    {
+      "id": "azure_core_mirror",
+      "type": 2
+    },
+    {
+      "id": "num-bigint",
+      "type": 2
+    },
+    {
+      "id": "bson",
+      "type": 2
+    },
+    {
+      "id": "holochain_zome_types",
+      "type": 2
+    },
+    {
+      "id": "dialoguer",
+      "type": 2
+    },
+    {
+      "id": "google-drive3",
+      "type": 2
+    },
+    {
+      "id": "syn",
+      "type": 1
+    },
+    {
+      "id": "yup-oauth2",
+      "type": 2
+    },
+    {
+      "id": "tower",
+      "type": 2
+    },
+    {
+      "id": "pretty_env_logger",
+      "type": 2
+    },
+    {
+      "id": "log",
+      "type": 2
+    },
+    {
+      "id": "uuid",
+      "type": 2
+    },
+    {
+      "id": "rgb-core",
+      "type": 2
+    },
+    {
+      "id": "r2d2-diesel",
+      "type": 2
+    },
+    {
+      "id": "yttrium_key_base",
+      "type": 2
+    },
+    {
+      "id": "yttrium_std_math",
+      "type": 2
+    },
+    {
+      "id": "num-rational",
+      "type": 2
+    },
+    {
+      "id": "hyper",
+      "type": 2
+    },
+    {
+      "id": "web-sys",
+      "type": 2
+    },
+    {
+      "id": "serde_derive",
+      "type": 1
+    },
+    {
+      "id": "azure_sdk_auth_aad",
+      "type": 2
+    },
+    {
+      "id": "google-androidpublisher3",
+      "type": 2
+    },
+    {
+      "id": "solana-core",
+      "type": 2
+    },
+    {
+      "id": "nalgebra-glm",
+      "type": 2
+    },
+    {
+      "id": "r2d2_sqlite",
+      "type": 2
+    }
+  ],
+  "links": [
+    {
+      "source": "serde",
+      "target": "serde_derive"
+    },
+    {
+      "source": "serde_derive",
+      "target": "syn"
+    },
+    {
+      "source": "serde_derive",
+      "target": "quote"
+    },
+    {
+      "source": "serde_derive",
+      "target": "proc-macro2"
+    },
+    {
+      "source": "syn",
+      "target": "quote"
+    },
+    {
+      "source": "syn",
+      "target": "proc-macro2"
+    },
+    {
+      "source": "syn",
+      "target": "unicode-xid"
+    },
+    {
+      "source": "quote",
+      "target": "proc-macro2"
+    },
+    {
+      "source": "proc-macro2",
+      "target": "unicode-xid"
+    },
+    {
+      "source": "serde_json",
+      "target": "serde"
+    },
+    {
+      "source": "log",
+      "target": "serde"
+    },
+    {
+      "source": "rand",
+      "target": "serde"
+    },
+    {
+      "source": "chrono",
+      "target": "serde"
+    },
+    {
+      "source": "reqwest",
+      "target": "serde"
+    },
+    {
+      "source": "reqwest",
+      "target": "serde_json"
+    },
+    {
+      "source": "wasm-bindgen",
+      "target": "serde_json"
+    },
+    {
+      "source": "yup-oauth2",
+      "target": "serde_json"
+    },
+    {
+      "source": "actix-web",
+      "target": "serde_json"
+    },
+    {
+      "source": "rusoto_core",
+      "target": "serde_json"
+    },
+    {
+      "source": "rand",
+      "target": "log"
+    },
+    {
+      "source": "reqwest",
+      "target": "log"
+    },
+    {
+      "source": "env_logger",
+      "target": "log"
+    },
+    {
+      "source": "tracing",
+      "target": "log"
+    },
+    {
+      "source": "bindgen",
+      "target": "log"
+    },
+    {
+      "source": "uuid",
+      "target": "rand"
+    },
+    {
+      "source": "time",
+      "target": "rand"
+    },
+    {
+      "source": "tempfile",
+      "target": "rand"
+    },
+    {
+      "source": "num-bigint",
+      "target": "rand"
+    },
+    {
+      "source": "nalgebra",
+      "target": "rand"
+    },
+    {
+      "source": "yup-oauth2",
+      "target": "chrono"
+    },
+    {
+      "source": "rusqlite",
+      "target": "chrono"
+    },
+    {
+      "source": "diesel",
+      "target": "chrono"
+    },
+    {
+      "source": "simplelog",
+      "target": "chrono"
+    },
+    {
+      "source": "serde_with",
+      "target": "chrono"
+    },
+    {
+      "source": "prometheus",
+      "target": "reqwest"
+    },
+    {
+      "source": "mongodb",
+      "target": "reqwest"
+    },
+    {
+      "source": "serenity",
+      "target": "reqwest"
+    },
+    {
+      "source": "oauth2",
+      "target": "reqwest"
+    },
+    {
+      "source": "solana-client",
+      "target": "reqwest"
+    },
+    {
+      "source": "prometheus",
+      "target": "reqwest"
+    },
+    {
+      "source": "mongodb",
+      "target": "reqwest"
+    },
+    {
+      "source": "serenity",
+      "target": "reqwest"
+    },
+    {
+      "source": "oauth2",
+      "target": "reqwest"
+    },
+    {
+      "source": "solana-client",
+      "target": "reqwest"
+    },
+    {
+      "source": "chrono",
+      "target": "wasm-bindgen"
+    },
+    {
+      "source": "reqwest",
+      "target": "wasm-bindgen"
+    },
+    {
+      "source": "web-sys",
+      "target": "wasm-bindgen"
+    },
+    {
+      "source": "js-sys",
+      "target": "wasm-bindgen"
+    },
+    {
+      "source": "getrandom",
+      "target": "wasm-bindgen"
+    },
+    {
+      "source": "google-youtube3",
+      "target": "yup-oauth2"
+    },
+    {
+      "source": "google-storage1",
+      "target": "yup-oauth2"
+    },
+    {
+      "source": "google-drive3",
+      "target": "yup-oauth2"
+    },
+    {
+      "source": "google-androidpublisher3",
+      "target": "yup-oauth2"
+    },
+    {
+      "source": "google-cloudkms1",
+      "target": "yup-oauth2"
+    },
+    {
+      "source": "rust-embed",
+      "target": "actix-web"
+    },
+    {
+      "source": "serde_qs",
+      "target": "actix-web"
+    },
+    {
+      "source": "actix-files",
+      "target": "actix-web"
+    },
+    {
+      "source": "actix-web-actors",
+      "target": "actix-web"
+    },
+    {
+      "source": "maud",
+      "target": "actix-web"
+    },
+    {
+      "source": "rusoto_s3",
+      "target": "rusoto_core"
+    },
+    {
+      "source": "rusoto_dynamodb",
+      "target": "rusoto_core"
+    },
+    {
+      "source": "rusoto_sts",
+      "target": "rusoto_core"
+    },
+    {
+      "source": "rusoto_ec2",
+      "target": "rusoto_core"
+    },
+    {
+      "source": "rusoto_sqs",
+      "target": "rusoto_core"
+    },
+    {
+      "source": "uuid",
+      "target": "rand"
+    },
+    {
+      "source": "time",
+      "target": "rand"
+    },
+    {
+      "source": "tempfile",
+      "target": "rand"
+    },
+    {
+      "source": "num-bigint",
+      "target": "rand"
+    },
+    {
+      "source": "nalgebra",
+      "target": "rand"
+    },
+    {
+      "source": "bindgen",
+      "target": "env_logger"
+    },
+    {
+      "source": "pretty_env_logger",
+      "target": "env_logger"
+    },
+    {
+      "source": "quickcheck",
+      "target": "env_logger"
+    },
+    {
+      "source": "cargo",
+      "target": "env_logger"
+    },
+    {
+      "source": "mdbook",
+      "target": "env_logger"
+    },
+    {
+      "source": "tokio",
+      "target": "tracing"
+    },
+    {
+      "source": "hyper",
+      "target": "tracing"
+    },
+    {
+      "source": "tracing-subscriber",
+      "target": "tracing"
+    },
+    {
+      "source": "tower",
+      "target": "tracing"
+    },
+    {
+      "source": "aws-smithy-http",
+      "target": "tracing"
+    },
+    {
+      "source": "libsqlite3-sys",
+      "target": "bindgen"
+    },
+    {
+      "source": "rust_icu_sys",
+      "target": "bindgen"
+    },
+    {
+      "source": "sdl2-sys",
+      "target": "bindgen"
+    },
+    {
+      "source": "mysql_common",
+      "target": "bindgen"
+    },
+    {
+      "source": "io-uring",
+      "target": "bindgen"
+    },
+    {
+      "source": "rusqlite",
+      "target": "uuid"
+    },
+    {
+      "source": "diesel",
+      "target": "uuid"
+    },
+    {
+      "source": "rocket",
+      "target": "uuid"
+    },
+    {
+      "source": "schemars",
+      "target": "uuid"
+    },
+    {
+      "source": "core-foundation",
+      "target": "uuid"
+    },
+    {
+      "source": "chrono",
+      "target": "time"
+    },
+    {
+      "source": "actix-web",
+      "target": "time"
+    },
+    {
+      "source": "tracing-subscriber",
+      "target": "time"
+    },
+    {
+      "source": "zip",
+      "target": "time"
+    },
+    {
+      "source": "aws-smithy-types",
+      "target": "time"
+    },
+    {
+      "source": "native-tls",
+      "target": "tempfile"
+    },
+    {
+      "source": "dialoguer",
+      "target": "tempfile"
+    },
+    {
+      "source": "rocket",
+      "target": "tempfile"
+    },
+    {
+      "source": "prost-build",
+      "target": "tempfile"
+    },
+    {
+      "source": "cargo",
+      "target": "tempfile"
+    },
+    {
+      "source": "num",
+      "target": "num-bigint"
+    },
+    {
+      "source": "diesel",
+      "target": "num-bigint"
+    },
+    {
+      "source": "pyo3",
+      "target": "num-bigint"
+    },
+    {
+      "source": "bigdecimal",
+      "target": "num-bigint"
+    },
+    {
+      "source": "num-rational",
+      "target": "num-bigint"
+    },
+    {
+      "source": "statrs",
+      "target": "nalgebra"
+    },
+    {
+      "source": "amethyst_core",
+      "target": "nalgebra"
+    },
+    {
+      "source": "nalgebra-glm",
+      "target": "nalgebra"
+    },
+    {
+      "source": "embedded-graphics-core",
+      "target": "nalgebra"
+    },
+    {
+      "source": "sardonyx_core",
+      "target": "nalgebra"
+    },
+    {
+      "source": "rocket_contrib",
+      "target": "rusqlite"
+    },
+    {
+      "source": "r2d2_sqlite",
+      "target": "rusqlite"
+    },
+    {
+      "source": "holo_hash",
+      "target": "rusqlite"
+    },
+    {
+      "source": "holochain_zome_types",
+      "target": "rusqlite"
+    },
+    {
+      "source": "holochain_types",
+      "target": "rusqlite"
+    },
+    {
+      "source": "rust_decimal",
+      "target": "diesel"
+    },
+    {
+      "source": "rocket_contrib",
+      "target": "diesel"
+    },
+    {
+      "source": "r2d2-diesel",
+      "target": "diesel"
+    },
+    {
+      "source": "lemmy_db_schema",
+      "target": "diesel"
+    },
+    {
+      "source": "lemmy_utils",
+      "target": "diesel"
+    },
+    {
+      "source": "rd-util",
+      "target": "simplelog"
+    },
+    {
+      "source": "structopt-flags",
+      "target": "simplelog"
+    },
+    {
+      "source": "cpclib-disc",
+      "target": "simplelog"
+    },
+    {
+      "source": "aquatic_cli_helpers",
+      "target": "simplelog"
+    },
+    {
+      "source": "driver-cp2130",
+      "target": "simplelog"
+    },
+    {
+      "source": "bson",
+      "target": "serde_with"
+    },
+    {
+      "source": "mongodb",
+      "target": "serde_with"
+    },
+    {
+      "source": "lnpbp",
+      "target": "serde_with"
+    },
+    {
+      "source": "descriptor-wallet",
+      "target": "serde_with"
+    },
+    {
+      "source": "rgb-core",
+      "target": "serde_with"
+    },
+    {
+      "source": "substrate-prometheus-endpoint",
+      "target": "prometheus"
+    },
+    {
+      "source": "prometheus-endpoint",
+      "target": "prometheus"
+    },
+    {
+      "source": "sp-utils",
+      "target": "prometheus"
+    },
+    {
+      "source": "tetcore-utils",
+      "target": "prometheus"
+    },
+    {
+      "source": "libunftp",
+      "target": "prometheus"
+    },
+    {
+      "source": "rocket_contrib",
+      "target": "mongodb"
+    },
+    {
+      "source": "mongo-file-center",
+      "target": "mongodb"
+    },
+    {
+      "source": "qifi-rs",
+      "target": "mongodb"
+    },
+    {
+      "source": "mongodb-cursor-pagination",
+      "target": "mongodb"
+    },
+    {
+      "source": "redact-crypto",
+      "target": "mongodb"
+    },
+    {
+      "source": "yttrium_key_base",
+      "target": "serenity"
+    },
+    {
+      "source": "songbird",
+      "target": "serenity"
+    },
+    {
+      "source": "aoc_data",
+      "target": "serenity"
+    },
+    {
+      "source": "yttrium_std_math",
+      "target": "serenity"
+    },
+    {
+      "source": "aoc_discord_bot",
+      "target": "serenity"
+    },
+    {
+      "source": "openidconnect",
+      "target": "oauth2"
+    },
+    {
+      "source": "azure_core_mirror",
+      "target": "oauth2"
+    },
+    {
+      "source": "wrangler",
+      "target": "oauth2"
+    },
+    {
+      "source": "splinter",
+      "target": "oauth2"
+    },
+    {
+      "source": "azure_sdk_auth_aad",
+      "target": "oauth2"
+    },
+    {
+      "source": "solana-rpc",
+      "target": "solana-client"
+    },
+    {
+      "source": "solana-gossip",
+      "target": "solana-client"
+    },
+    {
+      "source": "solana-cli-output",
+      "target": "solana-client"
+    },
+    {
+      "source": "solana-core",
+      "target": "solana-client"
+    },
+    {
+      "source": "solana-test-validator",
+      "target": "solana-client"
+    }
+  ]
+};

@@ -1,4 +1,4 @@
-import { getTree } from "../api_access/get_tree";
+import { getMockTreeSimple, getTree } from "../api_access/get_tree";
 import { normalizeData } from "../data/normalize";
 import { Input } from "../gui/input";
 import { renderTree } from "../gui/render_tree";
@@ -13,11 +13,12 @@ export const treeMain = async (GlobalConfig) => {
 
         outputElem.innerText = "Loading...";
 
-        getTree(
-            Input.treeRootNode.parseString(),
-            Input.limit.parseInt(),
-            Input.depth.parseInt(),
-        )
+        // getTree(
+        //     Input.treeRootNode.parseString(),
+        //     Input.limit.parseInt(),
+        //     Input.depth.parseInt(),
+        // )
+        getMockTreeSimple()
         .then((dataTree) => {
 
             outputElem.innerText = "";
