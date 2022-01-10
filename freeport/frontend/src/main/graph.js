@@ -36,7 +36,8 @@ export const graphMain = async(GlobalConfig) => {
                     minFontSize: GlobalConfig.minWeight,
                 }
             );
-        });
+        })
+        .catch(console.error);
     };
     run();
     

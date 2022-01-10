@@ -32,7 +32,8 @@ export const treeMain = async(GlobalConfig) => {
                 dataTree,
                 document.getElementById(GlobalConfig.outputElemId),
             );
-        });
+        })
+        .catch(console.error);
     };
     run();
 
