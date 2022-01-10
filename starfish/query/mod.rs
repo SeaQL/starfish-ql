@@ -340,7 +340,7 @@ impl Query {
                         rev_nodes, rev_links
                     );
                 }
-                if depth > 0 {
+                if depth > 1 {
                     let mut rev_nodes_clone = rev_nodes.iter().collect::<Vec<_>>();
                     while !rev_nodes_clone.is_empty() {
                         let len = min(BATCH_SIZE, rev_nodes_clone.len());
