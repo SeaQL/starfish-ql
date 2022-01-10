@@ -14,7 +14,7 @@ use std::{
     thread,
 };
 
-const BATCH_SIZE: usize = 100;
+const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
 
 /// Query graph data
@@ -123,8 +123,8 @@ enum ExecutorMsg {
 enum ResultMsg {
     Done {
         depth: i32,
-        nodes: HashSet<GraphNodeData>,
-        links: HashSet<LinkData>,
+        nodes: Vec<GraphNodeData>,
+        links: Vec<LinkData>,
     },
 }
 
@@ -198,17 +198,12 @@ impl WorkflowExecutor {
                 );
             }
             executor::block_on(async {
-                let mut nodes = Default::default();
-                let mut links = Default::default();
-
-                Query::traverse_graph(
+                let (nodes, links) = Query::traverse_graph(
                     &self.db,
-                    pending_nodes,
-                    &mut nodes,
-                    &mut links,
-                    0,
-                    self.limit,
-                    false,
+                    |_| unreachable!(),
+                    |link_stmt| select_top_n_edge(link_stmt, self.limit, pending_nodes),
+                    into_graph_node,
+                    into_graph_link,
                 )
                 .await
                 .unwrap();
@@ -233,6 +228,45 @@ impl WorkflowExecutor {
     }
 }
 
+fn select_top_n_node(stmt: &mut SelectStatement, top_n: i32) {
+    stmt.order_by(Alias::new("in_conn"), Order::Desc)
+        .limit(top_n as u64);
+}
+
+fn select_top_n_edge(
+    stmt: &SelectStatement,
+    limit: i32,
+    nodes: Vec<String>,
+) -> Vec<SelectStatement> {
+    if nodes.is_empty() {
+        vec![]
+    } else {
+        nodes
+            .into_iter()
+            .map(|node| {
+                let mut stmt = stmt.clone();
+                stmt.and_where(Expr::col(Alias::new("to_node")).eq(node))
+                    .limit(limit as u64);
+                stmt
+            })
+            .collect()
+    }
+}
+
+fn into_graph_node(node: Node) -> GraphNodeData {
+    GraphNodeData {
+        id: node.name,
+        weight: node.in_conn,
+    }
+}
+
+fn into_graph_link(link: Link) -> LinkData {
+    LinkData {
+        source: link.from_node,
+        target: link.to_node,
+    }
+}
+
 impl Query {
     /// Get graph
     pub async fn get_graph(
@@ -244,7 +278,17 @@ impl Query {
         let mut nodes = HashSet::new();
         let mut links = HashSet::new();
 
-        Self::traverse_graph(db, vec![], &mut nodes, &mut links, top_n, limit, true).await?;
+        let (res_nodes, res_links) = Self::traverse_graph(
+            db,
+            |node_stmt| select_top_n_node(node_stmt, top_n),
+            |link_stmt| select_top_n_edge(link_stmt, limit, vec![]),
+            into_graph_node,
+            into_graph_link,
+        )
+        .await?;
+
+        nodes.extend(res_nodes);
+        links.extend(res_links);
 
         if depth <= 0 {
             return Ok(GraphData {
@@ -327,19 +371,22 @@ impl Query {
         })
     }
 
-    #[async_recursion]
     #[allow(clippy::too_many_arguments)]
-    async fn traverse_graph(
+    async fn traverse_graph<N, L, SN, SL, CN, CL>(
         db: &DbConn,
-        mut pending_nodes: Vec<String>,
-        nodes: &mut HashSet<GraphNodeData>,
-        links: &mut HashSet<LinkData>,
-        top_n: i32,
-        limit: i32,
-        first: bool,
-    ) -> Result<(), DbErr> {
+        select_nodes: SN,
+        select_links: SL,
+        convert_node: CN,
+        convert_link: CL,
+    ) -> Result<(Vec<N>, Vec<L>), DbErr>
+    where
+        SN: FnOnce(&mut SelectStatement),
+        SL: FnOnce(&SelectStatement) -> Vec<SelectStatement>,
+        CN: Fn(Node) -> N,
+        CL: Fn(Link) -> L,
+    {
         let builder = db.get_database_backend();
-        let mut new_nodes = Vec::new();
+        let mut pending_nodes = Vec::new();
         let mut node_stmt = sea_query::Query::select();
         node_stmt
             .columns([Alias::new("name"), Alias::new("in_conn")])
@@ -358,60 +405,39 @@ impl Query {
                 Order::Desc,
             );
 
-        assert!(pending_nodes.len() <= BATCH_SIZE);
+        let edge_stmts = select_links(&edge_stmt);
+        let links = if !edge_stmts.is_empty() {
+            let edge_stmts: Vec<String> = edge_stmts
+                .iter()
+                .map(|stmt| builder.build(stmt).to_string())
+                .collect();
+            let union_select = format!("({})", edge_stmts.join(") UNION ("));
+            let stmt = Statement::from_string(builder, union_select);
+            let res_links = Link::find_by_statement(stmt).all(db).await?;
+            pending_nodes = res_links
+                .iter()
+                .map(|edge| edge.from_node.clone())
+                .collect();
+            res_links.into_iter().map(convert_link).collect()
+        } else {
+            vec![]
+        };
 
-        if !pending_nodes.is_empty() {
-            let mut stmts = Vec::new();
-            for node in mem::take(&mut pending_nodes) {
-                let mut stmt = edge_stmt.clone();
-                stmt.and_where(Expr::col(Alias::new("to_node")).eq(node))
-                    .limit(limit as u64);
-                let stmt = builder.build(&stmt).to_string();
-                stmts.push(stmt);
-            }
-            let stmt = Statement::from_string(builder, format!("({})", stmts.join(") UNION (")));
-            links.extend(
-                Link::find_by_statement(stmt)
-                    .all(db)
-                    .await
-                    .map(|links| {
-                        links
-                            .into_iter()
-                            .map(|edge| {
-                                new_nodes.push(edge.from_node.clone());
-                                edge.into()
-                            })
-                            .collect::<Vec<_>>()
-                    })?
-                    .into_iter(),
-            );
+        let node_stmt = if !pending_nodes.is_empty() {
+            let target_nodes = mem::take(&mut pending_nodes);
+            node_stmt.and_where(Expr::col(Alias::new("name")).is_in(target_nodes));
+            node_stmt
+        } else {
+            select_nodes(&mut node_stmt);
+            node_stmt
+        };
 
-            let mut stmt = node_stmt.clone();
-            stmt.and_where(Expr::col(Alias::new("name")).is_in(mem::take(&mut new_nodes)));
-            nodes.extend(
-                Node::find_by_statement(builder.build(&stmt))
-                    .all(db)
-                    .await
-                    .map(|nodes| nodes.into_iter().map(Into::into).collect::<Vec<_>>())?
-                    .into_iter(),
-            );
-        }
-        assert!(pending_nodes.is_empty());
+        let res_nodes = Node::find_by_statement(builder.build(&node_stmt))
+            .all(db)
+            .await?;
+        let nodes = res_nodes.into_iter().map(convert_node).collect();
 
-        if first {
-            let mut stmt = node_stmt.clone();
-            stmt.order_by(Alias::new("in_conn"), Order::Desc)
-                .limit(top_n as u64);
-            nodes.extend(
-                Node::find_by_statement(builder.build(&stmt))
-                    .all(db)
-                    .await
-                    .map(|nodes| nodes.into_iter().map(Into::into).collect::<Vec<_>>())?
-                    .into_iter(),
-            );
-        }
-
-        Ok(())
+        Ok((nodes, links))
     }
 
     /// Get tree
