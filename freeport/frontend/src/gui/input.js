@@ -27,4 +27,6 @@ export const Input = inputElemIds.reduce((obj, id) => {
 
 }, {});
 
+export const SubmitButton = document.getElementById("submit");
+
 Input.elems = Object.values(Input).map((input) => input.elem);

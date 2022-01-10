@@ -1,6 +1,6 @@
 import { getMockTreeSimple, getTree } from "../api_access/get_tree";
 import { normalizeData } from "../data/normalize";
-import { Input } from "../gui/input";
+import { Input, SubmitButton } from "../gui/input";
 import { renderTree } from "../gui/render_tree";
 import { clearChildNodes } from "../gui/util";
 
@@ -43,12 +43,6 @@ export const treeMain = async (GlobalConfig) => {
         })
         .catch(console.error);
     };
-    run();
 
-    Input.elems.forEach((elem) => {
-        if (elem === null) {
-            return;
-        }
-        elem.addEventListener("focusout", run);
-    });    
+    SubmitButton.addEventListener("click", run);
 };

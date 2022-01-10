@@ -1,6 +1,6 @@
 import { getGraphSimple, getMockGraphSimple } from "../api_access/get_graph";
 import { normalizeData } from "../data/normalize";
-import { Input } from "../gui/input";
+import { Input, SubmitButton } from "../gui/input";
 import { renderGraph } from "../gui/render_graph";
 import { clearChildNodes } from "../gui/util";
 
@@ -47,12 +47,6 @@ export const graphMain = async (GlobalConfig) => {
         })
         .catch(console.error);
     };
-    run();
     
-    Input.elems.forEach((elem) => {
-        if (elem === null) {
-            return;
-        }
-        elem.addEventListener("focusout", run);
-    });
+    SubmitButton.addEventListener("click", run);
 };
