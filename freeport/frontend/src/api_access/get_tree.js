@@ -11,10 +11,10 @@ export const getTree = async (rootNode, limit, depth) => {
         }
     );
 
-    const graph = await getRequestJson(
+    const tree = await getRequestJson(
         url,
         (e) => { throw e; }
     );
 
-    return graph;
+    return tree;
 };
