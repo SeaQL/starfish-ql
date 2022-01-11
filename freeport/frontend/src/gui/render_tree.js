@@ -70,7 +70,7 @@ export function renderTree(
 
     // Draw circles for the nodes
     node.append("circle")
-        .attr("r", 20)
+        .attr("r", nodeCircleRadius)
         .style("fill", (d) => ColorScheme[d.type]);
 
     // Add names to the nodes
@@ -104,18 +104,25 @@ export function renderTree(
     );
     node.on("mouseout.resetHighlight", (_) => resetAllHighlight(node, link));
 
+    const leftX = center.x - width / 4;
+    const rightX = center.x + width / 4;
     const simulation = d3.forceSimulation(data.nodes)
-        .force("side", (alpha) => { // Dependencies to the left; Dependents to the right
-            data.nodes.forEach(node => {
-                if (node.type === TreeElemType.Dependency) {
-                    node.vx = -Math.abs(node.vx);
-                } else if (node.type === TreeElemType.Dependent) {
-                    node.vx = Math.abs(node.vx);
-                }
-            });
-        });
-
-    let isExtraForcesAdded = false;
+        .force("x", d3.forceX((d) => {
+            switch (d.type) {
+                case TreeElemType.Root:
+                default:
+                    return center.x;
+                case TreeElemType.Dependency:
+                    return leftX;
+                case TreeElemType.Dependent:
+                    return rightX;
+            }
+        }))
+        .force("link", d3.forceLink()
+            .id((d) => d.id)
+            .links(data.links)
+        )
+        .force("collision", d3.forceCollide().radius((_) => nodeCircleRadius * 1.3))
 
     const getSourceX = (d) => d.source.x;
     const getSourceY = (d) => d.source.y;
@@ -139,23 +146,8 @@ export function renderTree(
         // Move names
         node.select("text")
             .attr("transform", translateAndScale);
-
-        if (this.alpha() < 0.5 && !isExtraForcesAdded) {
-            this.force("charge", d3.forceManyBody()
-                    .strength(-200) // Push away each other
-                )
-                .force("link", d3.forceLink()
-                    .id((d) => d.id)
-                    .links(data.links)
-                    .distance(50)
-                    .strength(1)
-                )
-                // .force("side", null)
-
-            isExtraForcesAdded = true;
-        }
     });
 
-    addDragBehavior(node, simulation);
+    addDragBehavior(node, simulation, ["x"], ["link"]);
     addZoomBehavior(group, svg, width, height);
 };

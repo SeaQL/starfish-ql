@@ -128,6 +128,6 @@ export function renderGraph(
                 .attr("transform", translateAndScale);
         });
 
-    addDragBehavior(node, simulation);
+    addDragBehavior(node, simulation, ["link", "charge"]);
     addZoomBehavior(group, svg, width, height);
 };
