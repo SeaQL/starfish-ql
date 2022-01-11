@@ -181,7 +181,7 @@ impl Executor {
             TreeNodeType::Root,
             |node_stmt| select_root_node(node_stmt, root_node),
             |link_stmt| select_top_n_edge(link_stmt, limit, vec![], TreeNodeType::Root),
-            |node| into_tree_node(node, TreeNodeType::Root),
+            |node| into_tree_node(node, TreeNodeType::Root, 0),
             |link| into_tree_link(link, TreeNodeType::Root),
         )
         .await?;

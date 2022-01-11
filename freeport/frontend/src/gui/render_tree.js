@@ -32,7 +32,6 @@ export function renderTree(
         textDelimiters = "-"
     } = {}
 ) {
-    console.log(data.links);
     // set the dimensions and margins of the graph
     const margin = { top: 20, right: 20, bottom: 20, left: 20 },
         width = 1000 - margin.left - margin.right,

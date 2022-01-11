@@ -45,14 +45,28 @@ pub struct TreeData {
 }
 
 /// Tree node data
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Debug, Clone, Eq, Deserialize, Serialize)]
 pub struct TreeNodeData {
     /// Name of node
     id: String,
     /// Node type
     r#type: TreeNodeType,
     /// Node depth inverse (the higher, the deeper in recursion this node was found)
+    /// This field is not used to identify a tree node.
     depth_inv: i32,
+}
+
+impl PartialEq for TreeNodeData {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id && self.r#type == other.r#type
+    }
+}
+
+impl std::hash::Hash for TreeNodeData {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+        self.r#type.hash(state);
+    }
 }
 
 /// Denotes which side a node belongs to, relative to the **root** node
@@ -248,10 +262,11 @@ fn into_graph_link(link: Link) -> GraphLinkData {
     }
 }
 
-fn into_tree_node(node: Node, r#type: TreeNodeType) -> TreeNodeData {
+fn into_tree_node(node: Node, r#type: TreeNodeType, depth_inv: i32) -> TreeNodeData {
     TreeNodeData {
         id: node.name,
         r#type,
+        depth_inv
     }
 }
 
