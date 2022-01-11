@@ -198,11 +198,17 @@ impl WorkflowExecutor {
                     self.i, depth, pending_nodes
                 );
             }
+            let current_limit = std::cmp::max(
+                1,
+                (0..depth).fold(self.limit as f32, |current_limit, _| {
+                    current_limit / 3.0 * 2.0
+                }) as i32
+                );
             executor::block_on(async {
                 let (nodes, links) = Query::traverse_graph(
                     &self.db,
                     |_| unreachable!(),
-                    |link_stmt| select_top_n_edge(link_stmt, self.limit, pending_nodes),
+                    |link_stmt| select_top_n_edge(link_stmt, current_limit, pending_nodes),
                     into_graph_node,
                     into_graph_link,
                 )
