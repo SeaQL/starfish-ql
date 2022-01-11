@@ -45,6 +45,7 @@ figment = { version = "^0.10" }
 serde = { version = "^1" }
 serde_json = { version = "^1" }
 serde_repr = { version = "^0" }
+num_cpus = { version = "^1" }
 
 [dev-dependencies]
 starfish = { path = "." }

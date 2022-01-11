@@ -13,12 +13,12 @@ export const treeMain = async (GlobalConfig) => {
 
         outputElem.innerText = "Loading...";
 
-        // getTree(
-        //     Input.treeRootNode.parseString(),
-        //     Input.limit.parseInt(),
-        //     Input.depth.parseInt(),
-        // )
-        getMockTreeSimple()
+        getTree(
+            Input.treeRootNode.parseString(),
+            Input.limit.parseInt(),
+            Input.depth.parseInt(),
+        )
+        // getMockTreeSimple()
         .then((dataTree) => {
 
             outputElem.innerText = "";
