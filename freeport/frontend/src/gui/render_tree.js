@@ -5,12 +5,23 @@ import { addZoomBehavior } from "./zoom";
 import { createNodes } from "./create_nodes";
 import { createInfobox, updateInfobox } from "./infobox";
 
+const ColorScheme = [
+    "#69b3a2", // Root
+    "#7ac931", // Dependency
+    "#288cbd", // Dependent
+];
+
 // Denotes which side a node belongs to, relative to the **root** node.
-export const TreeNodeType = {
+export const TreeElemType = {
     Root: 0,  // Centered
     Dependency: 1,  // To the Left
     Dependent: 2,  // To the Right
+    NUM_TREE_ELEM_TYPE: 3, // Make sure it is the last variant with the largest, consecutive value
 };
+
+if (ColorScheme.length !== TreeElemType.NUM_TREE_ELEM_TYPE) {
+    console.error("Number of colors in ColorScheme does not match with number of tree element types.");
+}
 
 export function renderTree(
     data,
@@ -41,12 +52,12 @@ export function renderTree(
         .data(data.links)
         .enter()
         .append("line")
-        .style("stroke", "#aaa");
+        .style("stroke", (d) => ColorScheme[d.type]);
 
     // Initialize the nodes
     const node = createNodes(group, data.nodes)
         .attr("", (d) => {
-            if (d.type === TreeNodeType.Root) {
+            if (d.type === TreeElemType.Root) {
                 d.fx = center.x;
                 d.fy = center.y;
             } else {
@@ -59,18 +70,7 @@ export function renderTree(
     // Draw circles for the nodes
     node.append("circle")
         .attr("r", 20)
-        .style("fill", (d) => {
-            switch (d.type) {
-                case TreeNodeType.Root:
-                    return "#69b3a2";
-                case TreeNodeType.Dependency:
-                    return "#7ac931";
-                case TreeNodeType.Dependent:
-                    return "#288cbd";
-                default:
-                    console.error("Unkonwn Tree Node Type!");
-            }
-        });
+        .style("fill", (d) => ColorScheme[d.type]);
 
     // Add names to the nodes
     addWrappedTextToNodeAndSetTextRadius(
@@ -99,9 +99,9 @@ export function renderTree(
     const simulation = d3.forceSimulation(data.nodes)
         .force("side", (alpha) => { // Dependencies to the left; Dependents to the right
             data.nodes.forEach(node => {
-                if (node.type === TreeNodeType.Dependency) {
+                if (node.type === TreeElemType.Dependency) {
                     node.vx = -Math.abs(node.vx);
-                } else if (node.type === TreeNodeType.Dependent) {
+                } else if (node.type === TreeElemType.Dependent) {
                     node.vx = Math.abs(node.vx);
                 }
             });
