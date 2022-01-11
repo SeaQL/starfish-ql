@@ -51,6 +51,8 @@ pub struct TreeNodeData {
     id: String,
     /// Node type
     r#type: TreeNodeType,
+    /// Node depth inverse (the higher, the deeper in recursion this node was found)
+    depth_inv: i32,
 }
 
 /// Denotes which side a node belongs to, relative to the **root** node

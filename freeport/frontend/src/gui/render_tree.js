@@ -32,6 +32,7 @@ export function renderTree(
         textDelimiters = "-"
     } = {}
 ) {
+    console.log(data.links);
     // set the dimensions and margins of the graph
     const margin = { top: 20, right: 20, bottom: 20, left: 20 },
         width = 1000 - margin.left - margin.right,
@@ -53,7 +54,12 @@ export function renderTree(
         .data(data.links)
         .enter()
         .append("line")
-        .style("stroke", (d) => ColorScheme[d.type]);
+        .style("stroke", (d) => {
+            if (d.type >= ColorScheme.length) {
+                console.error("Unkown tree node type.");
+            }
+            return ColorScheme[d.type];
+        });
 
     // Initialize the nodes
     const node = createNodes(group, data.nodes)
@@ -104,8 +110,9 @@ export function renderTree(
     );
     node.on("mouseout.resetHighlight", (_) => resetAllHighlight(node, link));
 
-    const leftX = center.x - width / 4;
-    const rightX = center.x + width / 4;
+    const depthInvToMagnitude = (depthInv) => (width * 2 / 3) / depthInv;
+    const leftX = (depthInv) => center.x - depthInvToMagnitude(depthInv);
+    const rightX = (depthInv) => center.x + depthInvToMagnitude(depthInv);
     const simulation = d3.forceSimulation(data.nodes)
         .force("x", d3.forceX((d) => {
             switch (d.type) {
@@ -113,9 +120,9 @@ export function renderTree(
                 default:
                     return center.x;
                 case TreeElemType.Dependency:
-                    return leftX;
+                    return leftX(d.depth_inv);
                 case TreeElemType.Dependent:
-                    return rightX;
+                    return rightX(d.depth_inv);
             }
         }))
         .force("link", d3.forceLink()
@@ -148,6 +155,6 @@ export function renderTree(
             .attr("transform", translateAndScale);
     });
 
-    addDragBehavior(node, simulation, ["x"], ["link"]);
+    addDragBehavior(node, simulation, [], ["x", "link"]);
     addZoomBehavior(group, svg, width, height);
 };
