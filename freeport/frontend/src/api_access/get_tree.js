@@ -1,6 +1,6 @@
 import { getRequestJson } from "./util";
 import { constructUrl } from "./url";
-import { MOCK_TREE } from "../data/mock";
+import MOCK_TREE from "../data/mock_tree.json";
 
 export const getTree = async (rootNode, limit, depth) => {
     const url = constructUrl(

@@ -1,7 +1,6 @@
 import { getRequestJson } from "./util";
 import { constructUrl } from "./url";
-
-import { MOCK_GRAPH } from "../data/mock";
+import MOCK_GRAPH_SIMPLE from "../data/mock_graph/simple.json";
 
 export const getGraphSimple = async (topN, limit, depth) => {
     const url = constructUrl(
@@ -22,5 +21,5 @@ export const getGraphSimple = async (topN, limit, depth) => {
 };
 
 export const getMockGraphSimple = async () => {
-    return MOCK_GRAPH;
+    return MOCK_GRAPH_SIMPLE;
 };
