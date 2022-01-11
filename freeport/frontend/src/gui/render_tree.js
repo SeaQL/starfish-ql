@@ -4,6 +4,7 @@ import { addWrappedTextToNodeAndSetTextRadius } from "./add_text_to_node";
 import { addZoomBehavior } from "./zoom";
 import { createNodes } from "./create_nodes";
 import { createInfobox, updateInfobox } from "./infobox";
+import { highlightConnectedNodesAndLinks, resetAllHighlight } from "./highlight";
 
 const ColorScheme = [
     "#69b3a2", // Root
@@ -95,6 +96,13 @@ export function renderTree(
             ],
         );
     });
+
+    // Setup highlight behavior
+    node.on(
+        "mouseover.highlight",
+        (_, d) => highlightConnectedNodesAndLinks(d.id, node, link)
+    );
+    node.on("mouseout.resetHighlight", (_) => resetAllHighlight(node, link));
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("side", (alpha) => { // Dependencies to the left; Dependents to the right

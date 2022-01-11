@@ -5,6 +5,7 @@ import { addDragBehavior } from "./drag";
 import { addZoomBehavior } from "./zoom";
 import { createInfobox, updateInfobox } from "./infobox";
 import { isColorLight, stringToColour } from "./util";
+import { highlightConnectedNodesAndLinks, resetAllHighlight } from "./highlight";
 
 /*
 'data' must follow this format:
@@ -87,6 +88,13 @@ export function renderGraph(
         );
     });
 
+    // Setup highlight behavior
+    node.on(
+        "mouseover.highlight",
+        (_, d) => highlightConnectedNodesAndLinks(d.id, node, link)
+    );
+    node.on("mouseout.resetHighlight", (_) => resetAllHighlight(node, link));
+
     const getSourceX = (d) => d.source.x;
     const getSourceY = (d) => d.source.y;
     const getTargetX = (d) => d.target.x;
@@ -101,7 +109,7 @@ export function renderGraph(
             .links(data.links)
             .strength(0.1)
         )
-        .force("collision", d3.forceCollide().radius((d) => d.weight + 3))
+        .force("collision", d3.forceCollide().radius((d) => d.weight * 1.1))
         .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(width / 2, height / 2))
         .on("tick", () => {
