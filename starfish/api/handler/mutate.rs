@@ -11,7 +11,8 @@ pub fn routes() -> Vec<rocket::Route> {
         insert_node_batch,
         insert_edge,
         insert_edge_batch,
-        clear_edge
+        clear_edge,
+        cal_compound_conn,
     ]
 }
 
@@ -84,6 +85,17 @@ async fn clear_edge(
     let clear_edge_json = input_data.clone();
 
     Mutate::clear_edge(db, clear_edge_json)
+        .await
+        .map_err(Into::into)?;
+
+    Ok(())
+}
+
+#[post("/cal-compound-conn")]
+async fn cal_compound_conn(conn: Connection<'_, Db>) -> Result<(), ErrorResponder> {
+    let db = conn.into_inner();
+
+    Mutate::calculate_compound_connectivity(db)
         .await
         .map_err(Into::into)?;
 

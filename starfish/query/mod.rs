@@ -266,7 +266,7 @@ fn into_tree_node(node: Node, r#type: TreeNodeType, depth_inv: i32) -> TreeNodeD
     TreeNodeData {
         id: node.name,
         r#type,
-        depth_inv
+        depth_inv,
     }
 }
 

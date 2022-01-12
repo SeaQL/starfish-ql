@@ -1,6 +1,6 @@
 use super::Mutate;
 use crate::schema::format_edge_table_name;
-use sea_orm::{ConnectionTrait, DbConn, DbErr, Statement};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Statement};
 use sea_query::{Alias, Expr, Query};
 use serde::{Deserialize, Serialize};
 
@@ -40,6 +40,11 @@ pub struct ClearEdgeJson {
     pub name: String,
     /// Name of node
     pub node: String,
+}
+
+#[derive(Debug, Clone, FromQueryResult)]
+struct Node {
+    name: String,
 }
 
 impl Mutate {
@@ -116,6 +121,41 @@ impl Mutate {
             "SET in_conn = (SELECT COUNT(*) FROM edge_depends WHERE to_node = node_crate.name),",
             "out_conn = (SELECT COUNT(*) FROM edge_depends WHERE from_node = node_crate.name)",
         ].join(" "))).await?;
+
+        Ok(())
+    }
+
+    /// Update compound connectivity
+    pub async fn calculate_compound_connectivity(db: &DbConn) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
+        let mut node_stmt = sea_query::Query::select();
+        node_stmt
+            .column(Alias::new("name"))
+            .from(Alias::new("node_crate"))
+            .and_where(Expr::col(Alias::new("in_conn")).gt(0));
+        let nodes = Node::find_by_statement(builder.build(&node_stmt))
+            .all(db)
+            .await?;
+
+        for node in nodes {
+            let stmt = format!(
+                concat!(
+                    "WITH recursive cte as ( ",
+                    "SELECT t.from_node ",
+                    "from edge_depends as t ",
+                    "WHERE t.to_node = '{0}' ",
+                    "UNION DISTINCT ",
+                    "SELECT t.from_node ",
+                    "from edge_depends as t INNER JOIN cte ON t.to_node = cte.from_node ",
+                    ") ",
+                    "UPDATE node_crate ",
+                    "SET in_conn_compound = (SELECT COUNT(*) FROM cte) ",
+                    "WHERE name = '{0}'"
+                ),
+                node.name
+            );
+            db.execute(Statement::from_string(builder, stmt)).await?;
+        }
 
         Ok(())
     }
