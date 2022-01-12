@@ -14,7 +14,7 @@ export const stringToColour = (str) => {
     let colour = '#';
     for (var i = 0; i < 3; ++i) {
         const value = (hash >> (i * 8)) & 0xFF;
-        colour += ('00' + value.toString(16)).substr(-2);
+        colour += ('00' + value.toString(16)).slice(-2);
     }
     return colour;
 };
