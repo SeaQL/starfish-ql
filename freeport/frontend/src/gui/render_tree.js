@@ -96,8 +96,7 @@ export function renderTree(
             infobox,
             [
                 "Id: " + d.id,
-                "Testing1",
-                "Testing2 Hihi"
+                "Depth Inverse: " + d.depth_inv,
             ],
         );
     });

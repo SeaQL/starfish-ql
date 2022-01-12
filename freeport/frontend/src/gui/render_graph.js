@@ -82,8 +82,7 @@ export function renderGraph(
             infobox,
             [
                 "Id: " + d.id,
-                "Testing1",
-                "Testing2 Hihi"
+                "Weight: " + Math.round(d.weight * 10) / 10,
             ],
         );
     });

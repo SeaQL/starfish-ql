@@ -1,7 +1,7 @@
 export function createInfobox(
     containingElem,
     {
-        opacity = 0.25,
+        opacity = 0.5,
         cornerRadius = 5,
         topPadding = "10px",
         vAlign = "center"
@@ -24,7 +24,8 @@ export function createInfobox(
         .attr("rx", cornerRadius);
 
     infobox.append("text")
-        .attr("dominant-baseline", "hanging");
+        .attr("dominant-baseline", "hanging")
+        .style("fill", "#eeeeee");
 
     return infobox;
 }
@@ -35,7 +36,8 @@ export function updateInfobox(
     contents,
     {
         fontSize = 16,
-        padding = 5
+        padding = 10,
+        lineSpacing = 6,
     } = {}
 ) {
     infobox.style("display", "block");
@@ -52,7 +54,7 @@ export function updateInfobox(
         .style("font-size", fontSize + "px")
         .attr("x", padding)
         .attr("y", (_, i) => {
-            return padding + (i - numLines / 2 + 1.6) * fontSize;
+            return padding + i * (fontSize + lineSpacing);
         })
         .text((d) => d);
 
