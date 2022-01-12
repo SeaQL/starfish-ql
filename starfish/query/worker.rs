@@ -1,6 +1,6 @@
 use super::{
     executor::ExecutorMsg, into_graph_link, into_graph_node, into_tree_link, into_tree_node,
-    select_top_n_edge, traverse, TreeNodeType, DEBUG,
+    select_top_n_edge, traverse, NodeWeight, TreeNodeType, DEBUG,
 };
 use rocket::futures::executor::block_on;
 use sea_orm::DbConn;
@@ -20,6 +20,7 @@ pub(crate) enum WorkerMsg {
 pub(crate) struct TraverseData {
     pub(crate) limit: i32,
     pub(crate) depth: i32,
+    pub(crate) weight: NodeWeight,
     pub(crate) pending_nodes: Vec<String>,
     pub(crate) traverse_type: TraverseType,
 }
@@ -86,6 +87,7 @@ impl Worker {
         if let Some(TraverseData {
             limit,
             depth,
+            weight,
             pending_nodes,
             traverse_type,
         }) = self.tasks.pop_front()
@@ -102,6 +104,7 @@ impl Worker {
                         let (nodes, links) = traverse(
                             &self.db,
                             TreeNodeType::Dependency,
+                            weight,
                             |_| unreachable!(),
                             |link_stmt| {
                                 select_top_n_edge(
@@ -129,6 +132,7 @@ impl Worker {
                         let (nodes, links) = traverse(
                             &self.db,
                             tree_node_type,
+                            weight,
                             |_| unreachable!(),
                             |link_stmt| {
                                 select_top_n_edge(link_stmt, limit, pending_nodes, tree_node_type)

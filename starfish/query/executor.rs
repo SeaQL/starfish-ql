@@ -2,8 +2,8 @@ use super::{
     into_graph_link, into_graph_node, into_tree_link, into_tree_node, select_root_node,
     select_top_n_edge, select_top_n_node, traverse,
     worker::{TraverseData, TraverseType, Worker, WorkerMsg},
-    GraphData, GraphLinkData, GraphNodeData, TreeData, TreeLinkData, TreeNodeData, TreeNodeType,
-    BATCH_SIZE, DEBUG,
+    GraphData, GraphLinkData, GraphNodeData, NodeWeight, TreeData, TreeLinkData, TreeNodeData,
+    TreeNodeType, BATCH_SIZE, DEBUG,
 };
 use sea_orm::{DbConn, DbErr};
 use std::{
@@ -75,6 +75,7 @@ impl Executor {
         top_n: i32,
         limit: i32,
         depth: i32,
+        weight: NodeWeight,
     ) -> Result<GraphData, DbErr> {
         let mut nodes = HashSet::new();
         let mut links = HashSet::new();
@@ -82,7 +83,8 @@ impl Executor {
         let (res_nodes, res_links) = traverse(
             &self.db,
             TreeNodeType::Root,
-            |node_stmt| select_top_n_node(node_stmt, top_n),
+            weight,
+            |node_stmt| select_top_n_node(node_stmt, top_n, weight),
             |link_stmt| select_top_n_edge(link_stmt, limit, vec![], TreeNodeType::Root),
             into_graph_node,
             into_graph_link,
@@ -103,6 +105,7 @@ impl Executor {
             data: TraverseData {
                 limit,
                 depth,
+                weight,
                 pending_nodes: nodes.iter().map(|node| node.id.clone()).collect(),
                 traverse_type: TraverseType::Graph,
             },
@@ -145,6 +148,7 @@ impl Executor {
                             data: TraverseData {
                                 limit: current_limit,
                                 depth: depth - 1,
+                                weight,
                                 pending_nodes: rev_nodes_clone
                                     .drain(..len)
                                     .map(|node| node.id.clone())
@@ -172,6 +176,7 @@ impl Executor {
         root_node: String,
         limit: i32,
         depth: i32,
+        weight: NodeWeight,
     ) -> Result<TreeData, DbErr> {
         let mut nodes = HashSet::new();
         let mut links = Vec::new();
@@ -179,6 +184,7 @@ impl Executor {
         let (res_nodes, res_links) = traverse(
             &self.db,
             TreeNodeType::Root,
+            weight,
             |node_stmt| select_root_node(node_stmt, root_node),
             |link_stmt| select_top_n_edge(link_stmt, limit, vec![], TreeNodeType::Root),
             |node| into_tree_node(node, TreeNodeType::Root, 0),
@@ -201,6 +207,7 @@ impl Executor {
                 data: TraverseData {
                     limit,
                     depth,
+                    weight,
                     pending_nodes: nodes.iter().map(|node| node.id.clone()).collect(),
                     traverse_type: TraverseType::Tree {
                         tree_node_type: TreeNodeType::Dependency,
@@ -211,6 +218,7 @@ impl Executor {
                 data: TraverseData {
                     limit,
                     depth,
+                    weight,
                     pending_nodes: nodes.iter().map(|node| node.id.clone()).collect(),
                     traverse_type: TraverseType::Tree {
                         tree_node_type: TreeNodeType::Dependent,
@@ -257,6 +265,7 @@ impl Executor {
                             data: TraverseData {
                                 limit: current_limit,
                                 depth: depth - 1,
+                                weight,
                                 pending_nodes: rev_nodes_clone
                                     .drain(..len)
                                     .map(|node| node.id.clone())

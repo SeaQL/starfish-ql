@@ -81,6 +81,16 @@ pub enum TreeNodeType {
     Dependent = 2,
 }
 
+/// Node weight option
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize_repr, Serialize_repr)]
+#[repr(u8)]
+pub enum NodeWeight {
+    /// Simple
+    Simple = 0,
+    /// Compound
+    Compound = 1,
+}
+
 /// Graph link data
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
 pub struct GraphLinkData {
@@ -120,8 +130,11 @@ impl Query {
         top_n: i32,
         limit: i32,
         depth: i32,
+        weight: NodeWeight,
     ) -> Result<GraphData, DbErr> {
-        Executor::new(db).get_graph(top_n, limit, depth).await
+        Executor::new(db)
+            .get_graph(top_n, limit, depth, weight)
+            .await
     }
 
     /// Get tree
@@ -130,14 +143,18 @@ impl Query {
         root_node: String,
         limit: i32,
         depth: i32,
+        weight: NodeWeight,
     ) -> Result<TreeData, DbErr> {
-        Executor::new(db).get_tree(root_node, limit, depth).await
+        Executor::new(db)
+            .get_tree(root_node, limit, depth, weight)
+            .await
     }
 }
 
 async fn traverse<N, L, SN, SL, CN, CL>(
     db: &DbConn,
     tree_node_type: TreeNodeType,
+    weight: NodeWeight,
     select_nodes: SN,
     select_links: SL,
     convert_node: CN,
@@ -152,8 +169,15 @@ where
     let builder = db.get_database_backend();
     let mut pending_nodes = Vec::new();
     let mut node_stmt = sea_query::Query::select();
+    match weight {
+        NodeWeight::Simple => node_stmt.column(Alias::new("in_conn")),
+        NodeWeight::Compound => node_stmt.expr_as(
+            Expr::col(Alias::new("in_conn_compound")),
+            Alias::new("in_conn"),
+        ),
+    };
     node_stmt
-        .columns([Alias::new("name"), Alias::new("in_conn")])
+        .column(Alias::new("name"))
         .from(Alias::new("node_crate"));
     let mut edge_stmt = sea_query::Query::select();
     let join_col = match tree_node_type {
@@ -213,8 +237,12 @@ where
     Ok((nodes, links))
 }
 
-fn select_top_n_node(stmt: &mut SelectStatement, top_n: i32) {
-    stmt.order_by(Alias::new("in_conn"), Order::Desc)
+fn select_top_n_node(stmt: &mut SelectStatement, top_n: i32, weight: NodeWeight) {
+    let in_conn = match weight {
+        NodeWeight::Simple => "in_conn",
+        NodeWeight::Compound => "in_conn_compound",
+    };
+    stmt.order_by(Alias::new(in_conn), Order::Desc)
         .limit(top_n as u64);
 }
 
