@@ -5,11 +5,12 @@ import { addZoomBehavior } from "./zoom";
 import { createNodes } from "./create_nodes";
 import { createInfobox, updateInfobox } from "./infobox";
 import { highlightConnectedNodesAndLinks, resetAllHighlight } from "./highlight";
+import { Color } from "./color";
 
 const ColorScheme = [
-    "#69b3a2", // Root
-    "#7ac931", // Dependency
-    "#288cbd", // Dependent
+    new Color("#69b3a2"), // Root
+    new Color("#7ac931"), // Dependency
+    new Color("#288cbd"), // Dependent
 ];
 
 // Denotes which side a node belongs to, relative to the **root** node.
@@ -57,7 +58,7 @@ export function renderTree(
             if (d.type >= ColorScheme.length) {
                 console.error("Unkown tree node type.");
             }
-            return ColorScheme[d.type];
+            return ColorScheme[d.type].hex;
         });
 
     // Initialize the nodes
@@ -73,10 +74,42 @@ export function renderTree(
             return null;
         });
 
+    // Find max depth inverse in both dependencies and dependents for evaluating color gradient
+    let maxDepthInvDependency = -1, maxDepthInvDependent = -1;
+    for (let node of data.nodes) {
+        if (node.type === TreeElemType.Dependency && node.depth_inv > maxDepthInvDependency) {
+            maxDepthInvDependency = node.depth_inv;
+        } else if (node.type === TreeElemType.Dependent && node.depth_inv > maxDepthInvDependent) {
+            maxDepthInvDependent = node.depth_inv;
+        }
+    }
+    const depthRange = maxDepthInvDependency + maxDepthInvDependent;
+
     // Draw circles for the nodes
     node.append("circle")
         .attr("r", nodeCircleRadius)
-        .style("fill", (d) => ColorScheme[d.type]);
+        .style("fill", (d) => {
+            if (d.type === TreeElemType.Root) {
+                return ColorScheme[TreeElemType.Root].hex;
+            }
+
+            let t = d.depth_inv;
+            if (d.type === TreeElemType.Dependency) {
+                t = maxDepthInvDependency - d.depth_inv + 1;
+                t /= maxDepthInvDependency;
+            } else if (d.type === TreeElemType.Dependent) {
+                t = maxDepthInvDependent - d.depth_inv + 1;
+                t /= maxDepthInvDependent;
+            }
+            if (t < 0 || t > 1) {
+                console.error("Error evaluating color gradient.");
+                return "#FF0000";
+            }
+            return ColorScheme[TreeElemType.Root].interpolateToHex(
+                ColorScheme[d.type],
+                t
+            );
+        });
 
     // Add names to the nodes
     addWrappedTextToNodeAndSetTextRadius(
@@ -108,9 +141,10 @@ export function renderTree(
     );
     node.on("mouseout.resetHighlight", (_) => resetAllHighlight(node, link));
 
-    const depthInvToMagnitude = (depthInv) => (width * 2 / 3) / depthInv;
-    const leftX = (depthInv) => center.x - depthInvToMagnitude(depthInv);
-    const rightX = (depthInv) => center.x + depthInvToMagnitude(depthInv);
+    const depthInvToXMagnitude = (depthInv) => (width * 2 / 3) / depthInv;
+    const leftX = (depthInv) => center.x - depthInvToXMagnitude(depthInv);
+    const rightX = (depthInv) => center.x + depthInvToXMagnitude(depthInv);
+
     const simulation = d3.forceSimulation(data.nodes)
         .force("x", d3.forceX((d) => {
             switch (d.type) {
