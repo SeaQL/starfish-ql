@@ -133,7 +133,7 @@ impl Worker {
                             |link_stmt| {
                                 select_top_n_edge(link_stmt, limit, pending_nodes, tree_node_type)
                             },
-                            |node| into_tree_node(node, tree_node_type, depth + 1),
+                            |node| into_tree_node(node, tree_node_type, depth),
                             |link| into_tree_link(link, tree_node_type),
                         )
                         .await
