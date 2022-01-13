@@ -143,7 +143,7 @@ impl Mutate {
             Node::find_by_statement(
                 builder.build(
                     sea_query::Query::select()
-                    .column(Alias::new("to_node"))
+                        .expr_as(Expr::col(Alias::new("to_node")), Alias::new("name"))
                     .from(Alias::new("edge_depends"))
                     .and_where(
                         Expr::col(Alias::new("from_node"))
