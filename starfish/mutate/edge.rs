@@ -1,3 +1,5 @@
+use std::{collections::{HashMap, HashSet, VecDeque}, cell::RefCell};
+
 use super::Mutate;
 use crate::schema::format_edge_table_name;
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Statement};
@@ -128,34 +130,64 @@ impl Mutate {
     /// Update compound connectivity
     pub async fn calculate_compound_connectivity(db: &DbConn) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
-        let mut node_stmt = sea_query::Query::select();
-        node_stmt
+        let mut root_node_stmt = sea_query::Query::select();
+        root_node_stmt
             .column(Alias::new("name"))
             .from(Alias::new("node_crate"))
-            .and_where(Expr::col(Alias::new("in_conn")).gt(0));
-        let nodes = Node::find_by_statement(builder.build(&node_stmt))
+            .and_where(Expr::col(Alias::new("in_conn")).eq(0));
+        let root_nodes = Node::find_by_statement(builder.build(&root_node_stmt))
             .all(db)
             .await?;
 
-        for node in nodes {
-            let stmt = format!(
-                concat!(
-                    "WITH recursive cte as ( ",
-                    "SELECT t.from_node ",
-                    "from edge_depends as t ",
-                    "WHERE t.to_node = '{0}' ",
-                    "UNION DISTINCT ",
-                    "SELECT t.from_node ",
-                    "from edge_depends as t INNER JOIN cte ON t.to_node = cte.from_node ",
-                    ") ",
-                    "UPDATE node_crate ",
-                    "SET in_conn_compound = (SELECT COUNT(*) FROM cte) ",
-                    "WHERE name = '{0}'"
-                ),
-                node.name
-            );
-            db.execute(Statement::from_string(builder, stmt)).await?;
+        let select_children_future = |node_name: String| {
+            Node::find_by_statement(
+                builder.build(
+                    sea_query::Query::select()
+                    .column(Alias::new("to_node"))
+                    .from(Alias::new("edge_depends"))
+                    .and_where(
+                        Expr::col(Alias::new("from_node"))
+                        .eq(node_name)
+                    )
+                )
+            )
+            .all(db)
+        };
+
+        let mut map_id_to_ancestors: HashMap<String, RefCell<HashSet<String>>> = HashMap::new();
+
+        for root_node in root_nodes.iter() {
+            let mut queue: VecDeque<String> = VecDeque::new();
+            queue.push_back(root_node.name.clone());
+            while !queue.is_empty() {
+                let current_node_name = queue.pop_front().unwrap();
+                let current_ancestors = map_id_to_ancestors.get(&current_node_name).cloned();
+
+                for child in (select_children_future(current_node_name.clone()).await?).into_iter() {
+                    let mut child_ancestors = match map_id_to_ancestors.get_mut(&child.name) {
+                        Some(ancestors) => ancestors.borrow_mut(),
+                        None => {
+                            map_id_to_ancestors.insert(
+                                child.name.clone(),
+                                RefCell::new(HashSet::new())
+                            );
+                            map_id_to_ancestors.get_mut(&child.name).unwrap().borrow_mut()
+                        },
+                    };
+                    child_ancestors.insert(current_node_name.clone());
+
+                    if let Some(current_ancestors) = current_ancestors.clone() {
+                        for ancestor in current_ancestors.borrow().iter() {
+                            child_ancestors.insert(ancestor.clone());
+                        }
+                    }
+                    
+                    queue.push_back(child.name);
+                }
+            }
         }
+
+        // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
 
         Ok(())
     }
