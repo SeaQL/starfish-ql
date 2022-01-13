@@ -2,7 +2,7 @@ use std::{collections::{HashMap, HashSet, VecDeque}, cell::RefCell};
 
 use super::Mutate;
 use crate::schema::format_edge_table_name;
-use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Statement};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Statement, DeriveIden};
 use sea_query::{Alias, Expr, Query};
 use serde::{Deserialize, Serialize};
 
@@ -188,6 +188,28 @@ impl Mutate {
         }
 
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
+        let cols = [Alias::new("name"), Alias::new("in_conn_compound")];
+        let mut stmt = Query::insert();
+        stmt.into_table(Alias::new("node_crate"))
+            .columns(cols.clone());
+
+        for (name, ancestor_names) in map_id_to_ancestors.into_iter() {
+            let in_conn_compound = ancestor_names.borrow().len() as i32;
+            stmt.values_panic([name.into(), in_conn_compound.into()]);
+        }
+
+        let update_vals = cols
+            .into_iter()
+            .map(|col| {
+                let col = col.to_string();
+                format!("{0} = VALUES({0})", col)
+            })
+            .collect::<Vec<_>>()
+            .join(", ");
+        let builder = db.get_database_backend();
+        let mut stmt = builder.build(&stmt);
+        stmt.sql = format!("{} ON DUPLICATE KEY UPDATE {}", stmt.sql, update_vals);
+        db.execute(stmt).await?;
 
         Ok(())
     }
