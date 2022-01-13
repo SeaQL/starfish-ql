@@ -2,7 +2,8 @@ const inputElemIds = [
     "graphTopN",
     "treeRootNode",
     "limit",
-    "depth"
+    "depth",
+    "weightFactor"
 ];
 
 export const Input = inputElemIds.reduce((obj, id) => {

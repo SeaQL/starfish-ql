@@ -17,6 +17,7 @@ export const treeMain = async (GlobalConfig) => {
             Input.treeRootNode.parseString(),
             Input.limit.parseInt(),
             Input.depth.parseInt(),
+            Input.weightFactor.parseInt(),
         )
         // getMockTreeSimple()
         .then((dataTree) => {

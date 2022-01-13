@@ -17,6 +17,7 @@ export const graphMain = async (GlobalConfig) => {
             Input.graphTopN.parseInt(),
             Input.limit.parseInt(),
             Input.depth.parseInt(),
+            Input.weightFactor.parseInt(),
         )
         // getMockGraphSimple()
         .then((dataGraph) => {
