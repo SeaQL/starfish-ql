@@ -1,8 +1,11 @@
-use std::{collections::{HashMap, HashSet, VecDeque}, cell::RefCell};
+use std::{
+    cell::RefCell,
+    collections::{HashMap, HashSet, VecDeque},
+};
 
 use super::Mutate;
 use crate::schema::format_edge_table_name;
-use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Statement, DeriveIden};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Statement};
 use sea_query::{Alias, Expr, Query};
 use serde::{Deserialize, Serialize};
 
@@ -144,12 +147,9 @@ impl Mutate {
                 builder.build(
                     sea_query::Query::select()
                         .expr_as(Expr::col(Alias::new("to_node")), Alias::new("name"))
-                    .from(Alias::new("edge_depends"))
-                    .and_where(
-                        Expr::col(Alias::new("from_node"))
-                        .eq(node_name)
-                    )
-                )
+                        .from(Alias::new("edge_depends"))
+                        .and_where(Expr::col(Alias::new("from_node")).eq(node_name)),
+                ),
             )
             .all(db)
         };
@@ -163,16 +163,18 @@ impl Mutate {
                 let current_node_name = queue.pop_front().unwrap();
                 let current_ancestors = map_id_to_ancestors.get(&current_node_name).cloned();
 
-                for child in (select_children_future(current_node_name.clone()).await?).into_iter() {
+                for child in (select_children_future(current_node_name.clone()).await?).into_iter()
+                {
                     let mut child_ancestors = match map_id_to_ancestors.get_mut(&child.name) {
                         Some(ancestors) => ancestors.borrow_mut(),
                         None => {
-                            map_id_to_ancestors.insert(
-                                child.name.clone(),
-                                RefCell::new(HashSet::new())
-                            );
-                            map_id_to_ancestors.get_mut(&child.name).unwrap().borrow_mut()
-                        },
+                            map_id_to_ancestors
+                                .insert(child.name.clone(), RefCell::new(HashSet::new()));
+                            map_id_to_ancestors
+                                .get_mut(&child.name)
+                                .unwrap()
+                                .borrow_mut()
+                        }
                     };
                     child_ancestors.insert(current_node_name.clone());
 
@@ -181,7 +183,7 @@ impl Mutate {
                             child_ancestors.insert(ancestor.clone());
                         }
                     }
-                    
+
                     queue.push_back(child.name);
                 }
             }
