@@ -141,6 +141,7 @@ impl Mutate {
         let root_nodes = Node::find_by_statement(builder.build(&root_node_stmt))
             .all(db)
             .await?;
+        let num_root_nodes = root_nodes.len();
 
         let select_children_future = |node_name: String| {
             Node::find_by_statement(
@@ -156,15 +157,27 @@ impl Mutate {
 
         let mut map_id_to_ancestors: HashMap<String, RefCell<HashSet<String>>> = HashMap::new();
 
-        for root_node in root_nodes.iter() {
+        for (i, root_node) in root_nodes.iter().enumerate() {
+            println!("Handling root node {}/{}", i, num_root_nodes);
             let mut queue: VecDeque<String> = VecDeque::new();
             queue.push_back(root_node.name.clone());
+
+            let mut visited_set = HashSet::new();
+            visited_set.insert(root_node.name.clone());
+
             while !queue.is_empty() {
                 let current_node_name = queue.pop_front().unwrap();
                 let current_ancestors = map_id_to_ancestors.get(&current_node_name).cloned();
 
-                for child in (select_children_future(current_node_name.clone()).await?).into_iter()
+                let children_nodes = select_children_future(current_node_name.clone()).await?;
+
+                for child in children_nodes.into_iter()
                 {
+                    if visited_set.contains(&child.name) {
+                        // Previously used subpaths are avoided
+                        continue;
+                    }
+                    visited_set.insert(child.name.clone());
                     let mut child_ancestors = match map_id_to_ancestors.get_mut(&child.name) {
                         Some(ancestors) => ancestors.borrow_mut(),
                         None => {
