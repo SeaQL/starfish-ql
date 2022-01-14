@@ -1,7 +1,4 @@
-use std::{
-    cell::RefCell,
-    collections::{HashMap, HashSet, VecDeque},
-};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
 use crate::schema::format_edge_table_name;
@@ -139,86 +136,71 @@ impl Mutate {
     /// Update compound connectivity
     pub async fn calculate_compound_connectivity(db: &DbConn) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
-        let mut root_node_stmt = sea_query::Query::select();
-        root_node_stmt
+        let mut node_stmt = sea_query::Query::select();
+        node_stmt
             .column(Alias::new("name"))
             .from(Alias::new("node_crate"))
-            .and_where(Expr::col(Alias::new("in_conn")).eq(0));
-        let root_nodes = Node::find_by_statement(builder.build(&root_node_stmt))
+            .and_where(Expr::col(Alias::new("in_conn")).gt(0));
+        let nodes = Node::find_by_statement(builder.build(&node_stmt))
             .all(db)
             .await?;
-        let num_root_nodes = root_nodes.len();
+        let num_nodes = nodes.len();
 
-        let node_to_children = {
-            (
-                Link::find_by_statement(
-                    builder.build(
-                        sea_query::Query::select()
-                            .columns([Alias::new("from_node"), Alias::new("to_node")])
-                            .from(Alias::new("edge_depends"))
-                    )
-                ).all(db).await?
-            ).into_iter()
-            .fold(HashMap::new(), |mut node_to_children, link| {
-                if !node_to_children.contains_key(&link.from_node) {
-                    node_to_children.insert(link.from_node.clone(), vec![]);
-                }
-                node_to_children.get_mut(&link.from_node)
-                    .unwrap()
-                    .push(link.to_node);
+        let node_to_parents = {
+            (Link::find_by_statement(
+                builder.build(
+                    sea_query::Query::select()
+                        .columns([Alias::new("from_node"), Alias::new("to_node")])
+                        .from(Alias::new("edge_depends")),
+                ),
+            )
+            .all(db)
+            .await?)
+                .into_iter()
+                .fold(HashMap::new(), |mut node_to_parents, link| {
+                    if !node_to_parents.contains_key(&link.to_node) {
+                        node_to_parents.insert(link.to_node.clone(), vec![]);
+                    }
+                    node_to_parents
+                        .get_mut(&link.to_node)
+                        .unwrap()
+                        .push(link.from_node);
 
-                node_to_children
-            })
+                    node_to_parents
+                })
         };
-        println!("All edges loaded into memory.");
 
-        let mut map_id_to_ancestors: HashMap<String, RefCell<HashSet<String>>> = HashMap::new();
+        let mut map_id_to_ancestors: HashMap<String, HashSet<String>> = HashMap::new();
 
-        for (i, root_node) in root_nodes.iter().enumerate() {
-            if (i + 1) % 500 == 0 {
-                println!("Handling root node {}/{}", i + 1, num_root_nodes);
+        for (i, root_node) in nodes.into_iter().enumerate() {
+            if (i + 1) % 1000 == 0 || i + 1 == num_nodes {
+                println!("Handling root node {}/{}", i + 1, num_nodes);
             }
             let mut queue: VecDeque<String> = VecDeque::new();
             queue.push_back(root_node.name.clone());
 
-            let mut visited_set = HashSet::new();
-            visited_set.insert(root_node.name.clone());
+            let mut ancestors = HashSet::new();
 
             while !queue.is_empty() {
-                let current_node_name = queue.pop_front().unwrap();
-                let current_ancestors = map_id_to_ancestors.get(&current_node_name).cloned();
-
-                if let Some(children_nodes) = node_to_children.get(&current_node_name) {
-                    for child_name in children_nodes
-                    {
-                        if visited_set.contains(child_name) {
-                            // Previously used subpaths are avoided
+                let current_node = queue.pop_front().unwrap();
+                if let Some(current_parents) = node_to_parents.get(&current_node) {
+                    for parent in current_parents {
+                        // Previously used subpaths within current node are avoided
+                        if ancestors.contains(parent) {
                             continue;
                         }
-                        visited_set.insert(child_name.clone());
-                        let mut child_ancestors = match map_id_to_ancestors.get_mut(child_name) {
-                            Some(ancestors) => ancestors.borrow_mut(),
-                            None => {
-                                map_id_to_ancestors
-                                    .insert(child_name.clone(), RefCell::new(HashSet::new()));
-                                map_id_to_ancestors
-                                    .get_mut(child_name)
-                                    .unwrap()
-                                    .borrow_mut()
-                            }
-                        };
-                        child_ancestors.insert(current_node_name.clone());
-
-                        if let Some(current_ancestors) = current_ancestors.clone() {
-                            for ancestor in current_ancestors.borrow().iter() {
-                                child_ancestors.insert(ancestor.clone());
-                            }
+                        // Dynamic programming: reuse previously obtained ancestors
+                        if let Some(parent_ancestors) = map_id_to_ancestors.get(parent) {
+                            ancestors.extend(parent_ancestors.clone());
+                            continue;
                         }
-
-                        queue.push_back(child_name.clone());
+                        ancestors.insert(parent.clone());
+                        queue.push_back(parent.clone());
                     }
                 }
             }
+
+            map_id_to_ancestors.insert(root_node.name, ancestors);
         }
 
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
@@ -228,7 +210,7 @@ impl Mutate {
             .columns(cols.clone());
 
         for (name, ancestor_names) in map_id_to_ancestors.into_iter() {
-            let in_conn_compound = ancestor_names.borrow().len() as i32;
+            let in_conn_compound = ancestor_names.len() as i32;
             stmt.values_panic([name.into(), in_conn_compound.into()]);
         }
 
