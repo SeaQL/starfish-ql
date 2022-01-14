@@ -52,6 +52,12 @@ struct Node {
     name: String,
 }
 
+#[derive(Debug, Clone, FromQueryResult)]
+struct Link {
+    from_node: String,
+    to_node: String,
+}
+
 impl Mutate {
     /// Insert edge
     pub async fn insert_edge(db: &DbConn, edge_json: EdgeJson) -> Result<(), DbErr> {
@@ -143,22 +149,35 @@ impl Mutate {
             .await?;
         let num_root_nodes = root_nodes.len();
 
-        let select_children_future = |node_name: String| {
-            Node::find_by_statement(
-                builder.build(
-                    sea_query::Query::select()
-                        .expr_as(Expr::col(Alias::new("to_node")), Alias::new("name"))
-                        .from(Alias::new("edge_depends"))
-                        .and_where(Expr::col(Alias::new("from_node")).eq(node_name)),
-                ),
-            )
-            .all(db)
+        let node_to_children = {
+            (
+                Link::find_by_statement(
+                    builder.build(
+                        sea_query::Query::select()
+                            .columns([Alias::new("from_node"), Alias::new("to_node")])
+                            .from(Alias::new("edge_depends"))
+                    )
+                ).all(db).await?
+            ).into_iter()
+            .fold(HashMap::new(), |mut node_to_children, link| {
+                if !node_to_children.contains_key(&link.from_node) {
+                    node_to_children.insert(link.from_node.clone(), vec![]);
+                }
+                node_to_children.get_mut(&link.from_node)
+                    .unwrap()
+                    .push(link.to_node);
+
+                node_to_children
+            })
         };
+        println!("All edges loaded into memory.");
 
         let mut map_id_to_ancestors: HashMap<String, RefCell<HashSet<String>>> = HashMap::new();
 
         for (i, root_node) in root_nodes.iter().enumerate() {
-            println!("Handling root node {}/{}", i, num_root_nodes);
+            if (i + 1) % 500 == 0 {
+                println!("Handling root node {}/{}", i + 1, num_root_nodes);
+            }
             let mut queue: VecDeque<String> = VecDeque::new();
             queue.push_back(root_node.name.clone());
 
@@ -169,35 +188,35 @@ impl Mutate {
                 let current_node_name = queue.pop_front().unwrap();
                 let current_ancestors = map_id_to_ancestors.get(&current_node_name).cloned();
 
-                let children_nodes = select_children_future(current_node_name.clone()).await?;
-
-                for child in children_nodes.into_iter()
-                {
-                    if visited_set.contains(&child.name) {
-                        // Previously used subpaths are avoided
-                        continue;
-                    }
-                    visited_set.insert(child.name.clone());
-                    let mut child_ancestors = match map_id_to_ancestors.get_mut(&child.name) {
-                        Some(ancestors) => ancestors.borrow_mut(),
-                        None => {
-                            map_id_to_ancestors
-                                .insert(child.name.clone(), RefCell::new(HashSet::new()));
-                            map_id_to_ancestors
-                                .get_mut(&child.name)
-                                .unwrap()
-                                .borrow_mut()
+                if let Some(children_nodes) = node_to_children.get(&current_node_name) {
+                    for child_name in children_nodes
+                    {
+                        if visited_set.contains(child_name) {
+                            // Previously used subpaths are avoided
+                            continue;
                         }
-                    };
-                    child_ancestors.insert(current_node_name.clone());
+                        visited_set.insert(child_name.clone());
+                        let mut child_ancestors = match map_id_to_ancestors.get_mut(child_name) {
+                            Some(ancestors) => ancestors.borrow_mut(),
+                            None => {
+                                map_id_to_ancestors
+                                    .insert(child_name.clone(), RefCell::new(HashSet::new()));
+                                map_id_to_ancestors
+                                    .get_mut(child_name)
+                                    .unwrap()
+                                    .borrow_mut()
+                            }
+                        };
+                        child_ancestors.insert(current_node_name.clone());
 
-                    if let Some(current_ancestors) = current_ancestors.clone() {
-                        for ancestor in current_ancestors.borrow().iter() {
-                            child_ancestors.insert(ancestor.clone());
+                        if let Some(current_ancestors) = current_ancestors.clone() {
+                            for ancestor in current_ancestors.borrow().iter() {
+                                child_ancestors.insert(ancestor.clone());
+                            }
                         }
-                    }
 
-                    queue.push_back(child.name);
+                        queue.push_back(child_name.clone());
+                    }
                 }
             }
         }
