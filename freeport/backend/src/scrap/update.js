@@ -34,6 +34,9 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     shouldLog && console.log("Updating crates: ", data.map((datum) => datum.name));
     await insertDataIntoDatabaseAndLog(data, dataPath, { shouldLog });
 
+    shouldLog && console.log("Recalculating connectivities...");
+    await calculateAllConnectivity();
+
     // Update metadata when everything is ready
     shouldLog && console.log("Updating metadata...");
     await createMetadata(metadata.filePath, shouldLog, repoPath);

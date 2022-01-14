@@ -1,3 +1,4 @@
+const { calculateAllConnectivity } = require("./calculate_connectivity");
 const { constructUrl } = require("./url");
 const { postRequest, getRequest } = require("./util");
 
@@ -19,7 +20,7 @@ const createEntity = async () => {
                 }
             ]
         }
-    )
+    );
 };
 
 const createRelation = async () => {
@@ -31,7 +32,7 @@ const createRelation = async () => {
             to_entity: "crate",
             directed: true
         }
-    )
+    );
 };
 
 const resetSchema = async () => {
