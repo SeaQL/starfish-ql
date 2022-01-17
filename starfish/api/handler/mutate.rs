@@ -13,6 +13,7 @@ pub fn routes() -> Vec<rocket::Route> {
         insert_edge_batch,
         clear_edge,
         cal_compound_conn,
+        cal_complex_conn,
     ]
 }
 
@@ -98,6 +99,25 @@ async fn cal_compound_conn(conn: Connection<'_, Db>) -> Result<(), ErrorResponde
     Mutate::calculate_compound_connectivity(db)
         .await
         .map_err(Into::into)?;
+
+    Ok(())
+}
+
+#[post("/cal-complex-conn?<weight>&<epsilon>")]
+async fn cal_complex_conn(
+    conn: Connection<'_, Db>,
+    weight: Option<f64>,
+    epsilon: Option<f64>,
+) -> Result<(), ErrorResponder> {
+    let db = conn.into_inner();
+
+    Mutate::calculate_complex_connectivity(
+        db,
+        weight.unwrap_or(0.5),
+        epsilon.unwrap_or(f64::EPSILON)
+    )
+    .await
+    .map_err(Into::into)?;
 
     Ok(())
 }

@@ -97,6 +97,12 @@ impl Schema {
                     .default(0),
             )
             .col(
+                ColumnDef::new(Alias::new("in_conn_complex"))
+                    .float()
+                    .not_null()
+                    .default(0.0),
+            )
+            .col(
                 ColumnDef::new(Alias::new("out_conn"))
                     .integer()
                     .not_null()
@@ -119,6 +125,12 @@ impl Schema {
                     .name(&format!("idx-{}-{}", table.to_string(), "in_conn_compound"))
                     .table(table.clone())
                     .col(Alias::new("in_conn_compound")),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex"))
+                    .table(table.clone())
+                    .col(Alias::new("in_conn_complex")),
             )
             .index(
                 Index::create()
