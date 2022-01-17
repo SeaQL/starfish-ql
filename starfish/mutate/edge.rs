@@ -189,13 +189,13 @@ impl Mutate {
                         if ancestors.contains(parent) {
                             continue;
                         }
+                        ancestors.insert(parent.clone());
                         // Dynamic programming: reuse previously obtained ancestors
                         if let Some(parent_ancestors) = map_id_to_ancestors.get(parent) {
                             ancestors.extend(parent_ancestors.clone());
-                            continue;
+                        } else {
+                            queue.push_back(parent.clone());
                         }
-                        ancestors.insert(parent.clone());
-                        queue.push_back(parent.clone());
                     }
                 }
             }
