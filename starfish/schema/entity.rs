@@ -97,7 +97,19 @@ impl Schema {
                     .default(0),
             )
             .col(
-                ColumnDef::new(Alias::new("in_conn_complex"))
+                ColumnDef::new(Alias::new("in_conn_complex03"))
+                    .double()
+                    .not_null()
+                    .default(0.0),
+            )
+            .col(
+                ColumnDef::new(Alias::new("in_conn_complex05"))
+                    .double()
+                    .not_null()
+                    .default(0.0),
+            )
+            .col(
+                ColumnDef::new(Alias::new("in_conn_complex07"))
                     .double()
                     .not_null()
                     .default(0.0),
@@ -128,9 +140,21 @@ impl Schema {
             )
             .index(
                 Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex"))
+                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex03"))
                     .table(table.clone())
-                    .col(Alias::new("in_conn_complex")),
+                    .col(Alias::new("in_conn_complex03")),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex05"))
+                    .table(table.clone())
+                    .col(Alias::new("in_conn_complex05")),
+            )
+            .index(
+                Index::create()
+                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex07"))
+                    .table(table.clone())
+                    .col(Alias::new("in_conn_complex07")),
             )
             .index(
                 Index::create()

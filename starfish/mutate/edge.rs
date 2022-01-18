@@ -261,7 +261,7 @@ impl Mutate {
     }
 
     /// Update complex connectivity
-    pub async fn calculate_complex_connectivity(db: &DbConn, weight: f64, epsilon: f64) -> Result<(), DbErr> {
+    pub async fn calculate_complex_connectivity(db: &DbConn, weight: f64, epsilon: f64, col_name: &str) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
         let mut node_stmt = sea_query::Query::select();
         node_stmt
@@ -352,7 +352,7 @@ impl Mutate {
         }
 
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
-        let cols = [Alias::new("name"), Alias::new("in_conn_complex")];
+        let cols = [Alias::new("name"), Alias::new(col_name)];
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new("node_crate"))
             .columns(cols.clone());

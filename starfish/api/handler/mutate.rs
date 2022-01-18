@@ -111,13 +111,20 @@ async fn cal_complex_conn(
 ) -> Result<(), ErrorResponder> {
     let db = conn.into_inner();
 
-    Mutate::calculate_complex_connectivity(
-        db,
-        weight.unwrap_or(0.5),
-        epsilon.unwrap_or(f64::EPSILON)
-    )
-    .await
-    .map_err(Into::into)?;
-
+    for (weight, col_name) in [
+        (0.3, "in_conn_complex03"),
+        (0.5, "in_conn_complex05"),
+        (0.7, "in_conn_complex07"),
+    ] {
+        Mutate::calculate_complex_connectivity(
+            db,
+            weight,
+            epsilon.unwrap_or(f64::EPSILON),
+            col_name
+        )
+        .await
+        .map_err(Into::into)?;
+    }
+    
     Ok(())
 }
