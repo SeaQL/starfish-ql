@@ -98,7 +98,7 @@ impl Schema {
             )
             .col(
                 ColumnDef::new(Alias::new("in_conn_complex"))
-                    .float()
+                    .double()
                     .not_null()
                     .default(0.0),
             )

@@ -323,7 +323,7 @@ impl Mutate {
                             if let Some(parent_ancestors) = map_id_to_ancestors.get(&parent.name) {
                                 // Dynamic programming: reuse previously obtained ancestors
                                 for parent_ancestor in parent_ancestors {
-                                    let parent_ancestor_weight = parent_ancestor.weight * current_weight;
+                                    let parent_ancestor_weight = parent_ancestor.weight * current_weight * weight;
                                     if parent_ancestor_weight > epsilon {
                                         ancestors.insert(
                                             parent_ancestor.clone_with_new_weight(parent_ancestor_weight)

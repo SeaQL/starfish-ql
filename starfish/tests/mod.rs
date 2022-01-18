@@ -30,8 +30,8 @@ async fn main() -> Result<(), DbErr> {
 }
 
 #[smol_potat::test]
-async fn connectivity() -> Result<(), DbErr> {
-    let ctx = TestContext::new("starfish_tests_connectivity").await;
+async fn connectivity1() -> Result<(), DbErr> {
+    let ctx = TestContext::new("starfish_tests_connectivity1").await;
     let db = &ctx.db;
 
     create_tables(db).await?;
@@ -39,8 +39,33 @@ async fn connectivity() -> Result<(), DbErr> {
     test_create_entities(db).await?;
     test_create_relations(db).await?;
 
-    let correct_nodes = test_construct_mock_graph(db).await?;
+    let correct_nodes = test_construct_mock_graph_1(db).await?;
     Mutate::calculate_compound_connectivity(db).await?;
+    Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON).await?;
+
+    let nodes = test_get_nodes_with_connectivity(db).await?;
+    assert_eq!(nodes.len(), 6);
+
+    for (name, node) in nodes {
+        assert_eq!(node, *correct_nodes.get(&name).unwrap());
+    }
+
+    Ok(())
+}
+
+#[smol_potat::test]
+async fn connectivity2() -> Result<(), DbErr> {
+    let ctx = TestContext::new("starfish_tests_connectivity2").await;
+    let db = &ctx.db;
+
+    create_tables(db).await?;
+
+    test_create_entities(db).await?;
+    test_create_relations(db).await?;
+
+    let correct_nodes = test_construct_mock_graph_2(db).await?;
+    Mutate::calculate_compound_connectivity(db).await?;
+    Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON).await?;
 
     let nodes = test_get_nodes_with_connectivity(db).await?;
     assert_eq!(nodes.len(), 6);
@@ -202,14 +227,22 @@ async fn test_clear_edge(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
-#[derive(Debug, Clone, Eq, FromQueryResult, PartialEq)]
+#[derive(Debug, Clone, FromQueryResult)]
 struct TestNode {
     name: String,
     in_conn: i32,
     in_conn_compound: i32,
+    in_conn_complex: f64,
 }
 
-async fn test_construct_mock_graph(db: &DbConn) -> Result<HashMap<String, TestNode>, DbErr> {
+impl PartialEq for TestNode {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.in_conn == other.in_conn && self.in_conn_compound == other.in_conn_compound
+        && f64::abs(self.in_conn_complex - other.in_conn_complex) <= f64::EPSILON
+    }
+}
+
+async fn test_construct_mock_graph_1(db: &DbConn) -> Result<HashMap<String, TestNode>, DbErr> {
     Mutate::insert_node_batch(
         db,
         NodeJsonBatch {
@@ -244,12 +277,56 @@ async fn test_construct_mock_graph(db: &DbConn) -> Result<HashMap<String, TestNo
 
     Ok(
         HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0, in_conn_compound: 0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2, in_conn_compound: 2 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1, in_conn_compound: 1 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 4 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1, in_conn_compound: 2 }),
+            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
+            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
+            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2, in_conn_compound: 2, in_conn_complex: 2.0 }),
+            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex: 1.0 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex: 3.0 }),
+            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex: 1.5 }),
+        ])
+    )
+}
+
+async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, TestNode>, DbErr> {
+    Mutate::insert_node_batch(
+        db,
+        NodeJsonBatch {
+            of: "crate".to_owned(),
+            nodes: vec![
+                Node { name: "A".to_owned(), attributes: HashMap::new() },
+                Node { name: "B".to_owned(), attributes: HashMap::new() },
+                Node { name: "C".to_owned(), attributes: HashMap::new() },
+                Node { name: "D".to_owned(), attributes: HashMap::new() },
+                Node { name: "E".to_owned(), attributes: HashMap::new() },
+                Node { name: "F".to_owned(), attributes: HashMap::new() },
+            ],
+        }
+    )
+    .await?;
+
+    Mutate::insert_edge_batch(
+        db,
+        EdgeJsonBatch {
+            name: "depends".to_owned(),
+            edges: vec![
+                Edge { from_node: "A".to_owned(), to_node: "B".to_owned() },
+                Edge { from_node: "B".to_owned(), to_node: "C".to_owned() },
+                Edge { from_node: "C".to_owned(), to_node: "D".to_owned() },
+                Edge { from_node: "D".to_owned(), to_node: "E".to_owned() },
+                Edge { from_node: "F".to_owned(), to_node: "D".to_owned() },
+            ],
+        }
+    )
+    .await?;
+
+    Ok(
+        HashMap::from([
+            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
+            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex: 1.0 }),
+            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex: 1.5 }),
+            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex: 2.75 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 1, in_conn_compound: 5, in_conn_complex: 2.375 }),
+            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
         ])
     )
 }
@@ -263,7 +340,8 @@ async fn test_get_nodes_with_connectivity(db: &DbConn) -> Result<HashMap<String,
                     .columns([
                         Alias::new("name"),
                         Alias::new("in_conn"),
-                        Alias::new("in_conn_compound")
+                        Alias::new("in_conn_compound"),
+                        Alias::new("in_conn_complex")
                     ])
                     .from(Alias::new("node_crate"))
             )
