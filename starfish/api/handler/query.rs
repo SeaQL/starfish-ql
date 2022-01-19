@@ -24,6 +24,8 @@ async fn get_graph(
     let weight = weight.unwrap_or_else(Default::default);
     let weight: NodeWeight = serde_json::from_str(&weight).unwrap_or(NodeWeight::Simple);
 
+    println!("Weight: {:?}", weight);
+
     Ok(Json(
         Query::get_graph(db, top_n, limit, depth, weight)
             .await
