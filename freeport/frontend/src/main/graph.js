@@ -1,4 +1,4 @@
-import { getGraphSimple, getMockGraphSimple } from "../api_access/get_graph";
+import { getGraph, getMockGraphSimple } from "../api_access/get_graph";
 import { normalizeData } from "../data/normalize";
 import { Input, SubmitButton } from "../gui/input";
 import { renderGraph } from "../gui/render_graph";
@@ -13,11 +13,11 @@ export const graphMain = async (GlobalConfig) => {
 
         outputElem.innerText = "Loading...";
         
-        getGraphSimple(
+        getGraph(
             Input.graphTopN.parseInt(),
             Input.limit.parseInt(),
             Input.depth.parseInt(),
-            Input.weightFactor.parseInt(),
+            Input.weightDecayMode.parseString(),
         )
         // getMockGraphSimple()
         .then((dataGraph) => {

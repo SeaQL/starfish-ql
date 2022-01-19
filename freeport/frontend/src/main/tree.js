@@ -1,5 +1,4 @@
 import { getMockTreeSimple, getTree } from "../api_access/get_tree";
-import { normalizeData } from "../data/normalize";
 import { Input, SubmitButton } from "../gui/input";
 import { renderTree } from "../gui/render_tree";
 import { clearChildNodes } from "../gui/util";
@@ -17,7 +16,7 @@ export const treeMain = async (GlobalConfig) => {
             Input.treeRootNode.parseString(),
             Input.limit.parseInt(),
             Input.depth.parseInt(),
-            Input.weightFactor.parseInt(),
+            Input.weightDecayMode.parseString(),
         )
         // getMockTreeSimple()
         .then((dataTree) => {

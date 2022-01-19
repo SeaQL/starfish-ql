@@ -3,7 +3,7 @@ const inputElemIds = [
     "treeRootNode",
     "limit",
     "depth",
-    "weightFactor"
+    "weightDecayMode"
 ];
 
 export const Input = inputElemIds.reduce((obj, id) => {
@@ -19,6 +19,9 @@ export const Input = inputElemIds.reduce((obj, id) => {
                 break;
             case "text":
                 obj[id].parseString = () => elem.value;
+                break;
+            case "select-one":
+                obj[id].parseString = () => elem.options[elem.selectedIndex].value;
                 break;
             default:
         }

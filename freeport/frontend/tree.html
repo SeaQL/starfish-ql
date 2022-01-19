@@ -29,8 +29,14 @@
                     <label for="depth">Recursion depth</label>
                 </li>
                 <li>
-                    <input type="number" id="weightFactor" name="weightFactor" value=0 />
-                    <label for="weightFactor">Weight factor: 0 - Simple, 1 - Compound</label>
+                    <select name="weightDecayMode" id="weightDecayMode">
+                        <option value="Simple" selected>Immediate</option>
+                        <option value="FastDecay">Fast</option>
+                        <option value="MediumDecay">Medium</option>
+                        <option value="SlowDecay">Slow</option>
+                        <option value="Compound">None</option>
+                    </select>
+                    <label for="weightDecayMode">Weight Decay Mode</label>
                 </li>
                 <li>
                     <button id="submit">Run</button>
