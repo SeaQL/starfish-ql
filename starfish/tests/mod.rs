@@ -311,6 +311,7 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
             edges: vec![
                 Edge { from_node: "A".to_owned(), to_node: "B".to_owned() },
                 Edge { from_node: "B".to_owned(), to_node: "C".to_owned() },
+                Edge { from_node: "B".to_owned(), to_node: "E".to_owned() },
                 Edge { from_node: "C".to_owned(), to_node: "D".to_owned() },
                 Edge { from_node: "D".to_owned(), to_node: "E".to_owned() },
                 Edge { from_node: "F".to_owned(), to_node: "D".to_owned() },
@@ -325,7 +326,7 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
             ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex: 1.0 }),
             ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex: 1.5 }),
             ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex: 2.75 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 1, in_conn_compound: 5, in_conn_complex: 2.375 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 5, in_conn_complex: 3.5 }),
             ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
         ])
     )
