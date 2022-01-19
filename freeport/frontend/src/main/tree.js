@@ -13,10 +13,10 @@ export const treeMain = async (GlobalConfig) => {
         outputElem.innerText = "Loading...";
 
         getTree(
-            Input.treeRootNode.parseString(),
-            Input.limit.parseInt(),
-            Input.depth.parseInt(),
-            Input.weightDecayMode.parseString(),
+            Input.treeRootNode.parseValue(),
+            Input.limit.parseValue(),
+            Input.depth.parseValue(),
+            Input.weightDecayMode.parseValue(),
         )
         // getMockTreeSimple()
         .then((dataTree) => {

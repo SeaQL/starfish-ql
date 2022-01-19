@@ -1,3 +1,5 @@
+import { WeightDecayMode } from "./weight_decay_mode";
+
 const inputElemIds = [
     "graphTopN",
     "treeRootNode",
@@ -15,13 +17,13 @@ export const Input = inputElemIds.reduce((obj, id) => {
     if (elem !== null) {
         switch (obj[id].elem.type) {
             case "number":
-                obj[id].parseInt = () => parseInt(elem.value);
+                obj[id].parseValue = () => parseInt(elem.value);
                 break;
             case "text":
-                obj[id].parseString = () => elem.value;
+                obj[id].parseValue = () => elem.value;
                 break;
             case "select-one":
-                obj[id].parseString = () => elem.options[elem.selectedIndex].value;
+                obj[id].parseValue = () => WeightDecayMode[elem.options[elem.selectedIndex].value];
                 break;
             default:
         }

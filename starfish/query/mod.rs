@@ -87,14 +87,14 @@ pub enum TreeNodeType {
 pub enum NodeWeight {
     /// Simple (Immediatelly decay to 0)
     Simple = 0,
-    /// Compound (No decay)
-    Compound = 1,
-    /// Complex with weight decay factor 0.7
-    SlowDecay = 2,
-    /// Complex with weight decay factor 0.5
-    MediumDecay = 3,
     /// Complex with weight decay factor 0.3
-    FastDecay = 4,
+    FastDecay = 1,
+    /// Complex with weight decay factor 0.5
+    MediumDecay = 2,
+    /// Complex with weight decay factor 0.7
+    SlowDecay = 3,
+    /// Compound (No decay)
+    Compound = 4,
 }
 
 /// Graph link data

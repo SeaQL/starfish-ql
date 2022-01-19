@@ -14,10 +14,10 @@ export const graphMain = async (GlobalConfig) => {
         outputElem.innerText = "Loading...";
         
         getGraph(
-            Input.graphTopN.parseInt(),
-            Input.limit.parseInt(),
-            Input.depth.parseInt(),
-            Input.weightDecayMode.parseString(),
+            Input.graphTopN.parseValue(),
+            Input.limit.parseValue(),
+            Input.depth.parseValue(),
+            Input.weightDecayMode.parseValue(),
         )
         // getMockGraphSimple()
         .then((dataGraph) => {
