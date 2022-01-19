@@ -41,7 +41,7 @@ async fn connectivity1() -> Result<(), DbErr> {
 
     let correct_nodes = test_construct_mock_graph_1(db).await?;
     Mutate::calculate_compound_connectivity(db).await?;
-    Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON).await?;
+    Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON, "in_conn_complex05").await?;
 
     let nodes = test_get_nodes_with_connectivity(db).await?;
     assert_eq!(nodes.len(), 6);
@@ -65,7 +65,7 @@ async fn connectivity2() -> Result<(), DbErr> {
 
     let correct_nodes = test_construct_mock_graph_2(db).await?;
     Mutate::calculate_compound_connectivity(db).await?;
-    Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON).await?;
+    Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON, "in_conn_complex05").await?;
 
     let nodes = test_get_nodes_with_connectivity(db).await?;
     assert_eq!(nodes.len(), 6);
@@ -232,13 +232,13 @@ struct TestNode {
     name: String,
     in_conn: i32,
     in_conn_compound: i32,
-    in_conn_complex: f64,
+    in_conn_complex05: f64,
 }
 
 impl PartialEq for TestNode {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name && self.in_conn == other.in_conn && self.in_conn_compound == other.in_conn_compound
-        && f64::abs(self.in_conn_complex - other.in_conn_complex) <= f64::EPSILON
+        && f64::abs(self.in_conn_complex05 - other.in_conn_complex05) <= f64::EPSILON
     }
 }
 
@@ -277,12 +277,12 @@ async fn test_construct_mock_graph_1(db: &DbConn) -> Result<HashMap<String, Test
 
     Ok(
         HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2, in_conn_compound: 2, in_conn_complex: 2.0 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex: 1.0 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex: 3.0 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex: 1.5 }),
+            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
+            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
+            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2, in_conn_compound: 2, in_conn_complex05: 2.0 }),
+            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex05: 1.0 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex05: 3.0 }),
+            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex05: 1.5 }),
         ])
     )
 }
@@ -322,12 +322,12 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
 
     Ok(
         HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex: 1.0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex: 1.5 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex: 2.75 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 5, in_conn_complex: 3.5 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex: 0.0 }),
+            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
+            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex05: 1.0 }),
+            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex05: 1.5 }),
+            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex05: 2.75 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 5, in_conn_complex05: 3.5 }),
+            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
         ])
     )
 }
@@ -342,7 +342,7 @@ async fn test_get_nodes_with_connectivity(db: &DbConn) -> Result<HashMap<String,
                         Alias::new("name"),
                         Alias::new("in_conn"),
                         Alias::new("in_conn_compound"),
-                        Alias::new("in_conn_complex")
+                        Alias::new("in_conn_complex05")
                     ])
                     .from(Alias::new("node_crate"))
             )
