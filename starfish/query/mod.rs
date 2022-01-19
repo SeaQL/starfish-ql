@@ -85,10 +85,16 @@ pub enum TreeNodeType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Deserialize_repr, Serialize_repr)]
 #[repr(u8)]
 pub enum NodeWeight {
-    /// Simple
+    /// Simple (Immediatelly decay to 0)
     Simple = 0,
-    /// Compound
+    /// Compound (No decay)
     Compound = 1,
+    /// Complex with weight decay factor 0.7
+    SlowDecay = 2,
+    /// Complex with weight decay factor 0.5
+    MediumDecay = 3,
+    /// Complex with weight decay factor 0.3
+    FastDecay = 4,
 }
 
 /// Graph link data
@@ -175,6 +181,18 @@ where
             Expr::col(Alias::new("in_conn_compound")),
             Alias::new("in_conn"),
         ),
+        NodeWeight::SlowDecay => node_stmt.expr_as(
+            Expr::col(Alias::new("in_conn_complex07")),
+            Alias::new("in_conn"),
+        ),
+        NodeWeight::MediumDecay => node_stmt.expr_as(
+            Expr::col(Alias::new("in_conn_complex05")),
+            Alias::new("in_conn"),
+        ),
+        NodeWeight::FastDecay => node_stmt.expr_as(
+            Expr::col(Alias::new("in_conn_complex03")),
+            Alias::new("in_conn"),
+        ),
     };
     node_stmt
         .column(Alias::new("name"))
@@ -241,6 +259,9 @@ fn select_top_n_node(stmt: &mut SelectStatement, top_n: i32, weight: NodeWeight)
     let in_conn = match weight {
         NodeWeight::Simple => "in_conn",
         NodeWeight::Compound => "in_conn_compound",
+        NodeWeight::SlowDecay => "in_conn_complex07",
+        NodeWeight::MediumDecay => "in_conn_complex05",
+        NodeWeight::FastDecay => "in_conn_complex03",
     };
     stmt.order_by(Alias::new(in_conn), Order::Desc)
         .limit(top_n as u64);

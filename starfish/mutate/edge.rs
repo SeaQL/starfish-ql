@@ -119,8 +119,6 @@ impl Mutate {
         stmt.sql = stmt.sql.replace("INSERT", "INSERT IGNORE");
         db.execute(stmt).await?;
 
-        Self::update_connectivity(db).await?;
-
         Ok(())
     }
 
@@ -134,8 +132,6 @@ impl Mutate {
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
 
-        Self::update_connectivity(db).await?;
-
         Ok(())
     }
 
@@ -148,12 +144,10 @@ impl Mutate {
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
 
-        Self::update_connectivity(db).await?;
-
         Ok(())
     }
 
-    async fn update_connectivity(db: &DbConn) -> Result<(), DbErr> {
+    pub async fn calculate_simple_connectivity(db: &DbConn) -> Result<(), DbErr> {
         db.execute(Statement::from_string(db.get_database_backend(), [
             "UPDATE node_crate",
             "SET in_conn = (SELECT COUNT(*) FROM edge_depends WHERE to_node = node_crate.name),",
@@ -163,12 +157,10 @@ impl Mutate {
         Ok(())
     }
 
-    /// Update compound connectivity
     pub async fn calculate_compound_connectivity(db: &DbConn) -> Result<(), DbErr> {
         Self::calculate_complex_connectivity(db, 1.0, f64::EPSILON, "in_conn_compound").await
     }
 
-    /// Update complex connectivity
     pub async fn calculate_complex_connectivity(db: &DbConn, weight: f64, epsilon: f64, col_name: &str) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
         let mut node_stmt = sea_query::Query::select();
