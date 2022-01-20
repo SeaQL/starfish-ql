@@ -1,45 +1,13 @@
 use super::Mutate;
 use crate::{
-    core::entities::{
+    core::{entities::{
         entity,
         entity_attribute::{self, Datatype},
-    },
+    }, lang::{NodeJson, NodeJsonBatch, Node}},
     schema::{format_node_attribute_name, format_node_table_name},
 };
 use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter};
 use sea_query::{Alias, Expr, Query};
-use serde::{Deserialize, Serialize};
-use serde_json::Value as JsonValue;
-use std::collections::HashMap;
-
-/// Metadata of a node, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NodeJson {
-    /// Name of entity this node belongs to
-    pub of: String,
-    /// Name of node
-    pub name: String,
-    /// Additional attributes
-    pub attributes: HashMap<String, JsonValue>,
-}
-
-/// Metadata of nodes in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NodeJsonBatch {
-    /// Name of entity this node belongs to
-    pub of: String,
-    /// Vector of nodes
-    pub nodes: Vec<Node>,
-}
-
-/// Metadata of a node in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Node {
-    /// Name of node
-    pub name: String,
-    /// Additional attributes
-    pub attributes: HashMap<String, JsonValue>,
-}
 
 impl Mutate {
     /// Insert node

@@ -1,6 +1,7 @@
 use crate::api::db::pool::Db;
 use crate::api::ErrorResponder;
-use crate::schema::{EntityJson, RelationJson, Schema};
+use crate::core::lang::{EntityJson, RelationJson};
+use crate::schema::Schema;
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;

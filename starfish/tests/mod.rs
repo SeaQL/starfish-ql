@@ -5,9 +5,9 @@ use sea_orm::{DbConn, DbErr, FromQueryResult, ConnectionTrait};
 use sea_query::Alias;
 use starfish::{
     api::db::schema::create_tables,
-    core::entities::entity_attribute::Datatype,
-    mutate::{ClearEdgeJson, EdgeJson, Mutate, NodeJson, NodeJsonBatch, Node, EdgeJsonBatch, Edge},
-    schema::{EntityAttrJson, EntityJson, RelationJson, Schema},
+    core::{entities::entity_attribute::Datatype, lang::{NodeJson, EdgeJson, ClearEdgeJson, NodeJsonBatch, Node, Edge, EdgeJsonBatch, EntityJson, EntityAttrJson, RelationJson}},
+    mutate::Mutate,
+    schema::Schema,
 };
 use std::collections::HashMap;
 
@@ -40,6 +40,7 @@ async fn connectivity1() -> Result<(), DbErr> {
     test_create_relations(db).await?;
 
     let correct_nodes = test_construct_mock_graph_1(db).await?;
+    Mutate::calculate_simple_connectivity(db).await?;
     Mutate::calculate_compound_connectivity(db).await?;
     Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON, "in_conn_complex05").await?;
 
@@ -64,6 +65,7 @@ async fn connectivity2() -> Result<(), DbErr> {
     test_create_relations(db).await?;
 
     let correct_nodes = test_construct_mock_graph_2(db).await?;
+    Mutate::calculate_simple_connectivity(db).await?;
     Mutate::calculate_compound_connectivity(db).await?;
     Mutate::calculate_complex_connectivity(db, 0.5, f64::EPSILON, "in_conn_complex05").await?;
 
@@ -230,14 +232,16 @@ async fn test_clear_edge(db: &DbConn) -> Result<(), DbErr> {
 #[derive(Debug, Clone, FromQueryResult)]
 struct TestNode {
     name: String,
-    in_conn: i32,
-    in_conn_compound: i32,
+    in_conn: f64,
+    in_conn_compound: f64,
     in_conn_complex05: f64,
 }
 
 impl PartialEq for TestNode {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.in_conn == other.in_conn && self.in_conn_compound == other.in_conn_compound
+        self.name == other.name
+        && f64::abs(self.in_conn - other.in_conn) <= f64::EPSILON
+        && f64::abs(self.in_conn_compound - other.in_conn_compound) <= f64::EPSILON
         && f64::abs(self.in_conn_complex05 - other.in_conn_complex05) <= f64::EPSILON
     }
 }
@@ -277,12 +281,12 @@ async fn test_construct_mock_graph_1(db: &DbConn) -> Result<HashMap<String, Test
 
     Ok(
         HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2, in_conn_compound: 2, in_conn_complex05: 2.0 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex05: 1.0 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex05: 3.0 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex05: 1.5 }),
+            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
+            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
+            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2.0, in_conn_compound: 2.0, in_conn_complex05: 2.0 }),
+            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1.0, in_conn_compound: 1.0, in_conn_complex05: 1.0 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2.0, in_conn_compound: 4.0, in_conn_complex05: 3.0 }),
+            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1.0, in_conn_compound: 2.0, in_conn_complex05: 1.5 }),
         ])
     )
 }
@@ -322,12 +326,12 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
 
     Ok(
         HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1, in_conn_compound: 1, in_conn_complex05: 1.0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1, in_conn_compound: 2, in_conn_complex05: 1.5 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2, in_conn_compound: 4, in_conn_complex05: 2.75 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2, in_conn_compound: 5, in_conn_complex05: 3.5 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0, in_conn_compound: 0, in_conn_complex05: 0.0 }),
+            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
+            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1.0, in_conn_compound: 1.0, in_conn_complex05: 1.0 }),
+            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1.0, in_conn_compound: 2.0, in_conn_complex05: 1.5 }),
+            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2.0, in_conn_compound: 4.0, in_conn_complex05: 2.75 }),
+            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2.0, in_conn_compound: 5.0, in_conn_complex05: 3.5 }),
+            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
         ])
     )
 }

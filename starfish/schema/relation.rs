@@ -1,30 +1,9 @@
 //! Define relation schema
 
-use super::{format_edge_table_name, format_node_table_name, Schema};
-use crate::core::entities::relation;
+use super::{format_node_table_name, Schema};
+use crate::core::{entities::relation, lang::RelationJson};
 use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
 use sea_query::{Alias, ColumnDef, ForeignKey, Index, Table};
-use serde::{Deserialize, Serialize};
-
-/// Metadata of relation, deserialized as struct from json
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RelationJson {
-    /// Name of relation
-    pub name: String,
-    /// Name of related entity (from side)
-    pub from_entity: String,
-    /// Name of related entity (to side)
-    pub to_entity: String,
-    /// Directed relation
-    pub directed: bool,
-}
-
-impl RelationJson {
-    /// Prefix the name of relation table
-    pub fn get_table_name(&self) -> String {
-        format_edge_table_name(&self.name)
-    }
-}
 
 impl Schema {
     /// Insert metadata of relation into database and create a corresponding node table

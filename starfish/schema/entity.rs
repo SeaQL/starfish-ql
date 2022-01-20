@@ -1,45 +1,12 @@
 //! Define entity schema
 
-use super::{format_node_attribute_name, format_node_table_name, Schema};
-use crate::core::entities::{
+use super::Schema;
+use crate::core::{entities::{
     entity,
     entity_attribute::{self, Datatype},
-};
+}, lang::EntityJson};
 use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
 use sea_query::{Alias, ColumnDef, Index, Table};
-use serde::{Deserialize, Serialize};
-
-/// Metadata of entity, deserialized as struct from json
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityJson {
-    /// Name of entity
-    pub name: String,
-    /// Additional attributes
-    pub attributes: Vec<EntityAttrJson>,
-}
-
-/// Metadata of entity attribute, deserialized as struct from json
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct EntityAttrJson {
-    /// Name of attribute
-    pub name: String,
-    /// Datatype, to determine how to store the value in database
-    pub datatype: Datatype,
-}
-
-impl EntityJson {
-    /// Prefix the name of node table
-    pub fn get_table_name(&self) -> String {
-        format_node_table_name(&self.name)
-    }
-}
-
-impl EntityAttrJson {
-    /// Prefix the column name of entity attribute
-    pub fn get_column_name(&self) -> String {
-        format_node_attribute_name(&self.name)
-    }
-}
 
 impl Schema {
     /// Insert entity metadata into database and create a corresponding node table

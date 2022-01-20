@@ -1,48 +1,9 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
-use crate::schema::format_edge_table_name;
+use crate::{schema::format_edge_table_name, core::lang::{EdgeJson, EdgeJsonBatch, Edge, ClearEdgeJson}};
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Statement};
 use sea_query::{Alias, Expr, Query};
-use serde::{Deserialize, Serialize};
-
-/// Metadata of a edge, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct EdgeJson {
-    /// Name of relation
-    pub name: String,
-    /// Name of related node (from side)
-    pub from_node: String,
-    /// Name of related node (to side)
-    pub to_node: String,
-}
-
-/// Metadata of edges in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct EdgeJsonBatch {
-    /// Name of relation
-    pub name: String,
-    /// Vector of edges
-    pub edges: Vec<Edge>,
-}
-
-/// Metadata of a edge in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Edge {
-    /// Name of related node (from side)
-    pub from_node: String,
-    /// Name of related node (to side)
-    pub to_node: String,
-}
-
-/// Metadata of a edge, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct ClearEdgeJson {
-    /// Name of relation
-    pub name: String,
-    /// Name of node
-    pub node: String,
-}
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
