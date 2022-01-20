@@ -80,11 +80,6 @@ impl Executor {
         let mut nodes = HashSet::new();
         let mut links = HashSet::new();
 
-        return Ok(GraphData {
-            nodes: nodes.into_iter().collect(),
-            links: links.into_iter().collect(),
-        });
-
         let (res_nodes, res_links) = traverse(
             &self.db,
             TreeNodeType::Root,

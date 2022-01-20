@@ -27,12 +27,27 @@ pub struct GraphData {
 }
 
 /// Graph node data
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct GraphNodeData {
     /// Name of node
     id: String,
     /// Weight
-    weight: i32,
+    weight: f64,
+}
+
+impl PartialEq for GraphNodeData {
+    fn eq(&self, other: &Self) -> bool {
+        self.id == other.id
+    }
+}
+
+impl Eq for GraphNodeData {
+}
+
+impl std::hash::Hash for GraphNodeData {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.id.hash(state);
+    }
 }
 
 /// Tree data
@@ -120,7 +135,7 @@ pub struct TreeLinkData {
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
     name: String,
-    in_conn: i32,
+    in_conn: f64,
 }
 
 #[derive(Debug, Clone, FromQueryResult)]
