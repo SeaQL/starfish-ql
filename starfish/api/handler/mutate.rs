@@ -1,6 +1,6 @@
 use crate::api::db::pool::Db;
 use crate::api::ErrorResponder;
-use crate::core::lang::{EdgeJson, EdgeJsonBatch, ClearEdgeJson, NodeJson, NodeJsonBatch};
+use crate::core::lang::{ClearEdgeJson, EdgeJson, EdgeJsonBatch, NodeJson, NodeJsonBatch};
 use crate::mutate::Mutate;
 use rocket::serde::json::Json;
 use rocket::{post, routes};
@@ -109,14 +109,9 @@ async fn cal_conn(conn: Connection<'_, Db>) -> Result<(), ErrorResponder> {
         (0.5, "in_conn_complex05"),
         (0.7, "in_conn_complex07"),
     ] {
-        Mutate::calculate_complex_connectivity(
-            db,
-            weight,
-            f64::EPSILON,
-            col_name
-        )
-        .await
-        .map_err(Into::into)?;
+        Mutate::calculate_complex_connectivity(db, weight, f64::EPSILON, col_name)
+            .await
+            .map_err(Into::into)?;
     }
 
     Ok(())

@@ -1,11 +1,17 @@
 mod common;
 
 use common::TestContext;
-use sea_orm::{DbConn, DbErr, FromQueryResult, ConnectionTrait};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult};
 use sea_query::Alias;
 use starfish::{
     api::db::schema::create_tables,
-    core::{entities::entity_attribute::Datatype, lang::{NodeJson, EdgeJson, ClearEdgeJson, NodeJsonBatch, Node, Edge, EdgeJsonBatch, EntityJson, EntityAttrJson, RelationJson}},
+    core::{
+        entities::entity_attribute::Datatype,
+        lang::{
+            ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, EntityAttrJson, EntityJson, Node,
+            NodeJson, NodeJsonBatch, RelationJson,
+        },
+    },
     mutate::Mutate,
     schema::Schema,
 };
@@ -240,9 +246,9 @@ struct TestNode {
 impl PartialEq for TestNode {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name
-        && f64::abs(self.in_conn - other.in_conn) <= f64::EPSILON
-        && f64::abs(self.in_conn_compound - other.in_conn_compound) <= f64::EPSILON
-        && f64::abs(self.in_conn_complex05 - other.in_conn_complex05) <= f64::EPSILON
+            && f64::abs(self.in_conn - other.in_conn) <= f64::EPSILON
+            && f64::abs(self.in_conn_compound - other.in_conn_compound) <= f64::EPSILON
+            && f64::abs(self.in_conn_complex05 - other.in_conn_complex05) <= f64::EPSILON
     }
 }
 
@@ -252,14 +258,32 @@ async fn test_construct_mock_graph_1(db: &DbConn) -> Result<HashMap<String, Test
         NodeJsonBatch {
             of: "crate".to_owned(),
             nodes: vec![
-                Node { name: "A".to_owned(), attributes: HashMap::new() },
-                Node { name: "B".to_owned(), attributes: HashMap::new() },
-                Node { name: "C".to_owned(), attributes: HashMap::new() },
-                Node { name: "D".to_owned(), attributes: HashMap::new() },
-                Node { name: "E".to_owned(), attributes: HashMap::new() },
-                Node { name: "F".to_owned(), attributes: HashMap::new() },
+                Node {
+                    name: "A".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "B".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "C".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "D".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "E".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "F".to_owned(),
+                    attributes: HashMap::new(),
+                },
             ],
-        }
+        },
     )
     .await?;
 
@@ -268,27 +292,91 @@ async fn test_construct_mock_graph_1(db: &DbConn) -> Result<HashMap<String, Test
         EdgeJsonBatch {
             name: "depends".to_owned(),
             edges: vec![
-                Edge { from_node: "A".to_owned(), to_node: "C".to_owned() },
-                Edge { from_node: "B".to_owned(), to_node: "C".to_owned() },
-                Edge { from_node: "B".to_owned(), to_node: "D".to_owned() },
-                Edge { from_node: "C".to_owned(), to_node: "E".to_owned() },
-                Edge { from_node: "D".to_owned(), to_node: "E".to_owned() },
-                Edge { from_node: "D".to_owned(), to_node: "F".to_owned() },
+                Edge {
+                    from_node: "A".to_owned(),
+                    to_node: "C".to_owned(),
+                },
+                Edge {
+                    from_node: "B".to_owned(),
+                    to_node: "C".to_owned(),
+                },
+                Edge {
+                    from_node: "B".to_owned(),
+                    to_node: "D".to_owned(),
+                },
+                Edge {
+                    from_node: "C".to_owned(),
+                    to_node: "E".to_owned(),
+                },
+                Edge {
+                    from_node: "D".to_owned(),
+                    to_node: "E".to_owned(),
+                },
+                Edge {
+                    from_node: "D".to_owned(),
+                    to_node: "F".to_owned(),
+                },
             ],
-        }
+        },
     )
     .await?;
 
-    Ok(
-        HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 2.0, in_conn_compound: 2.0, in_conn_complex05: 2.0 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 1.0, in_conn_compound: 1.0, in_conn_complex05: 1.0 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2.0, in_conn_compound: 4.0, in_conn_complex05: 3.0 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 1.0, in_conn_compound: 2.0, in_conn_complex05: 1.5 }),
-        ])
-    )
+    Ok(HashMap::from([
+        (
+            "A".to_owned(),
+            TestNode {
+                name: "A".to_owned(),
+                in_conn: 0.0,
+                in_conn_compound: 0.0,
+                in_conn_complex05: 0.0,
+            },
+        ),
+        (
+            "B".to_owned(),
+            TestNode {
+                name: "B".to_owned(),
+                in_conn: 0.0,
+                in_conn_compound: 0.0,
+                in_conn_complex05: 0.0,
+            },
+        ),
+        (
+            "C".to_owned(),
+            TestNode {
+                name: "C".to_owned(),
+                in_conn: 2.0,
+                in_conn_compound: 2.0,
+                in_conn_complex05: 2.0,
+            },
+        ),
+        (
+            "D".to_owned(),
+            TestNode {
+                name: "D".to_owned(),
+                in_conn: 1.0,
+                in_conn_compound: 1.0,
+                in_conn_complex05: 1.0,
+            },
+        ),
+        (
+            "E".to_owned(),
+            TestNode {
+                name: "E".to_owned(),
+                in_conn: 2.0,
+                in_conn_compound: 4.0,
+                in_conn_complex05: 3.0,
+            },
+        ),
+        (
+            "F".to_owned(),
+            TestNode {
+                name: "F".to_owned(),
+                in_conn: 1.0,
+                in_conn_compound: 2.0,
+                in_conn_complex05: 1.5,
+            },
+        ),
+    ]))
 }
 
 async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, TestNode>, DbErr> {
@@ -297,14 +385,32 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
         NodeJsonBatch {
             of: "crate".to_owned(),
             nodes: vec![
-                Node { name: "A".to_owned(), attributes: HashMap::new() },
-                Node { name: "B".to_owned(), attributes: HashMap::new() },
-                Node { name: "C".to_owned(), attributes: HashMap::new() },
-                Node { name: "D".to_owned(), attributes: HashMap::new() },
-                Node { name: "E".to_owned(), attributes: HashMap::new() },
-                Node { name: "F".to_owned(), attributes: HashMap::new() },
+                Node {
+                    name: "A".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "B".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "C".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "D".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "E".to_owned(),
+                    attributes: HashMap::new(),
+                },
+                Node {
+                    name: "F".to_owned(),
+                    attributes: HashMap::new(),
+                },
             ],
-        }
+        },
     )
     .await?;
 
@@ -313,50 +419,112 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
         EdgeJsonBatch {
             name: "depends".to_owned(),
             edges: vec![
-                Edge { from_node: "A".to_owned(), to_node: "B".to_owned() },
-                Edge { from_node: "B".to_owned(), to_node: "C".to_owned() },
-                Edge { from_node: "B".to_owned(), to_node: "E".to_owned() },
-                Edge { from_node: "C".to_owned(), to_node: "D".to_owned() },
-                Edge { from_node: "D".to_owned(), to_node: "E".to_owned() },
-                Edge { from_node: "F".to_owned(), to_node: "D".to_owned() },
+                Edge {
+                    from_node: "A".to_owned(),
+                    to_node: "B".to_owned(),
+                },
+                Edge {
+                    from_node: "B".to_owned(),
+                    to_node: "C".to_owned(),
+                },
+                Edge {
+                    from_node: "B".to_owned(),
+                    to_node: "E".to_owned(),
+                },
+                Edge {
+                    from_node: "C".to_owned(),
+                    to_node: "D".to_owned(),
+                },
+                Edge {
+                    from_node: "D".to_owned(),
+                    to_node: "E".to_owned(),
+                },
+                Edge {
+                    from_node: "F".to_owned(),
+                    to_node: "D".to_owned(),
+                },
             ],
-        }
+        },
     )
     .await?;
 
-    Ok(
-        HashMap::from([
-            ("A".to_owned(), TestNode { name: "A".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
-            ("B".to_owned(), TestNode { name: "B".to_owned(), in_conn: 1.0, in_conn_compound: 1.0, in_conn_complex05: 1.0 }),
-            ("C".to_owned(), TestNode { name: "C".to_owned(), in_conn: 1.0, in_conn_compound: 2.0, in_conn_complex05: 1.5 }),
-            ("D".to_owned(), TestNode { name: "D".to_owned(), in_conn: 2.0, in_conn_compound: 4.0, in_conn_complex05: 2.75 }),
-            ("E".to_owned(), TestNode { name: "E".to_owned(), in_conn: 2.0, in_conn_compound: 5.0, in_conn_complex05: 3.5 }),
-            ("F".to_owned(), TestNode { name: "F".to_owned(), in_conn: 0.0, in_conn_compound: 0.0, in_conn_complex05: 0.0 }),
-        ])
-    )
+    Ok(HashMap::from([
+        (
+            "A".to_owned(),
+            TestNode {
+                name: "A".to_owned(),
+                in_conn: 0.0,
+                in_conn_compound: 0.0,
+                in_conn_complex05: 0.0,
+            },
+        ),
+        (
+            "B".to_owned(),
+            TestNode {
+                name: "B".to_owned(),
+                in_conn: 1.0,
+                in_conn_compound: 1.0,
+                in_conn_complex05: 1.0,
+            },
+        ),
+        (
+            "C".to_owned(),
+            TestNode {
+                name: "C".to_owned(),
+                in_conn: 1.0,
+                in_conn_compound: 2.0,
+                in_conn_complex05: 1.5,
+            },
+        ),
+        (
+            "D".to_owned(),
+            TestNode {
+                name: "D".to_owned(),
+                in_conn: 2.0,
+                in_conn_compound: 4.0,
+                in_conn_complex05: 2.75,
+            },
+        ),
+        (
+            "E".to_owned(),
+            TestNode {
+                name: "E".to_owned(),
+                in_conn: 2.0,
+                in_conn_compound: 5.0,
+                in_conn_complex05: 3.5,
+            },
+        ),
+        (
+            "F".to_owned(),
+            TestNode {
+                name: "F".to_owned(),
+                in_conn: 0.0,
+                in_conn_compound: 0.0,
+                in_conn_complex05: 0.0,
+            },
+        ),
+    ]))
 }
 
 async fn test_get_nodes_with_connectivity(db: &DbConn) -> Result<HashMap<String, TestNode>, DbErr> {
     let builder = db.get_database_backend();
-    Ok(
-        TestNode::find_by_statement(
-            builder.build(
-                sea_query::Query::select()
-                    .columns([
-                        Alias::new("name"),
-                        Alias::new("in_conn"),
-                        Alias::new("in_conn_compound"),
-                        Alias::new("in_conn_complex05")
-                    ])
-                    .from(Alias::new("node_crate"))
-            )
-        )
-        .all(db)
-        .await?
-        .into_iter()
-        .fold(HashMap::new(), |mut map, node| {
-            map.insert(node.name.clone(), node);
-            map
-        })
+    Ok(TestNode::find_by_statement(
+        builder.build(
+            sea_query::Query::select()
+                .columns([
+                    Alias::new("name"),
+                    Alias::new("in_conn"),
+                    Alias::new("in_conn_compound"),
+                    Alias::new("in_conn_complex05"),
+                ])
+                .from(Alias::new("node_crate")),
+        ),
     )
+    .all(db)
+    .await?
+    .into_iter()
+    .fold(HashMap::new(), |mut map, node| {
+        map.insert(node.name.clone(), node);
+        map
+    }))
 }

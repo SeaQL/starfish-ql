@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 
-use crate::schema::{format_node_table_name, format_node_attribute_name, format_edge_table_name};
+use crate::schema::{format_edge_table_name, format_node_attribute_name, format_node_table_name};
 
 use super::entities::entity_attribute::Datatype;
 

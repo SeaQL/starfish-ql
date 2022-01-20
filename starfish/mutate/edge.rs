@@ -1,7 +1,10 @@
 use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
-use crate::{schema::format_edge_table_name, core::lang::{EdgeJson, EdgeJsonBatch, Edge, ClearEdgeJson}};
+use crate::{
+    core::lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch},
+    schema::format_edge_table_name,
+};
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Statement};
 use sea_query::{Alias, Expr, Query};
 
@@ -28,8 +31,7 @@ impl PartialEq for NodeAncestor {
     }
 }
 
-impl Eq for NodeAncestor {
-}
+impl Eq for NodeAncestor {}
 
 impl std::hash::Hash for NodeAncestor {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
@@ -122,7 +124,12 @@ impl Mutate {
         Self::calculate_complex_connectivity(db, 1.0, f64::EPSILON, "in_conn_compound").await
     }
 
-    pub async fn calculate_complex_connectivity(db: &DbConn, weight: f64, epsilon: f64, col_name: &str) -> Result<(), DbErr> {
+    pub async fn calculate_complex_connectivity(
+        db: &DbConn,
+        weight: f64,
+        epsilon: f64,
+        col_name: &str,
+    ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
         let mut node_stmt = sea_query::Query::select();
         node_stmt
@@ -152,7 +159,10 @@ impl Mutate {
                     node_to_parents
                         .get_mut(&link.to_node)
                         .unwrap()
-                        .push(NodeAncestor {name: link.from_node, weight: f64::NAN }); // This weight is not meant to be used
+                        .push(NodeAncestor {
+                            name: link.from_node,
+                            weight: f64::NAN,
+                        }); // This weight is not meant to be used
 
                     node_to_parents
                 })
@@ -184,10 +194,12 @@ impl Mutate {
                             if let Some(parent_ancestors) = map_id_to_ancestors.get(&parent.name) {
                                 // Dynamic programming: reuse previously obtained ancestors
                                 for parent_ancestor in parent_ancestors {
-                                    let parent_ancestor_weight = parent_ancestor.weight * current_weight * weight;
+                                    let parent_ancestor_weight =
+                                        parent_ancestor.weight * current_weight * weight;
                                     if parent_ancestor_weight > epsilon {
                                         ancestors.insert(
-                                            parent_ancestor.clone_with_new_weight(parent_ancestor_weight)
+                                            parent_ancestor
+                                                .clone_with_new_weight(parent_ancestor_weight),
                                         );
                                     }
                                 }
@@ -219,10 +231,9 @@ impl Mutate {
             .columns(cols.clone());
 
         for (name, ancestors) in map_id_to_ancestors.into_iter() {
-            let in_conn_complex = ancestors.into_iter()
-                .fold(0.0, |conn, ancestor| {
-                    conn + ancestor.weight
-                });
+            let in_conn_complex = ancestors
+                .into_iter()
+                .fold(0.0, |conn, ancestor| conn + ancestor.weight);
             stmt.values_panic([name.into(), in_conn_complex.into()]);
         }
 

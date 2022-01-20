@@ -1,10 +1,13 @@
 //! Define entity schema
 
 use super::Schema;
-use crate::core::{entities::{
-    entity,
-    entity_attribute::{self, Datatype},
-}, lang::EntityJson};
+use crate::core::{
+    entities::{
+        entity,
+        entity_attribute::{self, Datatype},
+    },
+    lang::EntityJson,
+};
 use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
 use sea_query::{Alias, ColumnDef, Index, Table};
 
@@ -107,19 +110,31 @@ impl Schema {
             )
             .index(
                 Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex03"))
+                    .name(&format!(
+                        "idx-{}-{}",
+                        table.to_string(),
+                        "in_conn_complex03"
+                    ))
                     .table(table.clone())
                     .col(Alias::new("in_conn_complex03")),
             )
             .index(
                 Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex05"))
+                    .name(&format!(
+                        "idx-{}-{}",
+                        table.to_string(),
+                        "in_conn_complex05"
+                    ))
                     .table(table.clone())
                     .col(Alias::new("in_conn_complex05")),
             )
             .index(
                 Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_complex07"))
+                    .name(&format!(
+                        "idx-{}-{}",
+                        table.to_string(),
+                        "in_conn_complex07"
+                    ))
                     .table(table.clone())
                     .col(Alias::new("in_conn_complex07")),
             )

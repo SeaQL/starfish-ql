@@ -41,8 +41,7 @@ impl PartialEq for GraphNodeData {
     }
 }
 
-impl Eq for GraphNodeData {
-}
+impl Eq for GraphNodeData {}
 
 impl std::hash::Hash for GraphNodeData {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
