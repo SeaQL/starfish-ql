@@ -86,13 +86,13 @@ impl Schema {
             )
             .col(
                 ColumnDef::new(Alias::new("in_conn"))
-                    .integer()
+                    .double()
                     .not_null()
                     .default(0),
             )
             .col(
                 ColumnDef::new(Alias::new("in_conn_compound"))
-                    .integer()
+                    .double()
                     .not_null()
                     .default(0),
             )
