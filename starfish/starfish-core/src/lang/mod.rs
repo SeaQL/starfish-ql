@@ -9,6 +9,22 @@ use crate::schema::{format_edge_table_name, format_node_attribute_name, format_n
 
 use super::entities::entity_attribute::Datatype;
 
+/// Metadata of schema, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchemaJson {
+    /// What this defines
+    pub define: SchemaDefineJson,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Metadata of vectors of entities and relations, deserialized as struct from json
+pub struct SchemaDefineJson {
+    /// Entities metadata
+    pub entities: Vec<EntityJson>,
+    /// Relations metadata
+    pub relations: Vec<RelationJson>,
+}
+
 /// Metadata of entity, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityJson {

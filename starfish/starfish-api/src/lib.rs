@@ -40,7 +40,7 @@ pub fn rocket() -> Rocket<Build> {
         .mount("/mutate", handler::mutate::routes())
         .mount("/query", handler::query::routes())
         .mount("/util", handler::util::routes())
-        .register("/", catchers![not_found])
+        .mount("/", handler::core::routes())
 }
 
 #[catch(404)]

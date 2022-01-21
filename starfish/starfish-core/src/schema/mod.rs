@@ -5,6 +5,9 @@ mod relation;
 
 pub use entity::*;
 pub use relation::*;
+use sea_orm::{DbConn, DbErr};
+
+use crate::core::lang::SchemaJson;
 
 /// Define new entity and relation
 #[derive(Debug)]
@@ -32,4 +35,20 @@ where
     T: ToString,
 {
     format!("edge_{}", name.to_string())
+}
+
+impl Schema {
+    /// Insert entity/relation metadata into database and create a corresponding node/edge table
+    pub async fn define_schema(db: &DbConn, schema_json: SchemaJson) -> Result<(), DbErr> {
+        
+        for entity_json in schema_json.define.entities {
+            Self::create_entity(db, entity_json).await?;
+        }
+
+        for relation_json in schema_json.define.relations {
+            Self::create_relation(db, relation_json).await?;
+        }
+
+        Ok(())
+    }
 }
