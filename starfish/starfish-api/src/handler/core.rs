@@ -1,17 +1,13 @@
-use rocket::{get, post, routes};
 use rocket::serde::json::Json;
+use rocket::{get, post, routes};
 use sea_orm_rocket::Connection;
 
-use crate::{ErrorResponder, db::pool::Db};
+use crate::{db::pool::Db, ErrorResponder};
 use starfish_core::lang::SchemaJson;
 use starfish_core::schema::Schema;
 
 pub fn routes() -> Vec<rocket::Route> {
-    routes![
-        schema,
-        mutate,
-        query,
-    ]
+    routes![schema, mutate, query,]
 }
 
 #[post("/schema", data = "<input_data>")]
@@ -25,22 +21,16 @@ async fn schema(
     Schema::define_schema(db, schema_json)
         .await
         .map_err(Into::into)?;
-    
+
     Ok(())
 }
 
 #[post("/mutate")]
-async fn mutate(
-    conn: Connection<'_, Db>,
-) -> Result<Json<String>, ErrorResponder> {
-    
+async fn mutate(conn: Connection<'_, Db>) -> Result<Json<String>, ErrorResponder> {
     Ok(Json("Hello Mutate!".to_owned()))
 }
 
 #[get("/query")]
-async fn query(
-    conn: Connection<'_, Db>,
-) -> Result<Json<String>, ErrorResponder> {
-    
+async fn query(conn: Connection<'_, Db>) -> Result<Json<String>, ErrorResponder> {
     Ok(Json("Hello Query!".to_owned()))
 }
