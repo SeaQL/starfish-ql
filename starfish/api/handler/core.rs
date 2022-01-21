@@ -3,6 +3,8 @@ use rocket::serde::json::Json;
 use sea_orm_rocket::Connection;
 
 use crate::api::{ErrorResponder, db::pool::Db};
+use crate::core::lang::SchemaJson;
+use crate::schema::Schema;
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![
@@ -12,12 +14,19 @@ pub fn routes() -> Vec<rocket::Route> {
     ]
 }
 
-#[post("/schema")]
+#[post("/schema", data = "<input_data>")]
 async fn schema(
     conn: Connection<'_, Db>,
-) -> Result<Json<String>, ErrorResponder> {
+    input_data: Json<SchemaJson>,
+) -> Result<(), ErrorResponder> {
+    let db = conn.into_inner();
+    let schema_json = input_data.clone();
+
+    Schema::define_schema(db, schema_json)
+        .await
+        .map_err(Into::into)?;
     
-    Ok(Json("Hello Schema!".to_owned()))
+    Ok(())
 }
 
 #[post("/mutate")]
