@@ -2,9 +2,9 @@ use rocket::{get, post, routes};
 use rocket::serde::json::Json;
 use sea_orm_rocket::Connection;
 
-use crate::api::{ErrorResponder, db::pool::Db};
-use crate::core::lang::SchemaJson;
-use crate::schema::Schema;
+use crate::{ErrorResponder, db::pool::Db};
+use starfish_core::lang::SchemaJson;
+use starfish_core::schema::Schema;
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![

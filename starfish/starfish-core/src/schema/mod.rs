@@ -7,7 +7,7 @@ pub use entity::*;
 pub use relation::*;
 use sea_orm::{DbConn, DbErr};
 
-use crate::core::lang::SchemaJson;
+use crate::lang::SchemaJson;
 
 /// Define new entity and relation
 #[derive(Debug)]

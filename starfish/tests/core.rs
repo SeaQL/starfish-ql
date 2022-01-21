@@ -1,14 +1,17 @@
 mod common;
 
 use common::TestContext;
+use starfish_core::sea_orm;
 use sea_orm::DbErr;
-use starfish::{api::db::schema::create_tables, schema::Schema, core::{lang::{SchemaJson, EntityJson, EntityAttrJson, RelationJson, SchemaDefineJson}, entities::entity_attribute::Datatype}};
+use migration::{Migrator, MigratorTrait};
+use starfish_core::{schema::Schema, lang::{SchemaJson, EntityJson, EntityAttrJson, RelationJson, SchemaDefineJson}, entities::entity_attribute::Datatype};
 
 #[smol_potat::test]
 async fn schema() -> Result<(), DbErr> {
     let ctx = TestContext::new("schema").await;
     let db = &ctx.db;
-    create_tables(db).await?;
+
+    Migrator::fresh(db).await?;
 
     let schema_json = SchemaJson {
         define: SchemaDefineJson {
