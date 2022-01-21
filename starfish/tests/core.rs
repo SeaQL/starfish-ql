@@ -1,7 +1,7 @@
 mod common;
 
 use common::TestContext;
-use migration::{Migrator, MigratorTrait};
+use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
 use starfish_core::sea_orm;
 use starfish_core::{
@@ -36,6 +36,13 @@ async fn schema() -> Result<(), DbErr> {
     };
 
     Schema::define_schema(db, schema_json).await?;
+
+    let schema_manager = SchemaManager::new(db);
+    assert!(schema_manager.has_table("node_crate").await?);
+    assert!(schema_manager.has_column("node_crate", "attr_version").await?);
+    assert!(schema_manager.has_table("edge_depends").await?);
+    assert!(schema_manager.has_column("edge_depends", "from_node").await?);
+    assert!(schema_manager.has_column("edge_depends", "to_node").await?);
 
     Ok(())
 }
