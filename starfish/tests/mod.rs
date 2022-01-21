@@ -1,6 +1,7 @@
 mod common;
 
 use common::TestContext;
+use migration::SchemaManager;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult};
 use sea_query::Alias;
@@ -23,6 +24,10 @@ async fn main() -> Result<(), DbErr> {
     let db = &ctx.db;
 
     Migrator::fresh(db).await?;
+
+    let schema_manager = SchemaManager::new(db);
+    assert!(schema_manager.has_table("entity").await?);
+    assert!(schema_manager.has_column("entity", "name").await?);
 
     test_create_entities(db).await?;
     test_create_relations(db).await?;
