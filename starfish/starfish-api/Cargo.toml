@@ -1,12 +1,5 @@
-[workspace]
-members = [
-    "starfish-core",
-    "starfish-api",
-    "migration",
-]
-
 [package]
-name = "starfish"
+name = "starfish-api"
 version = "0.1.0"
 authors = [
     "Chris Tsang <tyt2y7@gmail.com>",
@@ -26,20 +19,17 @@ features = ["default"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [lib]
-name = "starfish"
+name = "starfish_api"
 path = "src/lib.rs"
 
-[[bin]]
-name = "starfish-api"
-path = "src/main.rs"
-
 [dependencies]
-starfish-core = { path = "starfish-core" }
-starfish-api = { path = "starfish-api" }
+starfish-core = { path = "../starfish-core" }
+migration = { path = "../migration" }
+sea-orm-rocket = { version = "^0.5.0" }
+rocket = { version = "^0.5.0-rc.1", features = ["json"] }
+async-trait = { version = "^0.1" }
+figment = { version = "^0.10" }
+serde_json = { version = "^1" }
 
 [dev-dependencies]
-migration = { path = "migration" }
-smol = { version = "^1.2" }
-smol-potat = { version = "^1.1" }
-tracing = { version = "0.1", features = ["log"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+pretty_assertions = { version = "^0.7" }

@@ -1,12 +1,5 @@
-[workspace]
-members = [
-    "starfish-core",
-    "starfish-api",
-    "migration",
-]
-
 [package]
-name = "starfish"
+name = "starfish-core"
 version = "0.1.0"
 authors = [
     "Chris Tsang <tyt2y7@gmail.com>",
@@ -26,20 +19,21 @@ features = ["default"]
 rustdoc-args = ["--cfg", "docsrs"]
 
 [lib]
-name = "starfish"
+name = "starfish_core"
 path = "src/lib.rs"
 
-[[bin]]
-name = "starfish-api"
-path = "src/main.rs"
-
 [dependencies]
-starfish-core = { path = "starfish-core" }
-starfish-api = { path = "starfish-api" }
-
-[dev-dependencies]
-migration = { path = "migration" }
-smol = { version = "^1.2" }
-smol-potat = { version = "^1.1" }
-tracing = { version = "0.1", features = ["log"] }
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# sea-orm = { version = "^0.5.0", default-features = false, features = [
+sea-orm = { git = "https://github.com/SeaQL/sea-orm.git", branch = "migration", default-features = false, features = [
+    "macros",
+    "sqlx-mysql",
+    "runtime-async-std-native-tls",
+    "debug-print",
+]}
+sea-query = { version = "^0.20.0", features = ["thread-safe"] }
+futures-executor = { version = "^0.3" }
+async-trait = { version = "^0.1" }
+serde = { version = "^1" }
+serde_json = { version = "^1" }
+serde_repr = { version = "^0" }
+num_cpus = { version = "^1" }

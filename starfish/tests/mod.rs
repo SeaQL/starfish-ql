@@ -1,16 +1,16 @@
 mod common;
 
 use common::TestContext;
+use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult};
 use sea_query::Alias;
-use starfish::{
-    api::db::schema::create_tables,
-    core::{
-        entities::entity_attribute::Datatype,
-        lang::{
-            ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, EntityAttrJson, EntityJson, Node,
-            NodeJson, NodeJsonBatch, RelationJson,
-        },
+use starfish_core::sea_orm;
+use starfish_core::sea_query;
+use starfish_core::{
+    entities::entity_attribute::Datatype,
+    lang::{
+        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, EntityAttrJson, EntityJson, Node, NodeJson,
+        NodeJsonBatch, RelationJson,
     },
     mutate::Mutate,
     schema::Schema,
@@ -22,7 +22,7 @@ async fn main() -> Result<(), DbErr> {
     let ctx = TestContext::new("starfish_tests_main").await;
     let db = &ctx.db;
 
-    create_tables(db).await?;
+    Migrator::fresh(db).await?;
 
     test_create_entities(db).await?;
     test_create_relations(db).await?;
@@ -40,7 +40,7 @@ async fn connectivity1() -> Result<(), DbErr> {
     let ctx = TestContext::new("starfish_tests_connectivity1").await;
     let db = &ctx.db;
 
-    create_tables(db).await?;
+    Migrator::fresh(db).await?;
 
     test_create_entities(db).await?;
     test_create_relations(db).await?;
@@ -65,7 +65,7 @@ async fn connectivity2() -> Result<(), DbErr> {
     let ctx = TestContext::new("starfish_tests_connectivity2").await;
     let db = &ctx.db;
 
-    create_tables(db).await?;
+    Migrator::fresh(db).await?;
 
     test_create_entities(db).await?;
     test_create_relations(db).await?;

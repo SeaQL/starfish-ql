@@ -1,7 +1,7 @@
 //! Define entity schema
 
 use super::Schema;
-use crate::core::{
+use crate::{
     entities::{
         entity,
         entity_attribute::{self, Datatype},

@@ -1,6 +1,7 @@
 pub mod setup;
 
 use sea_orm::DbConn;
+use starfish_core::sea_orm;
 
 pub struct TestContext {
     pub db: DbConn,

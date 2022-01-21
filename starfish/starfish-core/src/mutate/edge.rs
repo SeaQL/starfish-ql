@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
 use crate::{
-    core::lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch},
+    lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch},
     schema::format_edge_table_name,
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Statement};

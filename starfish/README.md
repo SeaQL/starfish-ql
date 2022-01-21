@@ -1,3 +1,5 @@
+# StarfishQL
+
 ## Testing
 
 ```sh

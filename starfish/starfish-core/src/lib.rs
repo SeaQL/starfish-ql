@@ -6,12 +6,13 @@
     clippy::print_stdout
 )]
 
-//! A graph database and query engine
-//!
-//! Copyright (c) 2021 Tsang Hao Fung
+//! Core data structures of the library
 
-pub mod api;
-pub mod core;
+pub mod entities;
+pub mod lang;
 pub mod mutate;
 pub mod query;
 pub mod schema;
+
+pub use sea_orm;
+pub use sea_query;

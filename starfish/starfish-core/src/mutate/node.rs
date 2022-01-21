@@ -1,12 +1,10 @@
 use super::Mutate;
 use crate::{
-    core::{
-        entities::{
-            entity,
-            entity_attribute::{self, Datatype},
-        },
-        lang::{Node, NodeJson, NodeJsonBatch},
+    entities::{
+        entity,
+        entity_attribute::{self, Datatype},
     },
+    lang::{Node, NodeJson, NodeJsonBatch},
     schema::{format_node_attribute_name, format_node_table_name},
 };
 use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter};

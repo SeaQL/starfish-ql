@@ -1,9 +1,10 @@
-use crate::api::ErrorResponder;
-use crate::query::{GraphData, NodeWeight, TreeData};
-use crate::{api::db::pool::Db, query::Query};
+use crate::db::pool::Db;
+use crate::ErrorResponder;
 use rocket::serde::json::Json;
 use rocket::{get, routes};
 use sea_orm_rocket::Connection;
+use starfish_core::query::Query;
+use starfish_core::query::{GraphData, NodeWeight, TreeData};
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![get_graph, get_tree]

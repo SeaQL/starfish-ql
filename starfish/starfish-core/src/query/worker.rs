@@ -2,7 +2,7 @@ use super::{
     executor::ExecutorMsg, into_graph_link, into_graph_node, into_tree_link, into_tree_node,
     select_top_n_edge, traverse, NodeWeight, TreeNodeType, DEBUG,
 };
-use rocket::futures::executor::block_on;
+use futures_executor::block_on;
 use sea_orm::DbConn;
 use std::{
     collections::VecDeque,

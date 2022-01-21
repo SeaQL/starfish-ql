@@ -1,4 +1,5 @@
 use sea_orm::{ConnectionTrait, Database, DatabaseConnection, DbBackend, Statement};
+use starfish_core::sea_orm;
 
 pub async fn setup(base_url: &str, db_name: &str) -> DatabaseConnection {
     let url = format!("{}/mysql", base_url);

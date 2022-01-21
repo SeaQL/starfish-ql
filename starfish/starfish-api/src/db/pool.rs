@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use sea_orm::{ConnectOptions, DbConn};
 use sea_orm_rocket::{rocket::figment::Figment, Config, Database};
+use starfish_core::sea_orm;
 use std::time::Duration;
 
 #[derive(Database, Debug)]

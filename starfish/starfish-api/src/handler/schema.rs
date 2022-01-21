@@ -1,10 +1,10 @@
-use crate::api::db::pool::Db;
-use crate::api::ErrorResponder;
-use crate::core::lang::{EntityJson, RelationJson};
-use crate::schema::Schema;
+use crate::db::pool::Db;
+use crate::ErrorResponder;
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;
+use starfish_core::lang::{EntityJson, RelationJson};
+use starfish_core::schema::Schema;
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![create_entity, create_relation]
