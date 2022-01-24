@@ -4,7 +4,7 @@ use sea_orm_rocket::Connection;
 use starfish_core::mutate::Mutate;
 
 use crate::{db::pool::Db, ErrorResponder};
-use starfish_core::lang::{SchemaJson, MutateJson, MutateInsertContentJson, MutateSelectorJson};
+use starfish_core::lang::{MutateInsertContentJson, MutateJson, MutateSelectorJson, SchemaJson};
 use starfish_core::schema::Schema;
 
 pub fn routes() -> Vec<rocket::Route> {

@@ -81,13 +81,13 @@ impl Mutate {
         let mut stmt = builder.build(&stmt);
         if upsert {
             let update_vals = cols
-            .into_iter()
-            .map(|col| {
-                let col = col.to_string();
-                format!("{0} = VALUES({0})", col)
-            })
-            .collect::<Vec<_>>()
-            .join(", ");
+                .into_iter()
+                .map(|col| {
+                    let col = col.to_string();
+                    format!("{0} = VALUES({0})", col)
+                })
+                .collect::<Vec<_>>()
+                .join(", ");
 
             stmt.sql = format!("{} ON DUPLICATE KEY UPDATE {}", stmt.sql, update_vals);
         }

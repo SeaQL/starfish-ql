@@ -102,7 +102,7 @@ pub enum MutateSelectorJson {
         from_node: String,
         /// Name of related node (to side)
         to_node: String,
-    }
+    },
 }
 
 /// Metadata of entity, deserialized as struct from json
@@ -168,8 +168,6 @@ pub struct EdgeJson {
     pub to_node: String,
 }
 
-
-
 /// Metadata of a edge, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ClearEdgeJson {
@@ -189,5 +187,3 @@ pub struct NodeJson {
     /// Additional attributes
     pub attributes: HashMap<String, JsonValue>,
 }
-
-
