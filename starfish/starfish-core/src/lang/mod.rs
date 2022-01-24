@@ -9,7 +9,7 @@ use crate::schema::{format_edge_table_name, format_node_attribute_name, format_n
 
 use super::entities::entity_attribute::Datatype;
 
-/// Metadata of schema, deserialized as struct from json
+/// Metadata of a schema request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SchemaJson {
     /// What this defines
@@ -23,6 +23,78 @@ pub struct SchemaDefineJson {
     pub entities: Vec<EntityJson>,
     /// Relations metadata
     pub relations: Vec<RelationJson>,
+}
+
+/// Metadata of a mutate request, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub enum MutateJson {
+    /// Insert new data; Use option "upsert" to allow insert-or-update
+    insert(MutateInsertContentJson),
+    /// Update selected data
+    update(MutateSelectorJson),
+    /// Delete selected data
+    delete(MutateSelectorJson),
+}
+
+/// Metadata of a node in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Node {
+    /// Name of node
+    pub name: String,
+    /// Additional attributes
+    pub attributes: HashMap<String, JsonValue>,
+}
+
+/// Metadata of a edge in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Edge {
+    /// Name of related node (from side)
+    pub from_node: String,
+    /// Name of related node (to side)
+    pub to_node: String,
+}
+
+/// Metadata of the content of a mutate insert request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub enum MutateInsertContentJson {
+    /// Insert nodes
+    node {
+        /// Name of entity these nodes belong to
+        of: String,
+        /// Nodes to insert
+        batch: Vec<Node>,
+    },
+    /// Insert edges
+    edge {
+        /// Name of relation these edges belong to
+        of: String,
+        /// Edges to insert
+        batch: Vec<Edge>,
+    }
+}
+
+/// Metadata of a data selector of a mutate update/delete request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub enum MutateSelectorJson {
+    /// Select a node / nodes
+    node {
+        /// Name of entity this node belongs to
+        of: String,
+        /// Attributes of node, primary and additional
+        attributes: HashMap<String, JsonValue>,
+    },
+    /// Select an edge / edges
+    edge {
+        /// Name of relation this edge belongs to
+        of: String,
+        /// Name of related node (from side)
+        from_node: String,
+        /// Name of related node (to side)
+        to_node: String,
+    }
 }
 
 /// Metadata of entity, deserialized as struct from json
@@ -77,15 +149,6 @@ impl RelationJson {
     }
 }
 
-/// Metadata of a edge in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Edge {
-    /// Name of related node (from side)
-    pub from_node: String,
-    /// Name of related node (to side)
-    pub to_node: String,
-}
-
 /// Metadata of a edge, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct EdgeJson {
@@ -133,13 +196,4 @@ pub struct NodeJsonBatch {
     pub of: String,
     /// Vector of nodes
     pub nodes: Vec<Node>,
-}
-
-/// Metadata of a node in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Node {
-    /// Name of node
-    pub name: String,
-    /// Additional attributes
-    pub attributes: HashMap<String, JsonValue>,
 }
