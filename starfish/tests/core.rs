@@ -1,8 +1,12 @@
 mod common;
 
+use std::collections::HashMap;
+
 use common::TestContext;
 use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
+use starfish_core::lang::{MutateJson, MutateInsertContentJson, NodeJsonBatch, Node, EdgeJsonBatch, Edge};
+use starfish_core::mutate::Mutate;
 use starfish_core::sea_orm;
 use starfish_core::{
     entities::entity_attribute::Datatype,
@@ -11,8 +15,8 @@ use starfish_core::{
 };
 
 #[smol_potat::test]
-async fn schema() -> Result<(), DbErr> {
-    let ctx = TestContext::new("schema").await;
+async fn main() -> Result<(), DbErr> {
+    let ctx = TestContext::new("starfish_core").await;
     let db = &ctx.db;
 
     Migrator::fresh(db).await?;
@@ -43,6 +47,47 @@ async fn schema() -> Result<(), DbErr> {
     assert!(schema_manager.has_table("edge_depends").await?);
     assert!(schema_manager.has_column("edge_depends", "from_node").await?);
     assert!(schema_manager.has_column("edge_depends", "to_node").await?);
+
+    let mutate_json = MutateJson::insert(
+        MutateInsertContentJson::node(
+            NodeJsonBatch {
+                of: "crate".to_owned(),
+                nodes: vec![
+                    Node { name: "sea-orm".to_owned(), attributes: HashMap::from([("version".to_owned(), "1.0".into())]) }
+                ]
+            }
+        )
+    );
+
+    Mutate::mutate(db, mutate_json, false).await?;
+
+    let mutate_json = MutateJson::insert(
+        MutateInsertContentJson::node(
+            NodeJsonBatch {
+                of: "crate".to_owned(),
+                nodes: vec![
+                    Node { name: "sea-orm".to_owned(), attributes: HashMap::from([("version".to_owned(), "2.0".into())]) },
+                    Node { name: "sea-query".to_owned(), attributes: HashMap::from([("version".to_owned(), "1.0".into())]) },
+                ]
+            }
+        )
+    );
+
+    assert!(Mutate::mutate(db, mutate_json.clone(), false).await.is_err());
+    Mutate::mutate(db, mutate_json, true).await?;
+
+    let mutate_json = MutateJson::insert(
+        MutateInsertContentJson::edge(
+            EdgeJsonBatch {
+                of: "depends".to_owned(),
+                edges: vec![
+                    Edge { from_node: "sea-orm".to_owned(), to_node: "sea-query".to_owned() },
+                ]
+            }
+        )
+    );
+
+    Mutate::mutate(db, mutate_json, false).await?;
 
     Ok(())
 }

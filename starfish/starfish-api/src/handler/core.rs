@@ -35,34 +35,9 @@ async fn mutate(
     let db = conn.into_inner();
     let mutate_json = input_data.clone();
 
-    match mutate_json {
-        MutateJson::insert(insert_content) => {
-            match insert_content {
-                MutateInsertContentJson::node(batch) => {
-                    Mutate::insert_node_batch(db, batch, upsert)
-                        .await
-                        .map_err(Into::into)?;
-                },
-                MutateInsertContentJson::edge(batch) => {
-                    Mutate::insert_edge_batch(db, batch)
-                        .await
-                        .map_err(Into::into)?;
-                },
-            }
-        },
-        MutateJson::update(selector) => {
-            match selector {
-                MutateSelectorJson::node { of, attributes } => todo!(),
-                MutateSelectorJson::edge { of, from_node, to_node } => todo!(),
-            }
-        },
-        MutateJson::delete(selector) => {
-            match selector {
-                MutateSelectorJson::node { of, attributes } => todo!(),
-                MutateSelectorJson::edge { of, from_node, to_node } => todo!(),
-            }
-        },
-    };
+    Mutate::mutate(db, mutate_json, upsert)
+        .await
+        .map_err(Into::into)?;
 
     Ok(())
 }
