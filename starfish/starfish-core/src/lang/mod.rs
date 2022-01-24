@@ -46,6 +46,15 @@ pub struct Node {
     pub attributes: HashMap<String, JsonValue>,
 }
 
+/// Metadata of nodes in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NodeJsonBatch {
+    /// Name of entity this node belongs to
+    pub of: String,
+    /// Vector of nodes
+    pub nodes: Vec<Node>,
+}
+
 /// Metadata of a edge in batch, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Edge {
@@ -55,24 +64,23 @@ pub struct Edge {
     pub to_node: String,
 }
 
+/// Metadata of edges in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EdgeJsonBatch {
+    /// Name of relation
+    pub name: String,
+    /// Vector of edges
+    pub edges: Vec<Edge>,
+}
+
 /// Metadata of the content of a mutate insert request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum MutateInsertContentJson {
     /// Insert nodes
-    node {
-        /// Name of entity these nodes belong to
-        of: String,
-        /// Nodes to insert
-        batch: Vec<Node>,
-    },
+    node(NodeJsonBatch),
     /// Insert edges
-    edge {
-        /// Name of relation these edges belong to
-        of: String,
-        /// Edges to insert
-        batch: Vec<Edge>,
-    }
+    edge(EdgeJsonBatch),
 }
 
 /// Metadata of a data selector of a mutate update/delete request
@@ -160,14 +168,7 @@ pub struct EdgeJson {
     pub to_node: String,
 }
 
-/// Metadata of edges in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct EdgeJsonBatch {
-    /// Name of relation
-    pub name: String,
-    /// Vector of edges
-    pub edges: Vec<Edge>,
-}
+
 
 /// Metadata of a edge, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -189,11 +190,4 @@ pub struct NodeJson {
     pub attributes: HashMap<String, JsonValue>,
 }
 
-/// Metadata of nodes in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NodeJsonBatch {
-    /// Name of entity this node belongs to
-    pub of: String,
-    /// Vector of nodes
-    pub nodes: Vec<Node>,
-}
+

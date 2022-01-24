@@ -22,6 +22,7 @@ impl Mutate {
                     attributes: node_json.attributes,
                 }],
             },
+            true,
         )
         .await
     }
@@ -30,6 +31,7 @@ impl Mutate {
     pub async fn insert_node_batch(
         db: &DbConn,
         node_json_batch: NodeJsonBatch,
+        upsert: bool,
     ) -> Result<(), DbErr> {
         let vec = entity::Entity::find()
             .find_with_related(entity_attribute::Entity)
@@ -75,7 +77,10 @@ impl Mutate {
             stmt.values_panic(vals);
         }
 
-        let update_vals = cols
+        let builder = db.get_database_backend();
+        let mut stmt = builder.build(&stmt);
+        if upsert {
+            let update_vals = cols
             .into_iter()
             .map(|col| {
                 let col = col.to_string();
@@ -83,9 +88,9 @@ impl Mutate {
             })
             .collect::<Vec<_>>()
             .join(", ");
-        let builder = db.get_database_backend();
-        let mut stmt = builder.build(&stmt);
-        stmt.sql = format!("{} ON DUPLICATE KEY UPDATE {}", stmt.sql, update_vals);
+
+            stmt.sql = format!("{} ON DUPLICATE KEY UPDATE {}", stmt.sql, update_vals);
+        }
         db.execute(stmt).await?;
 
         Ok(())

@@ -40,7 +40,7 @@ async fn insert_node_batch(
     let db = conn.into_inner();
     let node_json_batch = input_data.clone();
 
-    Mutate::insert_node_batch(db, node_json_batch)
+    Mutate::insert_node_batch(db, node_json_batch, true)
         .await
         .map_err(Into::into)?;
 
