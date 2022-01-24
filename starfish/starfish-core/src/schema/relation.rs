@@ -18,16 +18,68 @@ impl Schema {
         .insert(db)
         .await?;
 
-        Self::create_link_table(
-            db,
-            &relation_json,
-            format_node_table_name(&relation_json.from_entity),
-            format_node_table_name(&relation_json.to_entity),
-        )
-        .await
+        let edge_name = relation_json.name.as_str();
+        let from_entity = format_node_table_name(&relation_json.from_entity);
+        let to_entity = format_node_table_name(&relation_json.to_entity);
+
+        Self::add_in_connectivity_columns(db, edge_name, to_entity.as_str()).await?;
+        Self::add_out_connectivity_columns(db, edge_name, from_entity.as_str()).await?;
+
+        Self::create_edge_table(db, &relation_json, from_entity, to_entity).await
     }
 
-    async fn create_link_table(
+    async fn add_in_connectivity_columns(
+        db: &DbConn,
+        edge_name: &str,
+        node_table: &str,
+    ) -> Result<(), DbErr> {
+        for col in [
+            "in_conn",
+            "in_conn_compound",
+            "in_conn_complex03",
+            "in_conn_complex05",
+            "in_conn_complex07",
+        ] {
+            Self::add_connectivity_column(db, node_table, &format!("{}_{}", edge_name, col))
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn add_out_connectivity_columns(
+        db: &DbConn,
+        edge_name: &str,
+        node_table: &str,
+    ) -> Result<(), DbErr> {
+        Self::add_connectivity_column(db, node_table, &format!("{}_out_conn", edge_name)).await
+    }
+
+    async fn add_connectivity_column(
+        db: &DbConn,
+        node_table: &str,
+        col: &str,
+    ) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
+        let mut stmt = Table::alter();
+        stmt.table(Alias::new(node_table)).add_column(
+            ColumnDef::new(Alias::new(col))
+                .double()
+                .not_null()
+                .default(0.0f64),
+        );
+        db.execute(builder.build(&stmt)).await?;
+
+        let mut stmt = Index::create();
+        stmt.name(&format!("idx-{}-{}", node_table, col))
+            .table(Alias::new(node_table))
+            .col(Alias::new(col));
+        db.execute(builder.build(&stmt)).await?;
+
+        Ok(())
+    }
+
+    async fn create_edge_table(
         db: &DbConn,
         relation_json: &RelationJson,
         from_entity: String,

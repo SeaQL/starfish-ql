@@ -4,7 +4,14 @@ mod executor;
 mod worker;
 
 use self::executor::Executor;
-use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Order, Statement};
+use crate::{
+    entities::relation,
+    schema::{format_edge_table_name, format_node_table_name},
+};
+use sea_orm::{
+    ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
+    Statement,
+};
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
@@ -147,32 +154,55 @@ impl Query {
     /// Get graph
     pub async fn get_graph(
         db: &DbConn,
+        relation_name: &str,
         top_n: i32,
         limit: i32,
         depth: i32,
         weight: NodeWeight,
     ) -> Result<GraphData, DbErr> {
+        let relation = relation::Entity::find()
+            .filter(relation::Column::Name.eq(relation_name))
+            .one(db)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!("Could not found relation '{}'", relation_name))
+            })?;
+        let to_entity = relation.to_entity.as_str();
+
         Executor::new(db)
-            .get_graph(top_n, limit, depth, weight)
+            .get_graph(relation_name, to_entity, top_n, limit, depth, weight)
             .await
     }
 
     /// Get tree
     pub async fn get_tree(
         db: &DbConn,
+        relation_name: &str,
         root_node: String,
         limit: i32,
         depth: i32,
         weight: NodeWeight,
     ) -> Result<TreeData, DbErr> {
+        let relation = relation::Entity::find()
+            .filter(relation::Column::Name.eq(relation_name))
+            .one(db)
+            .await?
+            .ok_or_else(|| {
+                DbErr::Custom(format!("Could not found relation '{}'", relation_name))
+            })?;
+        let to_entity = relation.to_entity.as_str();
+
         Executor::new(db)
-            .get_tree(root_node, limit, depth, weight)
+            .get_tree(relation_name, to_entity, root_node, limit, depth, weight)
             .await
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 async fn traverse<N, L, SN, SL, CN, CL>(
     db: &DbConn,
+    relation_name: &str,
+    to_entity: &str,
     tree_node_type: TreeNodeType,
     weight: NodeWeight,
     select_nodes: SN,
@@ -187,30 +217,21 @@ where
     CL: Fn(Link) -> L,
 {
     let builder = db.get_database_backend();
+    let edge_table = &format_edge_table_name(relation_name);
+    let node_table = &format_node_table_name(to_entity);
     let mut pending_nodes = Vec::new();
     let mut node_stmt = sea_query::Query::select();
-    match weight {
-        NodeWeight::Simple => node_stmt.column(Alias::new("in_conn")),
-        NodeWeight::Compound => node_stmt.expr_as(
-            Expr::col(Alias::new("in_conn_compound")),
-            Alias::new("in_conn"),
-        ),
-        NodeWeight::SlowDecay => node_stmt.expr_as(
-            Expr::col(Alias::new("in_conn_complex07")),
-            Alias::new("in_conn"),
-        ),
-        NodeWeight::MediumDecay => node_stmt.expr_as(
-            Expr::col(Alias::new("in_conn_complex05")),
-            Alias::new("in_conn"),
-        ),
-        NodeWeight::FastDecay => node_stmt.expr_as(
-            Expr::col(Alias::new("in_conn_complex03")),
-            Alias::new("in_conn"),
-        ),
+    let in_conn = match weight {
+        NodeWeight::Simple => format!("{}_in_conn", relation_name),
+        NodeWeight::Compound => format!("{}_in_conn_compound", relation_name),
+        NodeWeight::SlowDecay => format!("{}_in_conn_complex07", relation_name),
+        NodeWeight::MediumDecay => format!("{}_in_conn_complex05", relation_name),
+        NodeWeight::FastDecay => format!("{}_in_conn_complex03", relation_name),
     };
     node_stmt
         .column(Alias::new("name"))
-        .from(Alias::new("node_crate"));
+        .expr_as(Expr::col(Alias::new(&in_conn)), Alias::new("in_conn"))
+        .from(Alias::new(node_table));
     let mut edge_stmt = sea_query::Query::select();
     let join_col = match tree_node_type {
         TreeNodeType::Root => "",
@@ -219,16 +240,13 @@ where
     };
     edge_stmt
         .columns([Alias::new("from_node"), Alias::new("to_node")])
-        .from(Alias::new("edge_depends"))
+        .from(Alias::new(edge_table))
         .inner_join(
-            Alias::new("node_crate"),
-            Expr::tbl(Alias::new("node_crate"), Alias::new("name"))
-                .equals(Alias::new("edge_depends"), Alias::new(join_col)),
+            Alias::new(node_table),
+            Expr::tbl(Alias::new(node_table), Alias::new("name"))
+                .equals(Alias::new(edge_table), Alias::new(join_col)),
         )
-        .order_by(
-            (Alias::new("node_crate"), Alias::new("in_conn")),
-            Order::Desc,
-        );
+        .order_by((Alias::new(node_table), Alias::new(&in_conn)), Order::Desc);
 
     let edge_stmts = select_links(&edge_stmt);
     let links = if !edge_stmts.is_empty() {
@@ -269,7 +287,12 @@ where
     Ok((nodes, links))
 }
 
-fn select_top_n_node(stmt: &mut SelectStatement, top_n: i32, weight: NodeWeight) {
+fn select_top_n_node(
+    stmt: &mut SelectStatement,
+    relation_name: &str,
+    top_n: i32,
+    weight: NodeWeight,
+) {
     let in_conn = match weight {
         NodeWeight::Simple => "in_conn",
         NodeWeight::Compound => "in_conn_compound",
@@ -277,8 +300,11 @@ fn select_top_n_node(stmt: &mut SelectStatement, top_n: i32, weight: NodeWeight)
         NodeWeight::MediumDecay => "in_conn_complex05",
         NodeWeight::FastDecay => "in_conn_complex03",
     };
-    stmt.order_by(Alias::new(in_conn), Order::Desc)
-        .limit(top_n as u64);
+    stmt.order_by(
+        Alias::new(&format!("{}_{}", relation_name, in_conn)),
+        Order::Desc,
+    )
+    .limit(top_n as u64);
 }
 
 fn select_root_node(stmt: &mut SelectStatement, root_node: String) {

@@ -26,7 +26,7 @@ async fn get_graph(
     let weight: NodeWeight = serde_json::from_str(&weight).unwrap_or(NodeWeight::Simple);
 
     Ok(Json(
-        Query::get_graph(db, top_n, limit, depth, weight)
+        Query::get_graph(db, "depends", top_n, limit, depth, weight)
             .await
             .map_err(Into::into)?,
     ))
@@ -48,7 +48,7 @@ async fn get_tree(
     let weight: NodeWeight = serde_json::from_str(&weight).unwrap_or(NodeWeight::Simple);
 
     Ok(Json(
-        Query::get_tree(db, root_node, limit, depth, weight)
+        Query::get_tree(db, "depends", root_node, limit, depth, weight)
             .await
             .map_err(Into::into)?,
     ))
