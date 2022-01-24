@@ -54,7 +54,7 @@ impl Mutate {
         Self::insert_edge_batch(
             db,
             EdgeJsonBatch {
-                name: edge_json.name,
+                of: edge_json.name,
                 edges: vec![Edge {
                     from_node: edge_json.from_node,
                     to_node: edge_json.to_node,
@@ -70,7 +70,7 @@ impl Mutate {
         edge_json_batch: EdgeJsonBatch,
     ) -> Result<(), DbErr> {
         let mut stmt = Query::insert();
-        stmt.into_table(Alias::new(&format_edge_table_name(edge_json_batch.name)))
+        stmt.into_table(Alias::new(&format_edge_table_name(edge_json_batch.of)))
             .columns([Alias::new("from_node"), Alias::new("to_node")]);
 
         for edge_json in edge_json_batch.edges.into_iter() {

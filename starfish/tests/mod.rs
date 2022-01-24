@@ -289,13 +289,14 @@ async fn test_construct_mock_graph_1(db: &DbConn) -> Result<HashMap<String, Test
                 },
             ],
         },
+        false,
     )
     .await?;
 
     Mutate::insert_edge_batch(
         db,
         EdgeJsonBatch {
-            name: "depends".to_owned(),
+            of: "depends".to_owned(),
             edges: vec![
                 Edge {
                     from_node: "A".to_owned(),
@@ -416,13 +417,14 @@ async fn test_construct_mock_graph_2(db: &DbConn) -> Result<HashMap<String, Test
                 },
             ],
         },
+        false,
     )
     .await?;
 
     Mutate::insert_edge_batch(
         db,
         EdgeJsonBatch {
-            name: "depends".to_owned(),
+            of: "depends".to_owned(),
             edges: vec![
                 Edge {
                     from_node: "A".to_owned(),

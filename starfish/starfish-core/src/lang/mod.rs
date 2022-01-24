@@ -68,7 +68,7 @@ pub struct Edge {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct EdgeJsonBatch {
     /// Name of relation
-    pub name: String,
+    pub of: String,
     /// Vector of edges
     pub edges: Vec<Edge>,
 }
