@@ -83,7 +83,9 @@ pub enum MutateDeleteJson {
 pub struct MutateNodeSelectorJson {
     /// Name of entity this node belongs to
     pub of: String,
-    /// Attributes of node, primary and additional
+    /// Name of this node
+    pub name: Option<String>,
+    /// Additional attributes of node
     pub attributes: HashMap<String, JsonValue>,
 }
 

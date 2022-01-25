@@ -7,7 +7,7 @@ pub use edge::*;
 pub use node::*;
 use sea_orm::{DbConn, DbErr};
 
-use crate::lang::{MutateInsertJson, MutateJson};
+use crate::lang::{MutateInsertJson, MutateJson, MutateUpdateJson};
 
 /// Mutate node and edge
 #[derive(Debug)]
@@ -25,7 +25,12 @@ impl Mutate {
                     Mutate::insert_edge_batch(db, batch).await?;
                 }
             },
-            MutateJson::update(update_json) => todo!(),
+            MutateJson::update(update_json) => match update_json {
+                MutateUpdateJson::node { selector, content } => {
+                    Mutate::update_node(db, selector, content).await?;
+                },
+                MutateUpdateJson::edge { selector, content } => todo!(),
+            },
             MutateJson::delete(delete_json) => todo!(),
         };
 

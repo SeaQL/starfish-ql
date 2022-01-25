@@ -108,7 +108,7 @@ async fn main() -> Result<(), DbErr> {
     println!("# Node and edges inserted successfully! #");
 
     let mutate_json = MutateJson::update(MutateUpdateJson::node {
-        selector: MutateNodeSelectorJson { of: "crate".to_owned(), attributes: HashMap::from([("version".to_owned(), "2.0".into())]) },
+        selector: MutateNodeSelectorJson { of: "crate".to_owned(), name: None, attributes: HashMap::from([("version".to_owned(), "2.0".into())]) },
         content: HashMap::from([("version".to_owned(), "3.14".into())])
     });
 
@@ -117,7 +117,7 @@ async fn main() -> Result<(), DbErr> {
 
     let mutate_json = MutateJson::update(MutateUpdateJson::edge {
         selector: MutateEdgeSelectorJson {
-            of:"crate".to_owned(),
+            of: "crate".to_owned(),
             edge_content: MutateEdgeContentJson { from_node: Some("sea-orm".to_owned()), to_node: None }
         },
         content: MutateEdgeContentJson { from_node: Some("sea-query".to_owned()), to_node: Some("sea-orm".to_owned()) }

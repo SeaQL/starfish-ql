@@ -1,14 +1,16 @@
+use std::collections::HashMap;
+
 use super::Mutate;
 use crate::{
     entities::{
         entity,
         entity_attribute::{self, Datatype},
     },
-    lang::{Node, NodeJson, NodeJsonBatch},
+    lang::{Node, NodeJson, NodeJsonBatch, MutateNodeSelectorJson},
     schema::{format_node_attribute_name, format_node_table_name},
 };
-use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter};
-use sea_query::{Alias, Expr, Query};
+use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter, JsonValue, Value};
+use sea_query::{Alias, Expr, Query, Cond};
 
 impl Mutate {
     /// Insert node
@@ -111,6 +113,34 @@ impl Mutate {
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
 
+        Ok(())
+    }
+
+    /// Update node
+    pub async fn update_node(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
+        let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
+            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v))
+        });
+
+        let set_values: Vec<(Alias, Value)> = content.into_iter().map(|(k, v)| {
+            (Alias::new(&format_node_attribute_name(k)), v.into())
+        }).collect();
+
+        let mut stmt = Query::update();
+
+        stmt.table(Alias::new(&format_node_table_name(selector.of)))
+            .values(set_values)
+            .cond_where(
+                if let Some(name) = selector.name {
+                    condition.add(Expr::col(Alias::new("name")).eq(name))
+                } else {
+                    condition
+                }
+            );
+
+        let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+        
         Ok(())
     }
 }
