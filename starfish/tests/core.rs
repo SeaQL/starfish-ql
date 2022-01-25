@@ -6,7 +6,7 @@ use common::TestContext;
 use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
 use starfish_core::lang::{
-    Edge, EdgeJsonBatch, MutateInsertJson, MutateJson, Node, NodeJsonBatch,
+    Edge, EdgeJsonBatch, MutateInsertJson, MutateJson, Node, NodeJsonBatch, MutateUpdateJson, MutateNodeSelectorJson, MutateEdgeSelectorJson, MutateEdgeContentJson,
 };
 use starfish_core::mutate::Mutate;
 use starfish_core::sea_orm;
@@ -58,6 +58,8 @@ async fn main() -> Result<(), DbErr> {
     );
     assert!(schema_manager.has_column("edge_depends", "to_node").await?);
 
+    println!("# Schema defined successfully! #");
+
     let mutate_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
         of: "crate".to_owned(),
         nodes: vec![Node {
@@ -67,6 +69,7 @@ async fn main() -> Result<(), DbErr> {
     }));
 
     Mutate::mutate(db, mutate_json, false).await?;
+    // New node should be inserted (name: "sea-orm", version: "1.0")
 
     let mutate_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
         of: "crate".to_owned(),
@@ -86,6 +89,8 @@ async fn main() -> Result<(), DbErr> {
         .await
         .is_err());
     Mutate::mutate(db, mutate_json, true).await?;
+    // New node should be inserted (name: "sea-query", version: "1.0")
+    // Node should be updated (name: "sea-orm", version: "2.0")
 
     let mutate_json = MutateJson::insert(MutateInsertJson::edge(EdgeJsonBatch {
         of: "depends".to_owned(),
@@ -95,7 +100,34 @@ async fn main() -> Result<(), DbErr> {
         }],
     }));
 
+    Mutate::mutate(db, mutate_json.clone(), false).await?;
+    // New edge should be inserted (from_node: "sea-orm", to_node: "sea-query")
     Mutate::mutate(db, mutate_json, false).await?;
+    // NO new edge should be inserted
+    
+    println!("# Node and edges inserted successfully! #");
+
+    let mutate_json = MutateJson::update(MutateUpdateJson::node {
+        selector: MutateNodeSelectorJson { of: "crate".to_owned(), attributes: HashMap::from([("version".to_owned(), "2.0".into())]) },
+        content: HashMap::from([("version".to_owned(), "3.14".into())])
+    });
+
+    Mutate::mutate(db, mutate_json, false).await?;
+    // Node should be updated (name: "sea-orm", version: "3.14")
+
+    let mutate_json = MutateJson::update(MutateUpdateJson::edge {
+        selector: MutateEdgeSelectorJson {
+            of:"crate".to_owned(),
+            edge_content: MutateEdgeContentJson { from_node: Some("sea-orm".to_owned()), to_node: None }
+        },
+        content: MutateEdgeContentJson { from_node: Some("sea-query".to_owned()), to_node: Some("sea-orm".to_owned()) }
+    });
+
+    Mutate::mutate(db, mutate_json, false).await?;
+    // Edge should be updated (from_node: "sea-query", to_node: "sea-orm")
+    // There should still be only 1 edge
+
+    println!("# Node and edges updated successfully! #");
 
     Ok(())
 }
