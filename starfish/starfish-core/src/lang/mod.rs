@@ -30,79 +30,82 @@ pub struct SchemaDefineJson {
 #[allow(non_camel_case_types)]
 pub enum MutateJson {
     /// Insert new data; Use option "upsert" to allow insert-or-update
-    insert(MutateInsertContentJson),
+    insert(MutateInsertJson),
     /// Update selected data
-    update(MutateSelectorJson),
+    update(MutateUpdateJson),
     /// Delete selected data
-    delete(MutateSelectorJson),
+    delete(MutateDeleteJson),
 }
 
-/// Metadata of a node in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Node {
-    /// Name of node
-    pub name: String,
-    /// Additional attributes
-    pub attributes: HashMap<String, JsonValue>,
-}
-
-/// Metadata of nodes in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct NodeJsonBatch {
-    /// Name of entity this node belongs to
-    pub of: String,
-    /// Vector of nodes
-    pub nodes: Vec<Node>,
-}
-
-/// Metadata of a edge in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Edge {
-    /// Name of related node (from side)
-    pub from_node: String,
-    /// Name of related node (to side)
-    pub to_node: String,
-}
-
-/// Metadata of edges in batch, deserialized as struct from json
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct EdgeJsonBatch {
-    /// Name of relation
-    pub of: String,
-    /// Vector of edges
-    pub edges: Vec<Edge>,
-}
-
-/// Metadata of the content of a mutate insert request
+/// Metadata of a mutate insert request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
-pub enum MutateInsertContentJson {
+pub enum MutateInsertJson {
     /// Insert nodes
     node(NodeJsonBatch),
     /// Insert edges
     edge(EdgeJsonBatch),
 }
 
-/// Metadata of a data selector of a mutate update/delete request
+/// Metadata of a mutate update request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
-pub enum MutateSelectorJson {
-    /// Select a node / nodes
+pub enum MutateUpdateJson {
+    /// Update nodes
     node {
-        /// Name of entity this node belongs to
-        of: String,
-        /// Attributes of node, primary and additional
-        attributes: HashMap<String, JsonValue>,
+        /// Selector to select nodes for updating
+        selector: MutateNodeSelectorJson,
+        /// Specify how to update the selected nodes
+        content: HashMap<String, JsonValue>,
     },
-    /// Select an edge / edges
+    /// Update edges
     edge {
-        /// Name of relation this edge belongs to
-        of: String,
-        /// Name of related node (from side)
-        from_node: String,
-        /// Name of related node (to side)
-        to_node: String,
-    },
+        /// Selector to select edges for updating
+        selector: MutateEdgeSelectorJson,
+        /// Specify how to update the selected edges
+        content: MutateEdgeContentJson,
+    }
+}
+
+/// Metadata of a mutate delete request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub enum MutateDeleteJson {
+    /// Delete nodes
+    node(MutateNodeSelectorJson),
+    /// Delete edges
+    edge(MutateEdgeSelectorJson),
+}
+
+/// Metadata of a node selector of a mutate update/delete request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub struct MutateNodeSelectorJson {
+    /// Name of entity this node belongs to
+    pub of: String,
+    /// Attributes of node, primary and additional
+    pub attributes: HashMap<String, JsonValue>,
+}
+
+/// Metadata of an edge selector of a mutate update/delete request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub struct MutateEdgeSelectorJson {
+    /// Name of relation this edge belongs to
+    pub of: String,
+    /// Specify what edges to look for
+    #[serde(flatten)]
+    pub edge_content: MutateEdgeContentJson,
+}
+
+/// Metadata of the update content of a mutate update request
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub struct MutateEdgeContentJson {
+    /// Name of related node (from side, if any)
+    pub from_node: Option<String>,
+    /// Name of related node (to side, if any)
+    pub to_node: Option<String>,
 }
 
 /// Metadata of entity, deserialized as struct from json
@@ -186,4 +189,40 @@ pub struct NodeJson {
     pub name: String,
     /// Additional attributes
     pub attributes: HashMap<String, JsonValue>,
+}
+
+/// Metadata of a node in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Node {
+    /// Name of node
+    pub name: String,
+    /// Additional attributes
+    pub attributes: HashMap<String, JsonValue>,
+}
+
+/// Metadata of nodes in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NodeJsonBatch {
+    /// Name of entity this node belongs to
+    pub of: String,
+    /// Vector of nodes
+    pub nodes: Vec<Node>,
+}
+
+/// Metadata of a edge in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Edge {
+    /// Name of related node (from side)
+    pub from_node: String,
+    /// Name of related node (to side)
+    pub to_node: String,
+}
+
+/// Metadata of edges in batch, deserialized as struct from json
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct EdgeJsonBatch {
+    /// Name of relation
+    pub of: String,
+    /// Vector of edges
+    pub edges: Vec<Edge>,
 }

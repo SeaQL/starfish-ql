@@ -6,7 +6,7 @@ use common::TestContext;
 use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
 use starfish_core::lang::{
-    Edge, EdgeJsonBatch, MutateInsertContentJson, MutateJson, Node, NodeJsonBatch,
+    Edge, EdgeJsonBatch, MutateInsertJson, MutateJson, Node, NodeJsonBatch,
 };
 use starfish_core::mutate::Mutate;
 use starfish_core::sea_orm;
@@ -58,7 +58,7 @@ async fn main() -> Result<(), DbErr> {
     );
     assert!(schema_manager.has_column("edge_depends", "to_node").await?);
 
-    let mutate_json = MutateJson::insert(MutateInsertContentJson::node(NodeJsonBatch {
+    let mutate_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
         of: "crate".to_owned(),
         nodes: vec![Node {
             name: "sea-orm".to_owned(),
@@ -68,7 +68,7 @@ async fn main() -> Result<(), DbErr> {
 
     Mutate::mutate(db, mutate_json, false).await?;
 
-    let mutate_json = MutateJson::insert(MutateInsertContentJson::node(NodeJsonBatch {
+    let mutate_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
         of: "crate".to_owned(),
         nodes: vec![
             Node {
@@ -87,7 +87,7 @@ async fn main() -> Result<(), DbErr> {
         .is_err());
     Mutate::mutate(db, mutate_json, true).await?;
 
-    let mutate_json = MutateJson::insert(MutateInsertContentJson::edge(EdgeJsonBatch {
+    let mutate_json = MutateJson::insert(MutateInsertJson::edge(EdgeJsonBatch {
         of: "depends".to_owned(),
         edges: vec![Edge {
             from_node: "sea-orm".to_owned(),

@@ -7,7 +7,7 @@ pub use edge::*;
 pub use node::*;
 use sea_orm::{DbConn, DbErr};
 
-use crate::lang::{MutateInsertContentJson, MutateJson, MutateSelectorJson};
+use crate::lang::{MutateInsertJson, MutateJson};
 
 /// Mutate node and edge
 #[derive(Debug)]
@@ -17,30 +17,16 @@ impl Mutate {
     /// Mutate data in db
     pub async fn mutate(db: &DbConn, mutate_json: MutateJson, upsert: bool) -> Result<(), DbErr> {
         match mutate_json {
-            MutateJson::insert(insert_content) => match insert_content {
-                MutateInsertContentJson::node(batch) => {
+            MutateJson::insert(insert_json) => match insert_json {
+                MutateInsertJson::node(batch) => {
                     Mutate::insert_node_batch(db, batch, upsert).await?;
                 }
-                MutateInsertContentJson::edge(batch) => {
+                MutateInsertJson::edge(batch) => {
                     Mutate::insert_edge_batch(db, batch).await?;
                 }
             },
-            MutateJson::update(selector) => match selector {
-                MutateSelectorJson::node { of, attributes } => todo!(),
-                MutateSelectorJson::edge {
-                    of,
-                    from_node,
-                    to_node,
-                } => todo!(),
-            },
-            MutateJson::delete(selector) => match selector {
-                MutateSelectorJson::node { of, attributes } => todo!(),
-                MutateSelectorJson::edge {
-                    of,
-                    from_node,
-                    to_node,
-                } => todo!(),
-            },
+            MutateJson::update(update_json) => todo!(),
+            MutateJson::delete(delete_json) => todo!(),
         };
 
         Ok(())
