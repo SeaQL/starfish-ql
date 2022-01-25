@@ -54,95 +54,11 @@ impl Schema {
                     .not_null()
                     .unique_key(),
             )
-            .col(
-                ColumnDef::new(Alias::new("in_conn"))
-                    .double()
-                    .not_null()
-                    .default(0),
-            )
-            .col(
-                ColumnDef::new(Alias::new("in_conn_compound"))
-                    .double()
-                    .not_null()
-                    .default(0),
-            )
-            .col(
-                ColumnDef::new(Alias::new("in_conn_complex03"))
-                    .double()
-                    .not_null()
-                    .default(0.0),
-            )
-            .col(
-                ColumnDef::new(Alias::new("in_conn_complex05"))
-                    .double()
-                    .not_null()
-                    .default(0.0),
-            )
-            .col(
-                ColumnDef::new(Alias::new("in_conn_complex07"))
-                    .double()
-                    .not_null()
-                    .default(0.0),
-            )
-            .col(
-                ColumnDef::new(Alias::new("out_conn"))
-                    .integer()
-                    .not_null()
-                    .default(0),
-            )
             .index(
                 Index::create()
                     .name(&format!("idx-{}-{}", table.to_string(), "name"))
                     .table(table.clone())
                     .col(Alias::new("name")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn"))
-                    .table(table.clone())
-                    .col(Alias::new("in_conn")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "in_conn_compound"))
-                    .table(table.clone())
-                    .col(Alias::new("in_conn_compound")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        table.to_string(),
-                        "in_conn_complex03"
-                    ))
-                    .table(table.clone())
-                    .col(Alias::new("in_conn_complex03")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        table.to_string(),
-                        "in_conn_complex05"
-                    ))
-                    .table(table.clone())
-                    .col(Alias::new("in_conn_complex05")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        table.to_string(),
-                        "in_conn_complex07"
-                    ))
-                    .table(table.clone())
-                    .col(Alias::new("in_conn_complex07")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "out_conn"))
-                    .table(table.clone())
-                    .col(Alias::new("out_conn")),
             );
 
         for attribute in entity_json.attributes.into_iter() {

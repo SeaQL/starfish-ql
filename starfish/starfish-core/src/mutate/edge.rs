@@ -3,10 +3,10 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use super::Mutate;
 use crate::{
     lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch},
-    schema::format_edge_table_name,
+    schema::{format_edge_table_name, format_node_table_name},
 };
-use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Statement};
-use sea_query::{Alias, Expr, Query};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult};
+use sea_query::{Alias, Expr, Query, SimpleExpr};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -110,32 +110,87 @@ impl Mutate {
         Ok(())
     }
 
-    pub async fn calculate_simple_connectivity(db: &DbConn) -> Result<(), DbErr> {
-        db.execute(Statement::from_string(db.get_database_backend(), [
-            "UPDATE node_crate",
-            "SET in_conn = (SELECT COUNT(*) FROM edge_depends WHERE to_node = node_crate.name),",
-            "out_conn = (SELECT COUNT(*) FROM edge_depends WHERE from_node = node_crate.name)",
-        ].join(" "))).await?;
+    /// Calculate simple incoming and outgoing connectivity
+    pub async fn calculate_simple_connectivity(
+        db: &DbConn,
+        relation_name: &str,
+        from_node: &str,
+        to_node: &str,
+    ) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
+        let edge_table = &format_edge_table_name(relation_name);
+
+        // Calculate the simple outgoing connectivity value
+        let node_table = &format_node_table_name(from_node);
+        let mut select = Query::select();
+        select
+            .from(Alias::new(edge_table))
+            .expr(Expr::cust("COUNT(*)"))
+            .and_where(
+                Expr::col(Alias::new("from_node"))
+                    .equals(Alias::new(node_table), Alias::new("name")),
+            );
+        let mut stmt = Query::update();
+        stmt.table(Alias::new(node_table)).value_expr(
+            Alias::new(&format!("{}_out_conn", relation_name)),
+            SimpleExpr::SubQuery(Box::new(select)),
+        );
+        db.execute(builder.build(&stmt)).await?;
+
+        // Calculate the simple incoming connectivity value
+        let node_table = &format_node_table_name(to_node);
+        let mut select = Query::select();
+        select
+            .from(Alias::new(edge_table))
+            .expr(Expr::cust("COUNT(*)"))
+            .and_where(
+                Expr::col(Alias::new("to_node")).equals(Alias::new(node_table), Alias::new("name")),
+            );
+        let mut stmt = Query::update();
+        stmt.table(Alias::new(node_table)).value_expr(
+            Alias::new(&format!("{}_in_conn", relation_name)),
+            SimpleExpr::SubQuery(Box::new(select)),
+        );
+        db.execute(builder.build(&stmt)).await?;
 
         Ok(())
     }
 
-    pub async fn calculate_compound_connectivity(db: &DbConn) -> Result<(), DbErr> {
-        Self::calculate_complex_connectivity(db, 1.0, f64::EPSILON, "in_conn_compound").await
+    /// Calculate compound incoming connectivity
+    pub async fn calculate_compound_connectivity(
+        db: &DbConn,
+        relation_name: &str,
+        to_node: &str,
+    ) -> Result<(), DbErr> {
+        Self::calculate_complex_connectivity(
+            db,
+            relation_name,
+            to_node,
+            1.0,
+            f64::EPSILON,
+            "in_conn_compound",
+        )
+        .await
     }
 
+    /// Calculate complex incoming connectivities
     pub async fn calculate_complex_connectivity(
         db: &DbConn,
+        relation_name: &str,
+        to_node: &str,
         weight: f64,
         epsilon: f64,
         col_name: &str,
     ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
+        let node_table = &format_node_table_name(to_node);
+        let edge_table = &format_edge_table_name(relation_name);
+
         let mut node_stmt = sea_query::Query::select();
         node_stmt
             .column(Alias::new("name"))
-            .from(Alias::new("node_crate"))
-            .and_where(Expr::col(Alias::new("in_conn")).gt(0));
+            .from(Alias::new(node_table))
+            .and_where(Expr::col(Alias::new(&format!("{}_in_conn", relation_name))).gt(0));
         let nodes = Node::find_by_statement(builder.build(&node_stmt))
             .all(db)
             .await?;
@@ -146,7 +201,7 @@ impl Mutate {
                 builder.build(
                     sea_query::Query::select()
                         .columns([Alias::new("from_node"), Alias::new("to_node")])
-                        .from(Alias::new("edge_depends")),
+                        .from(Alias::new(edge_table)),
                 ),
             )
             .all(db)
@@ -225,9 +280,12 @@ impl Mutate {
         }
 
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
-        let cols = [Alias::new("name"), Alias::new(col_name)];
+        let cols = [
+            Alias::new("name"),
+            Alias::new(&format!("{}_{}", relation_name, col_name)),
+        ];
         let mut stmt = Query::insert();
-        stmt.into_table(Alias::new("node_crate"))
+        stmt.into_table(Alias::new(node_table))
             .columns(cols.clone());
 
         for (name, ancestors) in map_id_to_ancestors.into_iter() {

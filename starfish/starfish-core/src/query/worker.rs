@@ -18,6 +18,8 @@ pub(crate) enum WorkerMsg {
 
 #[derive(Debug)]
 pub(crate) struct TraverseData {
+    pub(crate) relation_name: String,
+    pub(crate) to_entity: String,
     pub(crate) limit: i32,
     pub(crate) depth: i32,
     pub(crate) weight: NodeWeight,
@@ -85,6 +87,8 @@ impl Worker {
 
     fn execute_task(&mut self) {
         if let Some(TraverseData {
+            relation_name,
+            to_entity,
             limit,
             depth,
             weight,
@@ -103,6 +107,8 @@ impl Worker {
                     TraverseType::Graph => {
                         let (nodes, links) = traverse(
                             &self.db,
+                            relation_name.as_str(),
+                            to_entity.as_str(),
                             TreeNodeType::Dependency,
                             weight,
                             |_| unreachable!(),
@@ -131,6 +137,8 @@ impl Worker {
                     TraverseType::Tree { tree_node_type } => {
                         let (nodes, links) = traverse(
                             &self.db,
+                            relation_name.as_str(),
+                            to_entity.as_str(),
                             tree_node_type,
                             weight,
                             |_| unreachable!(),

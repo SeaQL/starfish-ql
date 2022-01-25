@@ -72,6 +72,8 @@ impl Executor {
 
     pub(crate) async fn get_graph(
         &mut self,
+        relation_name: &str,
+        to_entity: &str,
         top_n: i32,
         limit: i32,
         depth: i32,
@@ -82,9 +84,11 @@ impl Executor {
 
         let (res_nodes, res_links) = traverse(
             &self.db,
+            relation_name,
+            to_entity,
             TreeNodeType::Root,
             weight,
-            |node_stmt| select_top_n_node(node_stmt, top_n, weight),
+            |node_stmt| select_top_n_node(node_stmt, relation_name, top_n, weight),
             |link_stmt| select_top_n_edge(link_stmt, limit, vec![], TreeNodeType::Root),
             into_graph_node,
             into_graph_link,
@@ -103,6 +107,8 @@ impl Executor {
 
         self.pending_tasks.push_back(WorkerMsg::Traverse {
             data: TraverseData {
+                relation_name: relation_name.to_string(),
+                to_entity: to_entity.to_string(),
                 limit,
                 depth,
                 weight,
@@ -146,6 +152,8 @@ impl Executor {
                         let len = std::cmp::min(BATCH_SIZE, rev_nodes_clone.len());
                         self.pending_tasks.push_back(WorkerMsg::Traverse {
                             data: TraverseData {
+                                relation_name: relation_name.to_string(),
+                                to_entity: to_entity.to_string(),
                                 limit: current_limit,
                                 depth: depth - 1,
                                 weight,
@@ -173,6 +181,8 @@ impl Executor {
 
     pub(crate) async fn get_tree(
         &mut self,
+        relation_name: &str,
+        to_entity: &str,
         root_node: String,
         limit: i32,
         depth: i32,
@@ -183,6 +193,8 @@ impl Executor {
 
         let (res_nodes, res_links) = traverse(
             &self.db,
+            relation_name,
+            to_entity,
             TreeNodeType::Root,
             weight,
             |node_stmt| select_root_node(node_stmt, root_node),
@@ -205,6 +217,8 @@ impl Executor {
         self.pending_tasks.extend([
             WorkerMsg::Traverse {
                 data: TraverseData {
+                    relation_name: relation_name.to_string(),
+                    to_entity: to_entity.to_string(),
                     limit,
                     depth,
                     weight,
@@ -216,6 +230,8 @@ impl Executor {
             },
             WorkerMsg::Traverse {
                 data: TraverseData {
+                    relation_name: relation_name.to_string(),
+                    to_entity: to_entity.to_string(),
                     limit,
                     depth,
                     weight,
@@ -263,6 +279,8 @@ impl Executor {
                         let len = std::cmp::min(BATCH_SIZE, rev_nodes_clone.len());
                         self.pending_tasks.push_back(WorkerMsg::Traverse {
                             data: TraverseData {
+                                relation_name: relation_name.to_string(),
+                                to_entity: to_entity.to_string(),
                                 limit: current_limit,
                                 depth: depth - 1,
                                 weight,

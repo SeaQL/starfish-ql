@@ -1,8 +1,10 @@
 use crate::db::pool::Db;
 use crate::ErrorResponder;
+use migration::sea_orm::EntityTrait;
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;
+use starfish_core::entities;
 use starfish_core::lang::{ClearEdgeJson, EdgeJson, EdgeJsonBatch, NodeJson, NodeJsonBatch};
 use starfish_core::mutate::Mutate;
 
@@ -96,22 +98,40 @@ async fn clear_edge(
 async fn cal_conn(conn: Connection<'_, Db>) -> Result<(), ErrorResponder> {
     let db = conn.into_inner();
 
-    Mutate::calculate_simple_connectivity(db)
+    let relations = entities::Relation::find()
+        .all(db)
         .await
         .map_err(Into::into)?;
 
-    Mutate::calculate_compound_connectivity(db)
-        .await
-        .map_err(Into::into)?;
+    for relation in relations.into_iter() {
+        let relation_name = relation.name.as_str();
+        let from_node = relation.from_entity.as_str();
+        let to_node = relation.to_entity.as_str();
 
-    for (weight, col_name) in [
-        (0.3, "in_conn_complex03"),
-        (0.5, "in_conn_complex05"),
-        (0.7, "in_conn_complex07"),
-    ] {
-        Mutate::calculate_complex_connectivity(db, weight, f64::EPSILON, col_name)
+        Mutate::calculate_simple_connectivity(db, relation_name, from_node, to_node)
             .await
             .map_err(Into::into)?;
+
+        Mutate::calculate_compound_connectivity(db, relation_name, to_node)
+            .await
+            .map_err(Into::into)?;
+
+        for (weight, col_name) in [
+            (0.3, "in_conn_complex03"),
+            (0.5, "in_conn_complex05"),
+            (0.7, "in_conn_complex07"),
+        ] {
+            Mutate::calculate_complex_connectivity(
+                db,
+                relation_name,
+                to_node,
+                weight,
+                f64::EPSILON,
+                col_name,
+            )
+            .await
+            .map_err(Into::into)?;
+        }
     }
 
     Ok(())
