@@ -118,13 +118,13 @@ impl Mutate {
 
     /// Update node
     pub async fn update_node(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
-        let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
-            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v))
-        });
-
         let set_values: Vec<(Alias, Value)> = content.into_iter().map(|(k, v)| {
             (Alias::new(&format_node_attribute_name(k)), v.into())
         }).collect();
+
+        let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
+            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v))
+        });
 
         let mut stmt = Query::update();
 

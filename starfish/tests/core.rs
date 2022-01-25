@@ -117,7 +117,7 @@ async fn main() -> Result<(), DbErr> {
 
     let mutate_json = MutateJson::update(MutateUpdateJson::edge {
         selector: MutateEdgeSelectorJson {
-            of: "crate".to_owned(),
+            of: "depends".to_owned(),
             edge_content: MutateEdgeContentJson { from_node: Some("sea-orm".to_owned()), to_node: None }
         },
         content: MutateEdgeContentJson { from_node: Some("sea-query".to_owned()), to_node: Some("sea-orm".to_owned()) }

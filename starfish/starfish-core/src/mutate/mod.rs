@@ -29,7 +29,9 @@ impl Mutate {
                 MutateUpdateJson::node { selector, content } => {
                     Mutate::update_node(db, selector, content).await?;
                 },
-                MutateUpdateJson::edge { selector, content } => todo!(),
+                MutateUpdateJson::edge { selector, content } => {
+                    Mutate::update_edge(db, selector, content).await?;
+                },
             },
             MutateJson::delete(delete_json) => todo!(),
         };

@@ -2,11 +2,11 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
 use crate::{
-    lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch},
+    lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, MutateEdgeSelectorJson, MutateEdgeContentJson},
     schema::{format_edge_table_name, format_node_table_name},
 };
-use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult};
-use sea_query::{Alias, Expr, Query, SimpleExpr};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Value};
+use sea_query::{Alias, Expr, Query, SimpleExpr, Cond};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -107,6 +107,39 @@ impl Mutate {
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
 
+        Ok(())
+    }
+
+    /// Update edge
+    pub async fn update_edge(db: &DbConn, selector: MutateEdgeSelectorJson, content: MutateEdgeContentJson) -> Result<(), DbErr> {
+        let mut set_values: Vec<(Alias, Value)> = vec![];
+        if let Some(from_node) = content.from_node {
+            set_values.push((Alias::new("from_node"), from_node.into()));
+        }
+        if let Some(to_node) = content.to_node {
+            set_values.push((Alias::new("to_node"), to_node.into()));
+        }
+        if set_values.is_empty() {
+            return Ok(());
+        }
+
+        let mut condition = Cond::all();
+        if let Some(from_node) = selector.edge_content.from_node {
+            condition = condition.add(Expr::col(Alias::new("from_node")).eq(from_node));
+        }
+        if let Some(to_node) = selector.edge_content.to_node {
+            condition = condition.add(Expr::col(Alias::new("to_node")).eq(to_node));
+        }
+
+        let mut stmt = Query::update();
+
+        stmt.table(Alias::new(&format_edge_table_name(selector.of)))
+            .values(set_values)
+            .cond_where(condition);
+
+        let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+        
         Ok(())
     }
 
