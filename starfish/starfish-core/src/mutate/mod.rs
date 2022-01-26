@@ -38,7 +38,7 @@ impl Mutate {
                     Mutate::delete_node_with_selector(db, selector).await?;
                 },
                 MutateDeleteJson::edge(selector) => {
-                    todo!()
+                    Mutate::delete_edge_with_selector(db, selector).await?;
                 },
             },
         };

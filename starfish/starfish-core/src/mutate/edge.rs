@@ -110,6 +110,27 @@ impl Mutate {
         Ok(())
     }
 
+    /// Delete edge with selector
+    pub async fn delete_edge_with_selector(db: &DbConn, selector: MutateEdgeSelectorJson) -> Result<(), DbErr> {
+        let mut condition = Cond::all();
+        if let Some(from_node) = selector.edge_content.from_node {
+            condition = condition.add(Expr::col(Alias::new("from_node")).eq(from_node));
+        }
+        if let Some(to_node) = selector.edge_content.to_node {
+            condition = condition.add(Expr::col(Alias::new("to_node")).eq(to_node));
+        }
+
+        let stmt = Query::delete()
+            .from_table(Alias::new(&format_edge_table_name(selector.of)))
+            .cond_where(condition)
+            .to_owned();
+
+        let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+
+        Ok(())
+    }
+
     /// Update edge
     pub async fn update_edge(db: &DbConn, selector: MutateEdgeSelectorJson, content: MutateEdgeContentJson) -> Result<(), DbErr> {
         let mut set_values: Vec<(Alias, Value)> = vec![];
