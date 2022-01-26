@@ -9,8 +9,14 @@ use crate::{
     lang::{Node, NodeJson, NodeJsonBatch, MutateNodeSelectorJson},
     schema::{format_node_attribute_name, format_node_table_name},
 };
-use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter, JsonValue, Value};
+use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter, JsonValue, Value, FromQueryResult, JoinType};
 use sea_query::{Alias, Expr, Query, Cond};
+
+#[derive(Debug, Clone, FromQueryResult)]
+struct AttributeMeta {
+    name: String,
+    datatype: Datatype,
+}
 
 impl Mutate {
     /// Insert node
@@ -107,18 +113,47 @@ impl Mutate {
     }
 
     /// Update node
-    pub async fn update_node(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
-        let set_values: Vec<(Alias, Value)> = content.into_iter().map(|(k, v)| {
-            (Alias::new(&format_node_attribute_name(k)), v.as_str().unwrap().into())
-        }).collect();
+    pub async fn update_node_attributes(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
+        let builder = db.get_database_backend();
+
+        let entity_attribute_alias = Alias::new("entity_attribute");
+        let entity_alias = Alias::new("entity");
+
+        let mut attr_stmt = Query::select();
+        attr_stmt
+            .column((entity_attribute_alias.clone(), Alias::new("name")))
+            .column(Alias::new("datatype"))
+            .from(entity_alias.clone())
+            .join(
+                JoinType::Join,
+                entity_attribute_alias.clone(),
+                Expr::tbl(entity_alias, Alias::new("id"))
+                    .equals(entity_attribute_alias, Alias::new("entity_id"))
+            );
+        let attributes = AttributeMeta::find_by_statement(builder.build(&attr_stmt))
+            .all(db)
+            .await?
+            .into_iter()
+            .fold(HashMap::new(), |mut map, attribute_meta| {
+                map.insert(attribute_meta.name, attribute_meta.datatype);
+                map
+            });
+
+        let set_values = content.into_iter().map(|(k, v)| {
+            if let Some(dtype) = attributes.get(&k) {
+                Ok((Alias::new(&format_node_attribute_name(k)), dtype.value_with_datatype(Some(&v))))
+            } else {
+                Err(DbErr::Custom(format!("Datatype of attribute \"{}\" is not defined.", k)))
+            }
+        }).collect::<Result<Vec<(Alias, Value)>, DbErr>>()?;
 
         let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
             cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()))
         });
 
-        let mut stmt = Query::update();
+        let mut update_stmt = Query::update();
 
-        stmt.table(Alias::new(&format_node_table_name(selector.of)))
+        update_stmt.table(Alias::new(&format_node_table_name(selector.of)))
             .values(set_values)
             .cond_where(
                 if let Some(name) = selector.name {
@@ -128,8 +163,7 @@ impl Mutate {
                 }
             );
 
-        let builder = db.get_database_backend();
-        db.execute(builder.build(&stmt)).await?;
+        db.execute(builder.build(&update_stmt)).await?;
         
         Ok(())
     }

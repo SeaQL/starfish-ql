@@ -27,7 +27,7 @@ impl Mutate {
             },
             MutateJson::update(update_json) => match update_json {
                 MutateUpdateJson::node { selector, content } => {
-                    Mutate::update_node(db, selector, content).await?;
+                    Mutate::update_node_attributes(db, selector, content).await?;
                 },
                 MutateUpdateJson::edge { selector, content } => {
                     Mutate::update_edge(db, selector, content).await?;
