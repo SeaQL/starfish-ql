@@ -10,6 +10,27 @@ pub enum Datatype {
     String,
 }
 
+impl Datatype {
+    pub fn value_with_datatype(&self, value: Option<&serde_json::Value>) -> Value {
+        match self {
+            Datatype::Int => {
+                if let Some(value) = value {
+                    value.as_i64().into()
+                } else {
+                    None::<i64>.into()
+                }
+            },
+            Datatype::String => {
+                if let Some(value) = value {
+                    value.as_str().into()
+                } else {
+                    None::<String>.into()
+                }
+            },
+        }
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "entity_attribute")]
 pub struct Model {

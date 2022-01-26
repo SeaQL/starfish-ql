@@ -63,17 +63,7 @@ impl Mutate {
             let mut vals = vec![node_json.name.as_str().into()];
             for attribute in attributes.iter() {
                 let name = &attribute.name;
-                let val = if let Some(val) = node_json.attributes.get(name) {
-                    match attribute.datatype {
-                        Datatype::Int => val.as_i64().into(),
-                        Datatype::String => val.as_str().into(),
-                    }
-                } else {
-                    match attribute.datatype {
-                        Datatype::Int => None::<i64>.into(),
-                        Datatype::String => None::<String>.into(),
-                    }
-                };
+                let val = attribute.datatype.value_with_datatype(node_json.attributes.get(name));
                 vals.push(val);
             }
             stmt.values_panic(vals);
@@ -119,11 +109,11 @@ impl Mutate {
     /// Update node
     pub async fn update_node(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
         let set_values: Vec<(Alias, Value)> = content.into_iter().map(|(k, v)| {
-            (Alias::new(&format_node_attribute_name(k)), v.into())
+            (Alias::new(&format_node_attribute_name(k)), v.as_str().unwrap().into())
         }).collect();
 
         let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
-            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v))
+            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()))
         });
 
         let mut stmt = Query::update();
