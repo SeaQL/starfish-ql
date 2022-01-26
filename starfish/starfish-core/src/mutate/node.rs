@@ -6,11 +6,14 @@ use crate::{
         entity,
         entity_attribute::{self, Datatype},
     },
-    lang::{Node, NodeJson, NodeJsonBatch, MutateNodeSelectorJson},
+    lang::{MutateNodeSelectorJson, Node, NodeJson, NodeJsonBatch},
     schema::{format_node_attribute_name, format_node_table_name},
 };
-use sea_orm::{ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, QueryFilter, JsonValue, Value, FromQueryResult, JoinType};
-use sea_query::{Alias, Expr, Query, Cond};
+use sea_orm::{
+    ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult,
+    JoinType, JsonValue, QueryFilter, Value,
+};
+use sea_query::{Alias, Cond, Expr, Query};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct AttributeMeta {
@@ -69,7 +72,9 @@ impl Mutate {
             let mut vals = vec![node_json.name.as_str().into()];
             for attribute in attributes.iter() {
                 let name = &attribute.name;
-                let val = attribute.datatype.value_with_datatype(node_json.attributes.get(name));
+                let val = attribute
+                    .datatype
+                    .value_with_datatype(node_json.attributes.get(name));
                 vals.push(val);
             }
             stmt.values_panic(vals);
@@ -113,20 +118,26 @@ impl Mutate {
     }
 
     /// Delete node with a selector
-    pub async fn delete_node_with_selector(db: &DbConn, selector: MutateNodeSelectorJson) -> Result<(), DbErr> {
-        let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
-            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()))
-        });
+    pub async fn delete_node_with_selector(
+        db: &DbConn,
+        selector: MutateNodeSelectorJson,
+    ) -> Result<(), DbErr> {
+        let condition = selector
+            .attributes
+            .into_iter()
+            .fold(Cond::all(), |cond, (k, v)| {
+                cond.add(
+                    Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()),
+                )
+            });
 
         let stmt = Query::delete()
             .from_table(Alias::new(&format_node_table_name(selector.of)))
-            .cond_where(
-                if let Some(name) = selector.name {
-                    condition.add(Expr::col(Alias::new("name")).eq(name))
-                } else {
-                    condition
-                }
-            )
+            .cond_where(if let Some(name) = selector.name {
+                condition.add(Expr::col(Alias::new("name")).eq(name))
+            } else {
+                condition
+            })
             .to_owned();
 
         let builder = db.get_database_backend();
@@ -137,7 +148,11 @@ impl Mutate {
     }
 
     /// Update node
-    pub async fn update_node_attributes(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
+    pub async fn update_node_attributes(
+        db: &DbConn,
+        selector: MutateNodeSelectorJson,
+        content: HashMap<String, JsonValue>,
+    ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
 
         let entity_attribute_alias = Alias::new("entity_attribute");
@@ -151,7 +166,7 @@ impl Mutate {
                 JoinType::Join,
                 entity_attribute_alias.clone(),
                 Expr::tbl(entity_alias.clone(), Alias::new("id"))
-                    .equals(entity_attribute_alias, Alias::new("entity_id"))
+                    .equals(entity_attribute_alias, Alias::new("entity_id")),
             )
             .and_where(Expr::col((entity_alias, Alias::new("name"))).eq(selector.of.clone()))
             .to_owned();
@@ -164,32 +179,44 @@ impl Mutate {
                 map
             });
 
-        let set_values = content.into_iter().map(|(k, v)| {
-            if let Some(dtype) = attributes.get(&k) {
-                Ok((Alias::new(&format_node_attribute_name(k)), dtype.value_with_datatype(Some(&v))))
-            } else {
-                Err(DbErr::Custom(format!("Datatype of attribute \"{}\" is not defined.", k)))
-            }
-        }).collect::<Result<Vec<(Alias, Value)>, DbErr>>()?;
+        let set_values = content
+            .into_iter()
+            .map(|(k, v)| {
+                if let Some(dtype) = attributes.get(&k) {
+                    Ok((
+                        Alias::new(&format_node_attribute_name(k)),
+                        dtype.value_with_datatype(Some(&v)),
+                    ))
+                } else {
+                    Err(DbErr::Custom(format!(
+                        "Datatype of attribute \"{}\" is not defined.",
+                        k
+                    )))
+                }
+            })
+            .collect::<Result<Vec<(Alias, Value)>, DbErr>>()?;
 
-        let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
-            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()))
-        });
+        let condition = selector
+            .attributes
+            .into_iter()
+            .fold(Cond::all(), |cond, (k, v)| {
+                cond.add(
+                    Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()),
+                )
+            });
 
         let update_stmt = Query::update()
             .table(Alias::new(&format_node_table_name(selector.of)))
             .values(set_values)
-            .cond_where(
-                if let Some(name) = selector.name {
-                    condition.add(Expr::col(Alias::new("name")).eq(name))
-                } else {
-                    condition
-                }
-            )
+            .cond_where(if let Some(name) = selector.name {
+                condition.add(Expr::col(Alias::new("name")).eq(name))
+            } else {
+                condition
+            })
             .to_owned();
 
         db.execute(builder.build(&update_stmt)).await?;
-        
+
         Ok(())
     }
 }

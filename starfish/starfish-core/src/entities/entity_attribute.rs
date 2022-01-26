@@ -19,14 +19,14 @@ impl Datatype {
                 } else {
                     None::<i64>.into()
                 }
-            },
+            }
             Datatype::String => {
                 if let Some(value) = value {
                     value.as_str().into()
                 } else {
                     None::<String>.into()
                 }
-            },
+            }
         }
     }
 }

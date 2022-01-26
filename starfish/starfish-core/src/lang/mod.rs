@@ -64,7 +64,7 @@ pub enum MutateUpdateJson {
         selector: MutateEdgeSelectorJson,
         /// Specify how to update the selected edges
         content: MutateEdgeContentJson,
-    }
+    },
 }
 
 /// Metadata of a mutate delete request

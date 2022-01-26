@@ -2,11 +2,13 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
 use crate::{
-    lang::{ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, MutateEdgeSelectorJson, MutateEdgeContentJson},
+    lang::{
+        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, MutateEdgeContentJson, MutateEdgeSelectorJson,
+    },
     schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Value};
-use sea_query::{Alias, Expr, Query, SimpleExpr, Cond};
+use sea_query::{Alias, Cond, Expr, Query, SimpleExpr};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -111,7 +113,10 @@ impl Mutate {
     }
 
     /// Delete edge with selector
-    pub async fn delete_edge_with_selector(db: &DbConn, selector: MutateEdgeSelectorJson) -> Result<(), DbErr> {
+    pub async fn delete_edge_with_selector(
+        db: &DbConn,
+        selector: MutateEdgeSelectorJson,
+    ) -> Result<(), DbErr> {
         let mut condition = Cond::all();
         if let Some(from_node) = selector.edge_content.from_node {
             condition = condition.add(Expr::col(Alias::new("from_node")).eq(from_node));
@@ -132,7 +137,11 @@ impl Mutate {
     }
 
     /// Update edge
-    pub async fn update_edge(db: &DbConn, selector: MutateEdgeSelectorJson, content: MutateEdgeContentJson) -> Result<(), DbErr> {
+    pub async fn update_edge(
+        db: &DbConn,
+        selector: MutateEdgeSelectorJson,
+        content: MutateEdgeContentJson,
+    ) -> Result<(), DbErr> {
         let mut set_values: Vec<(Alias, Value)> = vec![];
         if let Some(from_node) = content.from_node {
             set_values.push((Alias::new("from_node"), from_node.into()));
@@ -160,7 +169,7 @@ impl Mutate {
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
-        
+
         Ok(())
     }
 

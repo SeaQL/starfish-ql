@@ -2,7 +2,9 @@
 
 use super::{format_node_table_name, Schema};
 use crate::{entities::relation, lang::RelationJson};
-use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set, ForeignKeyAction};
+use sea_orm::{
+    ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, ForeignKeyAction, Set,
+};
 use sea_query::{Alias, ColumnDef, ForeignKey, Index, Table};
 
 impl Schema {
