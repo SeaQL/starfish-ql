@@ -2,7 +2,7 @@
 
 use super::{format_node_table_name, Schema};
 use crate::{entities::relation, lang::RelationJson};
-use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
+use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set, ForeignKeyAction};
 use sea_query::{Alias, ColumnDef, ForeignKey, Index, Table};
 
 impl Schema {
@@ -129,7 +129,8 @@ impl Schema {
                     .from_tbl(Alias::new(relation_json.get_table_name().as_str()))
                     .from_col(Alias::new("from_node"))
                     .to_tbl(Alias::new(from_entity.as_str()))
-                    .to_col(Alias::new("name")),
+                    .to_col(Alias::new("name"))
+                    .on_delete(ForeignKeyAction::Cascade),
             )
             .foreign_key(
                 ForeignKey::create()
@@ -141,7 +142,8 @@ impl Schema {
                     .from_tbl(Alias::new(relation_json.get_table_name().as_str()))
                     .from_col(Alias::new("to_node"))
                     .to_tbl(Alias::new(to_entity.as_str()))
-                    .to_col(Alias::new("name")),
+                    .to_col(Alias::new("name"))
+                    .on_delete(ForeignKeyAction::Cascade),
             );
 
         let builder = db.get_database_backend();

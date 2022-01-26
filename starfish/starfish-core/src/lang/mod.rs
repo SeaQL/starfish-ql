@@ -86,6 +86,7 @@ pub struct MutateNodeSelectorJson {
     /// Name of this node
     pub name: Option<String>,
     /// Additional attributes of node
+    #[serde(default)]
     pub attributes: HashMap<String, JsonValue>,
 }
 

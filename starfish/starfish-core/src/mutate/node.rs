@@ -112,6 +112,30 @@ impl Mutate {
         Ok(())
     }
 
+    /// Delete node with a selector
+    pub async fn delete_node_with_selector(db: &DbConn, selector: MutateNodeSelectorJson) -> Result<(), DbErr> {
+        let condition = selector.attributes.into_iter().fold(Cond::all(), |cond, (k, v)| {
+            cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()))
+        });
+
+        let stmt = Query::delete()
+            .from_table(Alias::new(&format_node_table_name(selector.of)))
+            .cond_where(
+                if let Some(name) = selector.name {
+                    condition.add(Expr::col(Alias::new("name")).eq(name))
+                } else {
+                    condition
+                }
+            )
+            .to_owned();
+
+        let builder = db.get_database_backend();
+
+        db.execute(builder.build(&stmt)).await?;
+
+        Ok(())
+    }
+
     /// Update node
     pub async fn update_node_attributes(db: &DbConn, selector: MutateNodeSelectorJson, content: HashMap<String, JsonValue>) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
@@ -119,8 +143,7 @@ impl Mutate {
         let entity_attribute_alias = Alias::new("entity_attribute");
         let entity_alias = Alias::new("entity");
 
-        let mut attr_stmt = Query::select();
-        attr_stmt
+        let attr_stmt = Query::select()
             .column((entity_attribute_alias.clone(), Alias::new("name")))
             .column(Alias::new("datatype"))
             .from(entity_alias.clone())
@@ -130,7 +153,8 @@ impl Mutate {
                 Expr::tbl(entity_alias.clone(), Alias::new("id"))
                     .equals(entity_attribute_alias, Alias::new("entity_id"))
             )
-            .and_where(Expr::col((entity_alias, Alias::new("name"))).eq(selector.of.clone()));
+            .and_where(Expr::col((entity_alias, Alias::new("name"))).eq(selector.of.clone()))
+            .to_owned();
         let attributes = AttributeMeta::find_by_statement(builder.build(&attr_stmt))
             .all(db)
             .await?
@@ -152,9 +176,8 @@ impl Mutate {
             cond.add(Expr::col(Alias::new(&format_node_attribute_name(k))).eq(v.as_str().unwrap()))
         });
 
-        let mut update_stmt = Query::update();
-
-        update_stmt.table(Alias::new(&format_node_table_name(selector.of)))
+        let update_stmt = Query::update()
+            .table(Alias::new(&format_node_table_name(selector.of)))
             .values(set_values)
             .cond_where(
                 if let Some(name) = selector.name {
@@ -162,7 +185,8 @@ impl Mutate {
                 } else {
                     condition
                 }
-            );
+            )
+            .to_owned();
 
         db.execute(builder.build(&update_stmt)).await?;
         

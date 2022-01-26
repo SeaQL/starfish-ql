@@ -131,11 +131,11 @@ impl Mutate {
             condition = condition.add(Expr::col(Alias::new("to_node")).eq(to_node));
         }
 
-        let mut stmt = Query::update();
-
-        stmt.table(Alias::new(&format_edge_table_name(selector.of)))
+        let stmt = Query::update()
+            .table(Alias::new(&format_edge_table_name(selector.of)))
             .values(set_values)
-            .cond_where(condition);
+            .cond_where(condition)
+            .to_owned();
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
