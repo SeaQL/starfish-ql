@@ -6,7 +6,7 @@ use common::TestContext;
 use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
 use starfish_core::lang::{
-    Edge, EdgeJsonBatch, MutateInsertJson, MutateJson, Node, NodeJsonBatch, MutateUpdateJson, MutateNodeSelectorJson, MutateEdgeSelectorJson, MutateEdgeContentJson,
+    Edge, EdgeJsonBatch, MutateInsertJson, MutateJson, Node, NodeJsonBatch, MutateUpdateJson, MutateNodeSelectorJson, MutateEdgeSelectorJson, MutateEdgeContentJson, MutateDeleteJson,
 };
 use starfish_core::mutate::Mutate;
 use starfish_core::sea_orm;
@@ -128,6 +128,25 @@ async fn main() -> Result<(), DbErr> {
     // There should still be only 1 edge
 
     println!("# Node and edges updated successfully! #");
+
+    let mutate_json = MutateJson::delete(MutateDeleteJson::edge(
+        MutateEdgeSelectorJson {
+            of: "depends".to_owned(),
+            edge_content: MutateEdgeContentJson { from_node: Some("sea-query".to_owned()), to_node: Some("sea-orm".to_owned()) }
+        }
+    ));
+
+    Mutate::mutate(db, mutate_json, false).await?;
+    // Edge should be deleted (from_node: "sea-query", to_node: "sea-orm")
+
+    let mutate_json = MutateJson::delete(MutateDeleteJson::node(
+        MutateNodeSelectorJson { of: "crate".to_owned(), name: Some("sea-orm".to_owned()), attributes: HashMap::new() }
+    ));
+
+    Mutate::mutate(db, mutate_json, false).await?;
+    // Node should be deleted (name: "sea-orm")
+
+    println!("# Node and edges deleted successfully! #");
 
     Ok(())
 }

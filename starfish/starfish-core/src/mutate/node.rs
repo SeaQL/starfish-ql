@@ -127,9 +127,10 @@ impl Mutate {
             .join(
                 JoinType::Join,
                 entity_attribute_alias.clone(),
-                Expr::tbl(entity_alias, Alias::new("id"))
+                Expr::tbl(entity_alias.clone(), Alias::new("id"))
                     .equals(entity_attribute_alias, Alias::new("entity_id"))
-            );
+            )
+            .and_where(Expr::col((entity_alias, Alias::new("name"))).eq(selector.of.clone()));
         let attributes = AttributeMeta::find_by_statement(builder.build(&attr_stmt))
             .all(db)
             .await?
