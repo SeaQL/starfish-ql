@@ -6,6 +6,9 @@ pub mod schema;
 /// Metadata of a mutate request
 pub mod mutate;
 
+/// Metadata of a query request
+pub mod query;
+
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
@@ -132,4 +135,26 @@ pub struct EdgeJsonBatch {
     pub of: String,
     /// Vector of edges
     pub edges: Vec<Edge>,
+}
+
+/// Metadata of the connectivity in a 'sortBy' constraint used in a query request, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(non_camel_case_types)]
+pub enum ConnectivityTypeJson {
+    /// Simple connectivity
+    simple,
+    /// Compound connectivity
+    compound,
+    /// Complex connectivity with decay factor 0.3
+    complex03,
+    /// Complex connectivity with decay factor 0.5
+    complex05,
+    /// Complex connectivity with decay factor 0.7
+    complex07,
+}
+
+impl Default for ConnectivityTypeJson {
+    fn default() -> Self {
+        Self::simple
+    }
 }
