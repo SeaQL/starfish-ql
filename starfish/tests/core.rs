@@ -6,17 +6,19 @@ use common::TestContext;
 use migration::sea_orm::{ConnectionTrait, DbConn, FromQueryResult};
 use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
-use starfish_core::lang::{
-    Edge, EdgeJsonBatch, MutateDeleteJson, MutateEdgeContentJson, MutateEdgeSelectorJson,
-    MutateInsertJson, MutateJson, MutateNodeSelectorJson, MutateUpdateJson, Node, NodeJsonBatch,
+use starfish_core::lang::mutate::{
+    MutateDeleteJson, MutateEdgeContentJson, MutateEdgeSelectorJson, MutateInsertJson, MutateJson,
+    MutateNodeSelectorJson, MutateUpdateJson,
 };
+use starfish_core::lang::schema::{SchemaDefineJson, SchemaJson};
+use starfish_core::lang::{Edge, EdgeJsonBatch, Node, NodeJsonBatch};
 use starfish_core::mutate::Mutate;
 use starfish_core::schema::{format_edge_table_name, format_node_table_name};
 use starfish_core::sea_orm;
 use starfish_core::sea_query::{Alias, Cond, Expr, Query};
 use starfish_core::{
     entities::entity_attribute::Datatype,
-    lang::{EntityAttrJson, EntityJson, RelationJson, SchemaDefineJson, SchemaJson},
+    lang::{EntityAttrJson, EntityJson, RelationJson},
     schema::Schema,
 };
 

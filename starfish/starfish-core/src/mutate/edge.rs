@@ -3,7 +3,8 @@ use std::collections::{HashMap, HashSet, VecDeque};
 use super::Mutate;
 use crate::{
     lang::{
-        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, MutateEdgeContentJson, MutateEdgeSelectorJson,
+        mutate::{MutateEdgeContentJson, MutateEdgeSelectorJson},
+        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch,
     },
     schema::{format_edge_table_name, format_node_table_name},
 };

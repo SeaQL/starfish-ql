@@ -7,7 +7,7 @@ pub use edge::*;
 pub use node::*;
 use sea_orm::{DbConn, DbErr};
 
-use crate::lang::{MutateDeleteJson, MutateInsertJson, MutateJson, MutateUpdateJson};
+use crate::lang::mutate::{MutateDeleteJson, MutateInsertJson, MutateJson, MutateUpdateJson};
 
 /// Mutate node and edge
 #[derive(Debug)]
