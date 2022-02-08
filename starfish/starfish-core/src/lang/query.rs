@@ -3,58 +3,91 @@ use std::collections::HashMap;
 use sea_orm::JsonValue;
 use serde::{Serialize, Deserialize};
 
-use super::ConnectivityTypeJson;
+use super::{ConnectivityTypeJson, NodeJson, EdgeJson};
 
 /// Metadata of a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
+#[serde(rename_all = "camelCase")]
 pub enum QueryJson {
     /// Result is a vector of nodes
-    vector(QueryVectorJson),
+    Vector(QueryVectorJson),
     /// Result is a graph of nodes and edges
-    graph(QueryGraphJson),
+    Graph(QueryGraphJson),
 }
 
 /// Metadata of a query request to query a vector, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryVectorJson {
     /// Constraints for the query
-    pub constraints: Vec<QueryConstraintJson>,
+    pub constraints: Vec<QueryVectorConstraintJson>,
 }
 
 /// Metadata of a query request to query a graph, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryGraphJson {
     /// Constraints for the query
-    pub constraints: Vec<QueryConstraintJson>,
+    pub constraints: Vec<QueryGraphConstraintJson>,
 }
 
-/// Metadata of a constraint used in a query request, deserialized as struct from json
+/// Metadata of a common constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
-pub enum QueryConstraintJson {
+#[serde(rename_all = "camelCase")]
+pub enum QueryCommonConstraint {
     /// Sort by a key
-    sortBy(QueryConstraintSortByJson),
+    SortBy(QueryConstraintSortByJson),
     /// Limit the number of queried nodes
-    limit(QueryConstraintLimitJson),
+    Limit(QueryConstraintLimitJson),
     /// Specify edges in which relation to include, only valid when querying a graph
-    edge {
+    Edge {
         /// Name of relation
         of: String,
         /// Customize traversal
         #[serde(default)]
         traversal: QueryConstraintTraversalJson,
     },
-    /// Specify what nodes to use as root nodes, only valid when querying a graph
-    rootNodes(Vec<HashMap<String, JsonValue>>),
+}
+
+/// Exclusive metadata of a vector constraint used in a query request, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum QueryVectorConstraint {
+    // Empty
+}
+
+/// Metadata of a vector constraint used in a query request, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum QueryVectorConstraintJson {
+    /// Common constraint
+    Common(QueryCommonConstraint),
+    /// Exclusive constraint
+    Exclusive(QueryVectorConstraint),
+}
+
+/// Exclusive metadata of a graph constraint used in a query request, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum QueryGraphConstraint {
+    /// Specify what nodes to use as root nodes
+    RootNodes(Vec<HashMap<String, JsonValue>>),
+}
+
+/// All metadata of a graph constraint used in a query request, deserialized as struct from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum QueryGraphConstraintJson {
+    /// Common constraint
+    Common(QueryCommonConstraint),
+    /// Exclusive constraint
+    Exclusive(QueryGraphConstraint),
 }
 
 /// Metadata of a 'sortBy' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
+#[serde(rename_all = "camelCase")]
 pub enum QueryConstraintSortByJson {
     /// Sort by connectivity
-    connectivity {
+    Connectivity {
         /// Name of relation to calculate connectivity
         of: String,
         /// Type of connectivity to sort by
@@ -65,12 +98,12 @@ pub enum QueryConstraintSortByJson {
 
 /// Metadata of a 'limit' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
+#[serde(rename_all = "camelCase")]
 pub enum QueryConstraintLimitJson {
     /// Limit by a range
-    range(QueryConstraintLimitRangeJson),
+    Range(QueryConstraintLimitRangeJson),
     /// Recurse to a certain depth
-    depth {
+    Depth {
         /// Recurse to this depth, 0 means root only
         to: usize,
     },
@@ -78,12 +111,12 @@ pub enum QueryConstraintLimitJson {
 
 /// Metadata of a range in a 'limit' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
+#[serde(rename_all = "camelCase")]
 pub enum QueryConstraintLimitRangeJson {
     /// Get the top n nodes
-    top(usize),
+    Top(usize),
     /// Get the bottom n nodes
-    bottom(usize),
+    Bottom(usize),
 }
 
 /// Metadata of a traversal method used in a query request, deserialized as struct from json
@@ -92,4 +125,13 @@ pub enum QueryConstraintLimitRangeJson {
 pub struct QueryConstraintTraversalJson {
     /// Reverse the direction of edges in traversal
     pub reverse_direction: bool,
+}
+
+/// Metadata of the result of a query request, to be serialized as json from struct
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct QueryResultJson {
+    /// Queried nodes
+    pub nodes: Vec<NodeJson>,
+    /// Queried edges, None if querying a vector of nodes
+    pub edges: Option<Vec<EdgeJson>>,
 }
