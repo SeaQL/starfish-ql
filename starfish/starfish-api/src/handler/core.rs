@@ -2,8 +2,10 @@ use rocket::serde::json::Json;
 use rocket::{get, post, routes};
 use sea_orm_rocket::Connection;
 use starfish_core::lang::mutate::MutateJson;
+use starfish_core::lang::query::{QueryJson, QueryResultJson};
 use starfish_core::lang::schema::SchemaJson;
 use starfish_core::mutate::Mutate;
+use starfish_core::query::Query;
 
 use crate::{db::pool::Db, ErrorResponder};
 use starfish_core::schema::Schema;
@@ -43,7 +45,17 @@ async fn mutate(
     Ok(())
 }
 
-#[get("/query")]
-async fn query(conn: Connection<'_, Db>) -> Result<Json<String>, ErrorResponder> {
-    Ok(Json("Hello Query!".to_owned()))
+#[get("/query", data = "<input_data>")]
+async fn query(
+    conn: Connection<'_, Db>,
+    input_data: Json<QueryJson>,
+) -> Result<Json<QueryResultJson>, ErrorResponder> {
+    let db = conn.into_inner();
+    let query_json = input_data.clone();
+
+    Ok(Json(
+        Query::query(db, query_json)
+            .await
+            .map_err(Into::into)?
+    ))
 }

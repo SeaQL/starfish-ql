@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use sea_orm::JsonValue;
 use serde::{Serialize, Deserialize};
 
+use crate::query::{QueryResultNode, QueryResultEdge};
+
 use super::{ConnectivityTypeJson, NodeJson, EdgeJson};
 
 /// Metadata of a query request, deserialized as struct from json
@@ -18,6 +20,8 @@ pub enum QueryJson {
 /// Metadata of a query request to query a vector, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryVectorJson {
+    /// Name of entity
+    pub of: String,
     /// Constraints for the query
     pub constraints: Vec<QueryVectorConstraintJson>,
 }
@@ -128,10 +132,16 @@ pub struct QueryConstraintTraversalJson {
 }
 
 /// Metadata of the result of a query request, to be serialized as json from struct
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
-pub struct QueryResultJson {
-    /// Queried nodes
-    pub nodes: Vec<NodeJson>,
-    /// Queried edges, None if querying a vector of nodes
-    pub edges: Option<Vec<EdgeJson>>,
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum QueryResultJson {
+    /// A queried vector
+    Vector(Vec<QueryResultNode>),
+    /// A queried graph
+    Graph {
+        /// Queried nodes in the graph
+        nodes: Vec<QueryResultNode>,
+        /// Queried edges in the graph; Must use nodes in `nodes`
+        edges: Vec<QueryResultEdge>,
+    }
 }

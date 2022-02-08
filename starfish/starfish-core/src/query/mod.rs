@@ -20,6 +20,19 @@ use std::mem;
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
 
+#[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]
+/// A queried node
+pub struct QueryResultNode {
+    name: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]
+/// A queried edge
+pub struct QueryResultEdge {
+    from_node: String,
+    to_node: String,
+}
+
 /// Query graph data
 #[derive(Debug)]
 pub struct Query;
@@ -34,13 +47,24 @@ impl Query {
     }
 
     async fn query_vector(db: &DbConn, metadata: QueryVectorJson) -> Result<QueryResultJson, DbErr> {
+        let mut stmt = sea_query::Query::select();
+        
+        stmt.column(Alias::new("name"))
+            .from(Alias::new(&format_node_table_name(metadata.of)));
 
-        Ok(Default::default())
+        let builder = db.get_database_backend();
+
+        Ok(QueryResultJson::Vector(
+            QueryResultNode::find_by_statement(builder.build(&stmt)).all(db).await?
+        ))
     }
 
     async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
 
-        Ok(Default::default())
+        Ok(QueryResultJson::Graph {
+            nodes: vec![],
+            edges: vec![],
+        })
     }
 
     async fn handle_common_constraint(db: &DbConn, constraint: QueryCommonConstraint) {
