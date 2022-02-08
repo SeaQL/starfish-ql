@@ -6,7 +6,7 @@ mod worker;
 use self::executor::Executor;
 use crate::{
     entities::relation,
-    schema::{format_edge_table_name, format_node_table_name}, lang::query::{QueryJson, QueryResultJson, QueryCommonConstraint, QueryVectorJson, QueryGraphJson},
+    schema::{format_edge_table_name, format_node_table_name}, lang::query::{QueryJson, QueryResultJson, QueryCommonConstraint, QueryVectorJson, QueryGraphJson, QueryVectorConstraintJson, QueryVectorConstraint, QueryConstraintSortByKeyJson},
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
@@ -52,6 +52,13 @@ impl Query {
         stmt.column(Alias::new("name"))
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
+        for constraint in metadata.constraints {
+            match constraint {
+                QueryVectorConstraintJson::Common(constraint) => Self::handle_common_constraint(&mut stmt, constraint),
+                QueryVectorConstraintJson::Exclusive(constraint) => Self::handle_vector_constraint(&mut stmt, constraint),
+            }
+        }
+
         let builder = db.get_database_backend();
 
         Ok(QueryResultJson::Vector(
@@ -67,11 +74,26 @@ impl Query {
         })
     }
 
-    async fn handle_common_constraint(db: &DbConn, constraint: QueryCommonConstraint) {
+    fn handle_common_constraint(stmt: &mut SelectStatement, constraint: QueryCommonConstraint) {
         match constraint {
-            QueryCommonConstraint::SortBy(sort_by) => todo!(),
-            QueryCommonConstraint::Limit(limit) => todo!(),
-            QueryCommonConstraint::Edge { of, traversal } => todo!(),
+            QueryCommonConstraint::SortBy(sort_by) => {
+                let col_name = match sort_by.key {
+                    QueryConstraintSortByKeyJson::Connectivity { of, r#type } => r#type.to_column_name(of)
+                };
+                stmt.order_by(Alias::new(&col_name), if sort_by.desc { Order::Desc } else { Order::Asc });
+            },
+            QueryCommonConstraint::Limit(limit) => {
+
+            },
+            QueryCommonConstraint::Edge { of, traversal } => {
+                
+            },
+        }
+    }
+
+    fn handle_vector_constraint(stmt: &mut SelectStatement, constraint: QueryVectorConstraint) {
+        match constraint {
+            // Empty
         }
     }
 }

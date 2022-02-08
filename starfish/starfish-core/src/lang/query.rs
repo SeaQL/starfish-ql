@@ -88,8 +88,18 @@ pub enum QueryGraphConstraintJson {
 
 /// Metadata of a 'sortBy' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QueryConstraintSortByJson {
+    /// Key to sort with
+    pub key: QueryConstraintSortByKeyJson,
+    /// Order of sorting
+    #[serde(default)]
+    pub desc: bool,
+}
+
+/// Key used of a 'sortBy' constraint used in a query request, deserialized as enum from json
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum QueryConstraintSortByJson {
+pub enum QueryConstraintSortByKeyJson {
     /// Sort by connectivity
     Connectivity {
         /// Name of relation to calculate connectivity

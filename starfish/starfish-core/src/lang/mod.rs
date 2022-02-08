@@ -141,20 +141,40 @@ pub struct EdgeJsonBatch {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum ConnectivityTypeJson {
-    /// Simple connectivity
+    /// Simple in-connectivity
     simple,
-    /// Compound connectivity
+    /// Compound in-connectivity
     compound,
-    /// Complex connectivity with decay factor 0.3
+    /// Complex in-connectivity with decay factor 0.3
     complex03,
-    /// Complex connectivity with decay factor 0.5
+    /// Complex in-connectivity with decay factor 0.5
     complex05,
-    /// Complex connectivity with decay factor 0.7
+    /// Complex in-connectivity with decay factor 0.7
     complex07,
+    /// out-connectivity
+    out,
 }
 
 impl Default for ConnectivityTypeJson {
     fn default() -> Self {
         Self::simple
+    }
+}
+
+impl ConnectivityTypeJson {
+    /// Convert self to the corresponding column name in the entity table
+    pub fn to_column_name<S: Into<String>>(self, relation_name: S) -> String {
+        format!(
+            "{}_{}",
+            relation_name.into(),
+            match self {
+                Self::simple => "in_conn",
+                Self::compound => "in_conn_compound",
+                Self::complex03 => "in_conn_complex03",
+                Self::complex05 => "in_conn_complex05",
+                Self::complex07 => "in_conn_complex07",
+                Self::out => "out_conn",
+            }
+        )
     }
 }
