@@ -6,7 +6,7 @@ mod worker;
 use self::executor::Executor;
 use crate::{
     entities::relation,
-    schema::{format_edge_table_name, format_node_table_name},
+    schema::{format_edge_table_name, format_node_table_name}, lang::query::{QueryJson, QueryResultJson, QueryCommonConstraint, QueryVectorJson, QueryGraphJson},
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
@@ -23,6 +23,34 @@ const DEBUG: bool = false;
 /// Query graph data
 #[derive(Debug)]
 pub struct Query;
+
+impl Query {
+    /// Query data from db
+    pub async fn query(db: &DbConn, query_json: QueryJson) -> Result<QueryResultJson, DbErr> {
+        match query_json {
+            QueryJson::Vector(metadata) => Self::query_vector(db, metadata).await,
+            QueryJson::Graph(metadata) => Self::query_graph(db, metadata).await,
+        }
+    }
+
+    async fn query_vector(db: &DbConn, metadata: QueryVectorJson) -> Result<QueryResultJson, DbErr> {
+
+        Ok(Default::default())
+    }
+
+    async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
+
+        Ok(Default::default())
+    }
+
+    async fn handle_common_constraint(db: &DbConn, constraint: QueryCommonConstraint) {
+        match constraint {
+            QueryCommonConstraint::SortBy(sort_by) => todo!(),
+            QueryCommonConstraint::Limit(limit) => todo!(),
+            QueryCommonConstraint::Edge { of, traversal } => todo!(),
+        }
+    }
+}
 
 /// Graph data
 #[derive(Debug, Clone, Deserialize, Serialize)]
