@@ -40,15 +40,7 @@ pub enum QueryCommonConstraint {
     /// Sort by a key
     SortBy(QueryConstraintSortByJson),
     /// Limit the number of queried nodes
-    Limit(QueryConstraintLimitJson),
-    /// Specify edges in which relation to include, only valid when querying a graph
-    Edge {
-        /// Name of relation
-        of: String,
-        /// Customize traversal
-        #[serde(default)]
-        traversal: QueryConstraintTraversalJson,
-    },
+    Limit(u64),
 }
 
 /// Exclusive metadata of a vector constraint used in a query request, deserialized as struct from json
@@ -72,8 +64,18 @@ pub enum QueryVectorConstraintJson {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryGraphConstraint {
+    /// Specify edges in which relation to include
+    Edge {
+        /// Name of relation
+        of: String,
+        /// Customize traversal
+        #[serde(default)]
+        traversal: QueryConstraintTraversalJson,
+    },
     /// Specify what nodes to use as root nodes
     RootNodes(Vec<HashMap<String, JsonValue>>),
+    /// Limit the depth of traversal
+    Limit(QueryGraphConstraintLimitJson),
 }
 
 /// All metadata of a graph constraint used in a query request, deserialized as struct from json
@@ -110,27 +112,15 @@ pub enum QueryConstraintSortByKeyJson {
     }
 }
 
-/// Metadata of a 'limit' constraint used in a query request, deserialized as struct from json
+/// Metadata of a 'limit' constraint used in a query request used to query a graph, deserialized as enum from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum QueryConstraintLimitJson {
-    /// Limit by a range
-    Range(QueryConstraintLimitRangeJson),
+pub enum QueryGraphConstraintLimitJson {
     /// Recurse to a certain depth
     Depth {
         /// Recurse to this depth, 0 means root only
         to: usize,
     },
-}
-
-/// Metadata of a range in a 'limit' constraint used in a query request, deserialized as struct from json
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum QueryConstraintLimitRangeJson {
-    /// Get the top n nodes
-    Top(usize),
-    /// Get the bottom n nodes
-    Bottom(usize),
 }
 
 /// Metadata of a traversal method used in a query request, deserialized as struct from json

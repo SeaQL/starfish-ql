@@ -83,10 +83,7 @@ impl Query {
                 stmt.order_by(Alias::new(&col_name), if sort_by.desc { Order::Desc } else { Order::Asc });
             },
             QueryCommonConstraint::Limit(limit) => {
-
-            },
-            QueryCommonConstraint::Edge { of, traversal } => {
-                
+                stmt.limit(limit);
             },
         }
     }
