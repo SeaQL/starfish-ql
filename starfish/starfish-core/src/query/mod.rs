@@ -6,7 +6,7 @@ mod worker;
 use self::executor::Executor;
 use crate::{
     entities::relation,
-    schema::{format_edge_table_name, format_node_table_name}, lang::query::{QueryJson, QueryResultJson, QueryCommonConstraint, QueryVectorJson, QueryGraphJson, QueryVectorConstraintJson, QueryVectorConstraint, QueryConstraintSortByKeyJson},
+    schema::{format_edge_table_name, format_node_table_name}, lang::query::{QueryJson, QueryResultJson, QueryCommonConstraint, QueryVectorJson, QueryGraphJson, QueryVectorConstraintJson, QueryVectorConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraintJson, QueryGraphConstraint, QueryGraphConstraintLimitJson},
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
@@ -36,6 +36,8 @@ pub struct QueryResultEdge {
 #[derive(Debug)]
 /// A helper struct to specify how to perform a graph query
 pub struct QueryGraphParams {
+    /// Which entity to consider for constructing the graph (unformatted)
+    pub entity_name: Result<String,()>,
     /// Which relation to consider for constructing the graph (unformatted)
     pub relation_name: Result<String,()>,
     /// Whether to reverse the direction when constructing the graph
@@ -44,24 +46,88 @@ pub struct QueryGraphParams {
     pub root_nodes_specifiers: Vec<HashMap<String, JsonValue>>,
     /// Recursion goes up to this level, 0 means no recursion at all.
     /// Recursion does not terminate early if this value is None.
-    pub max_depth: Option<usize>,
-    /// Sort each batch on this key in a Descending order (this value is an Unformatted column name)
+    pub max_depth: Option<u64>,
+    /// Sort each batch on this key (this value is an Formatted column name)
     /// The order is random if this value is None.
     pub batch_sort_key: Option<String>,
+    /// Sort each batch in an ascending order if this value is true.
+    pub batch_sort_asc: bool,
     /// Include up to this number of nodes in each batch.
     /// All nodes are included in all batches if this value is None.
-    pub max_batch_size: Option<usize>,
+    pub max_batch_size: Option<u64>,
+    /// Include up to this number of nodes across the whole recursion.
+    /// All nodes are included if this value is None.
+    pub max_total_size: Option<u64>,
 }
 
 impl Default for QueryGraphParams {
     fn default() -> Self {
         Self {
+            entity_name: Err(()),
             relation_name: Err(()),
             reverse_direction: false,
             root_nodes_specifiers: vec![],
             max_depth: Some(6),
-            batch_sort_key: Some("in_conn".into()),
+            batch_sort_key: None,
+            batch_sort_asc: false,
             max_batch_size: Some(6),
+            max_total_size: Some(10000),
+        }
+    }
+}
+
+impl QueryGraphParams {
+    /// Construct params from metadata
+    pub fn from_query_graph_metadata(metadata: QueryGraphJson) -> Self {
+        let mut params = Self {
+            entity_name: Ok(metadata.of),
+            ..Default::default()
+        };
+
+        metadata.constraints.into_iter()
+            .for_each(|constraint| {
+                match constraint {
+                    QueryGraphConstraintJson::Common(constraint) => params.handle_common_constraint(constraint),
+                    QueryGraphConstraintJson::Exclusive(constraint) => params.handle_graph_constraint(constraint),
+                }
+            });
+
+        params
+    }
+
+    fn handle_common_constraint(&mut self, constraint: QueryCommonConstraint) {
+        match constraint {
+            QueryCommonConstraint::SortBy(sort_by) => {
+                self.batch_sort_key = match sort_by.key {
+                    QueryConstraintSortByKeyJson::Connectivity { of, r#type } => {
+                        Some(r#type.to_column_name(of))
+                    },
+                };
+                self.batch_sort_asc = !sort_by.desc;
+            },
+            QueryCommonConstraint::Limit(limit) => self.max_total_size = Some(limit),
+        }
+    }
+
+    fn handle_graph_constraint(&mut self, constraint: QueryGraphConstraint) {
+        match constraint {
+            QueryGraphConstraint::Edge { of, traversal } => {
+                self.relation_name = Ok(of);
+                self.reverse_direction = traversal.reverse_direction;
+            },
+            QueryGraphConstraint::RootNodes(root_nodes_specifiers) => {
+                self.root_nodes_specifiers = root_nodes_specifiers;
+            },
+            QueryGraphConstraint::Limit(limit) => {
+                match limit {
+                    QueryGraphConstraintLimitJson::Depth(depth) => {
+                        self.max_depth = Some(depth)
+                    },
+                    QueryGraphConstraintLimitJson::BatchSize(batch_size) => {
+                        self.max_batch_size = Some(batch_size)
+                    },
+                }
+            },
         }
     }
 }
@@ -100,6 +166,9 @@ impl Query {
     }
 
     async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
+        let params = QueryGraphParams::from_query_graph_metadata(metadata);
+
+        // Construct graph recursively with params
 
         Ok(QueryResultJson::Graph {
             nodes: vec![],

@@ -29,6 +29,8 @@ pub struct QueryVectorJson {
 /// Metadata of a query request to query a graph, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryGraphJson {
+    /// Name of entity
+    pub of: String,
     /// Constraints for the query
     pub constraints: Vec<QueryGraphConstraintJson>,
 }
@@ -74,7 +76,7 @@ pub enum QueryGraphConstraint {
     },
     /// Specify what nodes to use as root nodes
     RootNodes(Vec<HashMap<String, JsonValue>>),
-    /// Limit the depth of traversal
+    /// Limit on recursion in graph construction
     Limit(QueryGraphConstraintLimitJson),
 }
 
@@ -117,9 +119,9 @@ pub enum QueryConstraintSortByKeyJson {
 #[serde(rename_all = "camelCase")]
 pub enum QueryGraphConstraintLimitJson {
     /// Recurse to a certain depth, 0 means root only
-    Depth(usize),
+    Depth(u64),
     /// Include up to this number of nodes in each batch
-    BatchSize(usize),
+    BatchSize(u64),
 }
 
 /// Metadata of a traversal method used in a query request, deserialized as struct from json
