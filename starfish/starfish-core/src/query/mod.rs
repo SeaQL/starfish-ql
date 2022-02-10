@@ -10,12 +10,12 @@ use crate::{
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
-    Statement,
+    Statement, JsonValue,
 };
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::mem;
+use std::{mem, collections::HashMap};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -31,6 +31,39 @@ pub struct QueryResultNode {
 pub struct QueryResultEdge {
     from_node: String,
     to_node: String,
+}
+
+#[derive(Debug)]
+/// A helper struct to specify how to perform a graph query
+pub struct QueryGraphParams {
+    /// Which relation to consider for constructing the graph (unformatted)
+    pub relation_name: Result<String,()>,
+    /// Whether to reverse the direction when constructing the graph
+    pub reverse_direction: bool,
+    /// Specify the root nodes to be the union of ((the sets of nodes) each satisfying the conditions in one hash map)
+    pub root_nodes_specifiers: Vec<HashMap<String, JsonValue>>,
+    /// Recursion goes up to this level, 0 means no recursion at all.
+    /// Recursion does not terminate early if this value is None.
+    pub max_depth: Option<usize>,
+    /// Sort each batch on this key in a Descending order (this value is an Unformatted column name)
+    /// The order is random if this value is None.
+    pub batch_sort_key: Option<String>,
+    /// Include up to this number of nodes in each batch.
+    /// All nodes are included in all batches if this value is None.
+    pub max_batch_size: Option<usize>,
+}
+
+impl Default for QueryGraphParams {
+    fn default() -> Self {
+        Self {
+            relation_name: Err(()),
+            reverse_direction: false,
+            root_nodes_specifiers: vec![],
+            max_depth: Some(6),
+            batch_sort_key: Some("in_conn".into()),
+            max_batch_size: Some(6),
+        }
+    }
 }
 
 /// Query graph data
