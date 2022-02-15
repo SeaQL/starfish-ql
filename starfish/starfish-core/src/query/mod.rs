@@ -24,6 +24,7 @@ const DEBUG: bool = false;
 /// A queried node
 pub struct QueryResultNode {
     name: String,
+    weight: Option<f64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]
@@ -149,6 +150,7 @@ impl Query {
         let mut stmt = sea_query::Query::select();
         
         stmt.column(Alias::new("name"))
+            .expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"))
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
         for constraint in metadata.constraints {
@@ -165,24 +167,14 @@ impl Query {
         ))
     }
 
-    async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
-        let params = QueryGraphParams::from_query_graph_metadata(metadata);
-
-        // Construct graph recursively with params
-
-        Ok(QueryResultJson::Graph {
-            nodes: vec![],
-            edges: vec![],
-        })
-    }
-
     fn handle_common_constraint(stmt: &mut SelectStatement, constraint: QueryCommonConstraint) {
         match constraint {
             QueryCommonConstraint::SortBy(sort_by) => {
                 let col_name = match sort_by.key {
                     QueryConstraintSortByKeyJson::Connectivity { of, r#type } => r#type.to_column_name(of)
                 };
-                stmt.order_by(Alias::new(&col_name), if sort_by.desc { Order::Desc } else { Order::Asc });
+                stmt.expr_as(Expr::col(Alias::new(&col_name)), Alias::new("weight"))
+                    .order_by(Alias::new(&col_name), if sort_by.desc { Order::Desc } else { Order::Asc });
             },
             QueryCommonConstraint::Limit(limit) => {
                 stmt.limit(limit);
@@ -194,6 +186,17 @@ impl Query {
         match constraint {
             // Empty
         }
+    }
+
+    async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
+        let params = QueryGraphParams::from_query_graph_metadata(metadata);
+
+        Self::traverse_with_params(db, params).await;
+
+        Ok(QueryResultJson::Graph {
+            nodes: vec![],
+            edges: vec![],
+        })
     }
 }
 
