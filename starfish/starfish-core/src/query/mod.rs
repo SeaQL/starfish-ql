@@ -10,12 +10,12 @@ use crate::{
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
-    Statement, JsonValue,
+    Statement,
 };
 use sea_query::{Alias, Expr, SelectStatement, Cond};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{mem, collections::{HashMap, HashSet}};
+use std::{mem, collections::HashSet};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -66,7 +66,7 @@ pub struct QueryGraphParams {
     pub max_batch_size: Option<u64>,
     /// Include up to this number of nodes across the whole recursion.
     /// All nodes are included if this value is None.
-    pub max_total_size: Option<u64>,
+    pub max_total_size: Option<usize>,
 }
 
 impl Default for QueryGraphParams {
@@ -114,7 +114,7 @@ impl QueryGraphParams {
                 };
                 self.batch_sort_asc = !sort_by.desc;
             },
-            QueryCommonConstraint::Limit(limit) => self.max_total_size = Some(limit),
+            QueryCommonConstraint::Limit(limit) => self.max_total_size = Some(limit as usize),
         }
     }
 
@@ -258,13 +258,19 @@ impl Query {
 
                 if let Some(key) = &params.batch_sort_key {
                     target_edge_stmt.order_by(
-                        (Alias::new(node_table), Alias::new(&key)),
+                        (Alias::new(node_table), Alias::new(key)),
                         if params.batch_sort_asc { Order::Asc } else { Order::Desc }
                     );
                 }
 
+                if let Some(max_batch_size) = params.max_batch_size {
+                    target_edge_stmt.limit(max_batch_size);
+                }
+
                 QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt)).all(db).await?
             };
+
+            let mut total_nodes_full = false;
 
             pending_nodes = target_edges.into_iter()
                 .filter_map(|edge| {
@@ -273,12 +279,22 @@ impl Query {
                     result_edges.insert(edge);
 
                     if result_nodes.insert(target_node_name.clone()) {
+                        if let Some(max_total_size) = params.max_total_size {
+                            if result_nodes.len() >= max_total_size {
+                                total_nodes_full = true;
+                            }
+                        }
+
                         Some(target_node_name)
                     } else {
                         None
                     }
                 })
                 .collect();
+
+            if total_nodes_full {
+                break;
+            }
 
             depth += 1;
         }
