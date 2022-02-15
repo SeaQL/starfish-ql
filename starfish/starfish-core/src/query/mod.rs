@@ -280,14 +280,43 @@ impl Query {
                 })
                 .collect();
 
-            println!("{:?}", pending_nodes);
-
             depth += 1;
         }
 
-        // Make sure all edges in result_edges use only nodes in result_nodes        
+        // Make sure all edges in result_edges use only nodes in result_nodes
+        let edges: Vec<QueryResultEdge> = result_edges.into_iter()
+            .filter(|edge| {
+                result_nodes.contains(&edge.from_node)
+                && result_nodes.contains(&edge.to_node)
+            })
+            .collect();
 
-        todo!()
+        // Fetch the weights if needed
+        let nodes: Vec<QueryResultNode> = if let Some(weight_key) = params.batch_sort_key {
+            let stmt = sea_query::Query::select()
+                .column(Alias::new("name"))
+                .expr_as(Expr::col(Alias::new(&weight_key)), Alias::new("weight"))
+                .from(Alias::new(node_table))
+                .cond_where(
+                    result_nodes.into_iter().fold(Cond::any(), |cond, name| {
+                        cond.add(Expr::col(Alias::new("name")).eq(name))
+                    })
+                )
+                .to_owned();
+            
+            QueryResultNode::find_by_statement(builder.build(&stmt)).all(db).await?
+        } else {
+            result_nodes.into_iter()
+                .map(|name| {
+                    QueryResultNode {
+                        name,
+                        weight: None,
+                    }
+                })
+                .collect()
+        };
+
+        Ok(QueryResultJson::Graph { nodes, edges })
     }
 }
 
