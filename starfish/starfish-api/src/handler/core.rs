@@ -54,8 +54,6 @@ async fn query(
     let query_json = input_data.clone();
 
     Ok(Json(
-        Query::query(db, query_json)
-            .await
-            .map_err(Into::into)?
+        Query::query(db, query_json).await.map_err(Into::into)?,
     ))
 }

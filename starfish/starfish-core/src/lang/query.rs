@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use sea_orm::JsonValue;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::query::{QueryResultNode, QueryResultEdge};
+use crate::query::{QueryResultEdge, QueryResultNode};
 
 use super::ConnectivityTypeJson;
 
@@ -111,7 +111,7 @@ pub enum QueryConstraintSortByKeyJson {
         /// Type of connectivity to sort by
         #[serde(default)]
         r#type: ConnectivityTypeJson,
-    }
+    },
 }
 
 /// Metadata of a 'limit' constraint used in a query request used to query a graph, deserialized as enum from json
@@ -144,5 +144,5 @@ pub enum QueryResultJson {
         nodes: Vec<QueryResultNode>,
         /// Queried edges in the graph; Must use nodes in `nodes`
         edges: Vec<QueryResultEdge>,
-    }
+    },
 }

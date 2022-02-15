@@ -6,16 +6,21 @@ mod worker;
 use self::executor::Executor;
 use crate::{
     entities::relation,
-    schema::{format_edge_table_name, format_node_table_name}, lang::query::{QueryJson, QueryResultJson, QueryCommonConstraint, QueryVectorJson, QueryGraphJson, QueryVectorConstraintJson, QueryVectorConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraintJson, QueryGraphConstraint, QueryGraphConstraintLimitJson},
+    lang::query::{
+        QueryCommonConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraint,
+        QueryGraphConstraintJson, QueryGraphConstraintLimitJson, QueryGraphJson, QueryJson,
+        QueryResultJson, QueryVectorConstraint, QueryVectorConstraintJson, QueryVectorJson,
+    },
+    schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
     Statement,
 };
-use sea_query::{Alias, Expr, SelectStatement, Cond};
+use sea_query::{Alias, Cond, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{mem, collections::HashSet};
+use std::{collections::HashSet, mem};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -93,11 +98,15 @@ impl QueryGraphParams {
             ..Default::default()
         };
 
-        metadata.constraints.into_iter()
-            .for_each(|constraint| {
-                match constraint {
-                    QueryGraphConstraintJson::Common(constraint) => params.handle_common_constraint(constraint),
-                    QueryGraphConstraintJson::Exclusive(constraint) => params.handle_graph_constraint(constraint),
+        metadata
+            .constraints
+            .into_iter()
+            .for_each(|constraint| match constraint {
+                QueryGraphConstraintJson::Common(constraint) => {
+                    params.handle_common_constraint(constraint)
+                }
+                QueryGraphConstraintJson::Exclusive(constraint) => {
+                    params.handle_graph_constraint(constraint)
                 }
             });
 
@@ -110,10 +119,10 @@ impl QueryGraphParams {
                 self.batch_sort_key = match sort_by.key {
                     QueryConstraintSortByKeyJson::Connectivity { of, r#type } => {
                         Some(r#type.to_column_name(of))
-                    },
+                    }
                 };
                 self.batch_sort_asc = !sort_by.desc;
-            },
+            }
             QueryCommonConstraint::Limit(limit) => self.max_total_size = Some(limit as usize),
         }
     }
@@ -123,18 +132,14 @@ impl QueryGraphParams {
             QueryGraphConstraint::Edge { of, traversal } => {
                 self.relation_name = Ok(of);
                 self.reverse_direction = traversal.reverse_direction;
-            },
+            }
             QueryGraphConstraint::RootNodes(root_node_names) => {
                 self.root_node_names = root_node_names;
-            },
-            QueryGraphConstraint::Limit(limit) => {
-                match limit {
-                    QueryGraphConstraintLimitJson::Depth(depth) => {
-                        self.max_depth = Some(depth)
-                    },
-                    QueryGraphConstraintLimitJson::BatchSize(batch_size) => {
-                        self.max_batch_size = Some(batch_size)
-                    },
+            }
+            QueryGraphConstraint::Limit(limit) => match limit {
+                QueryGraphConstraintLimitJson::Depth(depth) => self.max_depth = Some(depth),
+                QueryGraphConstraintLimitJson::BatchSize(batch_size) => {
+                    self.max_batch_size = Some(batch_size)
                 }
             },
         }
@@ -154,24 +159,33 @@ impl Query {
         }
     }
 
-    async fn query_vector(db: &DbConn, metadata: QueryVectorJson) -> Result<QueryResultJson, DbErr> {
+    async fn query_vector(
+        db: &DbConn,
+        metadata: QueryVectorJson,
+    ) -> Result<QueryResultJson, DbErr> {
         let mut stmt = sea_query::Query::select();
-        
+
         stmt.column(Alias::new("name"))
             .expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"))
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
         for constraint in metadata.constraints {
             match constraint {
-                QueryVectorConstraintJson::Common(constraint) => Self::handle_common_constraint(&mut stmt, constraint),
-                QueryVectorConstraintJson::Exclusive(constraint) => Self::handle_vector_constraint(&mut stmt, constraint),
+                QueryVectorConstraintJson::Common(constraint) => {
+                    Self::handle_common_constraint(&mut stmt, constraint)
+                }
+                QueryVectorConstraintJson::Exclusive(constraint) => {
+                    Self::handle_vector_constraint(&mut stmt, constraint)
+                }
             }
         }
 
         let builder = db.get_database_backend();
 
         Ok(QueryResultJson::Vector(
-            QueryResultNode::find_by_statement(builder.build(&stmt)).all(db).await?
+            QueryResultNode::find_by_statement(builder.build(&stmt))
+                .all(db)
+                .await?,
         ))
     }
 
@@ -179,14 +193,23 @@ impl Query {
         match constraint {
             QueryCommonConstraint::SortBy(sort_by) => {
                 let col_name = match sort_by.key {
-                    QueryConstraintSortByKeyJson::Connectivity { of, r#type } => r#type.to_column_name(of)
+                    QueryConstraintSortByKeyJson::Connectivity { of, r#type } => {
+                        r#type.to_column_name(of)
+                    }
                 };
                 stmt.expr_as(Expr::col(Alias::new(&col_name)), Alias::new("weight"))
-                    .order_by(Alias::new(&col_name), if sort_by.desc { Order::Desc } else { Order::Asc });
-            },
+                    .order_by(
+                        Alias::new(&col_name),
+                        if sort_by.desc {
+                            Order::Desc
+                        } else {
+                            Order::Asc
+                        },
+                    );
+            }
             QueryCommonConstraint::Limit(limit) => {
                 stmt.limit(limit);
-            },
+            }
         }
     }
 
@@ -202,21 +225,26 @@ impl Query {
         Self::traverse_with_params(db, params).await
     }
 
-    async fn traverse_with_params(db: &DbConn, params: QueryGraphParams) -> Result<QueryResultJson, DbErr> {
+    async fn traverse_with_params(
+        db: &DbConn,
+        params: QueryGraphParams,
+    ) -> Result<QueryResultJson, DbErr> {
         let builder = db.get_database_backend();
         let edge_table = &format_edge_table_name(params.relation_name?);
         let node_table = &format_node_table_name(params.entity_name?);
 
         // Start with root nodes
         let mut pending_nodes: Vec<String> = {
-            let root_node_stmt =
-                sea_query::Query::select()
+            let root_node_stmt = sea_query::Query::select()
                 .column(Alias::new("name"))
                 .from(Alias::new(node_table))
                 .cond_where(
-                    params.root_node_names.into_iter().fold(Cond::any(), |cond, name| {
-                        cond.add(Expr::col(Alias::new("name")).eq(name))
-                    })
+                    params
+                        .root_node_names
+                        .into_iter()
+                        .fold(Cond::any(), |cond, name| {
+                            cond.add(Expr::col(Alias::new("name")).eq(name))
+                        }),
                 )
                 .to_owned();
 
@@ -233,33 +261,41 @@ impl Query {
 
         // Normal direction: Join on "from" -> finding "to"'s
         // Reverse: Join on "to" -> finding "from"'s
-        let join_col = if !params.reverse_direction { "from_node" } else { "to_node" };
+        let join_col = if !params.reverse_direction {
+            "from_node"
+        } else {
+            "to_node"
+        };
 
         let mut depth = 0;
         while params.max_depth.is_none() || depth < params.max_depth.unwrap() {
-            
             // Fetch target edges from pending_nodes
             let target_edges = {
-                let mut target_edge_stmt =
-                    sea_query::Query::select()
+                let mut target_edge_stmt = sea_query::Query::select()
                     .columns([Alias::new("from_node"), Alias::new("to_node")])
                     .from(Alias::new(edge_table))
                     .inner_join(
                         Alias::new(node_table),
                         Expr::tbl(Alias::new(node_table), Alias::new("name"))
-                            .equals(Alias::new(edge_table), Alias::new(join_col))
+                            .equals(Alias::new(edge_table), Alias::new(join_col)),
                     )
                     .cond_where(
-                        pending_nodes.into_iter().fold(Cond::any(), |cond, node_name| {
-                            cond.add(Expr::col(Alias::new(join_col)).eq(node_name))
-                        })
+                        pending_nodes
+                            .into_iter()
+                            .fold(Cond::any(), |cond, node_name| {
+                                cond.add(Expr::col(Alias::new(join_col)).eq(node_name))
+                            }),
                     )
                     .to_owned();
 
                 if let Some(key) = &params.batch_sort_key {
                     target_edge_stmt.order_by(
                         (Alias::new(node_table), Alias::new(key)),
-                        if params.batch_sort_asc { Order::Asc } else { Order::Desc }
+                        if params.batch_sort_asc {
+                            Order::Asc
+                        } else {
+                            Order::Desc
+                        },
                     );
                 }
 
@@ -267,14 +303,21 @@ impl Query {
                     target_edge_stmt.limit(max_batch_size);
                 }
 
-                QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt)).all(db).await?
+                QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt))
+                    .all(db)
+                    .await?
             };
 
             let mut total_nodes_full = false;
 
-            pending_nodes = target_edges.into_iter()
+            pending_nodes = target_edges
+                .into_iter()
                 .filter_map(|edge| {
-                    let target_node_name = if !params.reverse_direction { edge.to_node.clone() } else { edge.from_node.clone() };
+                    let target_node_name = if !params.reverse_direction {
+                        edge.to_node.clone()
+                    } else {
+                        edge.from_node.clone()
+                    };
 
                     result_edges.insert(edge);
 
@@ -300,10 +343,10 @@ impl Query {
         }
 
         // Make sure all edges in result_edges use only nodes in result_nodes
-        let edges: Vec<QueryResultEdge> = result_edges.into_iter()
+        let edges: Vec<QueryResultEdge> = result_edges
+            .into_iter()
             .filter(|edge| {
-                result_nodes.contains(&edge.from_node)
-                && result_nodes.contains(&edge.to_node)
+                result_nodes.contains(&edge.from_node) && result_nodes.contains(&edge.to_node)
             })
             .collect();
 
@@ -313,22 +356,18 @@ impl Query {
                 .column(Alias::new("name"))
                 .expr_as(Expr::col(Alias::new(&weight_key)), Alias::new("weight"))
                 .from(Alias::new(node_table))
-                .cond_where(
-                    result_nodes.into_iter().fold(Cond::any(), |cond, name| {
-                        cond.add(Expr::col(Alias::new("name")).eq(name))
-                    })
-                )
+                .cond_where(result_nodes.into_iter().fold(Cond::any(), |cond, name| {
+                    cond.add(Expr::col(Alias::new("name")).eq(name))
+                }))
                 .to_owned();
-            
-            QueryResultNode::find_by_statement(builder.build(&stmt)).all(db).await?
+
+            QueryResultNode::find_by_statement(builder.build(&stmt))
+                .all(db)
+                .await?
         } else {
-            result_nodes.into_iter()
-                .map(|name| {
-                    QueryResultNode {
-                        name,
-                        weight: None,
-                    }
-                })
+            result_nodes
+                .into_iter()
+                .map(|name| QueryResultNode { name, weight: None })
                 .collect()
         };
 
