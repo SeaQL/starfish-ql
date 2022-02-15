@@ -75,7 +75,7 @@ pub enum QueryGraphConstraint {
         traversal: QueryConstraintTraversalJson,
     },
     /// Specify what nodes to use as root nodes
-    RootNodes(Vec<HashMap<String, JsonValue>>),
+    RootNodes(Vec<String>),
     /// Limit on recursion in graph construction
     Limit(QueryGraphConstraintLimitJson),
 }

@@ -12,7 +12,7 @@ use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
     Statement, JsonValue,
 };
-use sea_query::{Alias, Expr, SelectStatement};
+use sea_query::{Alias, Expr, SelectStatement, Cond};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{mem, collections::HashMap};
@@ -27,6 +27,12 @@ pub struct QueryResultNode {
     weight: Option<f64>,
 }
 
+#[derive(Debug, Clone, Hash, PartialEq, Eq, FromQueryResult)]
+/// A helper struct to temporarily store unique nodes
+struct NodeName {
+    name: String,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]
 /// A queried edge
 pub struct QueryResultEdge {
@@ -38,17 +44,19 @@ pub struct QueryResultEdge {
 /// A helper struct to specify how to perform a graph query
 pub struct QueryGraphParams {
     /// Which entity to consider for constructing the graph (unformatted)
-    pub entity_name: Result<String,()>,
+    pub entity_name: Result<String, DbErr>,
     /// Which relation to consider for constructing the graph (unformatted)
-    pub relation_name: Result<String,()>,
+    pub relation_name: Result<String, DbErr>,
     /// Whether to reverse the direction when constructing the graph
     pub reverse_direction: bool,
-    /// Specify the root nodes to be the union of ((the sets of nodes) each satisfying the conditions in one hash map)
-    pub root_nodes_specifiers: Vec<HashMap<String, JsonValue>>,
+    /// Specify the root nodes to be the nodes with the supplied names
+    /// The keys in the HashMaps must be Formatted.
+    pub root_node_names: Vec<String>,
     /// Recursion goes up to this level, 0 means no recursion at all.
     /// Recursion does not terminate early if this value is None.
     pub max_depth: Option<u64>,
-    /// Sort each batch on this key (this value is an Formatted column name)
+    /// Sort each batch on this key (this value is a Formatted column name).
+    /// This key is also used as for filling the `weight` field of queried nodes, if supplied.
     /// The order is random if this value is None.
     pub batch_sort_key: Option<String>,
     /// Sort each batch in an ascending order if this value is true.
@@ -64,10 +72,10 @@ pub struct QueryGraphParams {
 impl Default for QueryGraphParams {
     fn default() -> Self {
         Self {
-            entity_name: Err(()),
-            relation_name: Err(()),
+            entity_name: Err(DbErr::Custom("Entity name is unspecified.".to_owned())),
+            relation_name: Err(DbErr::Custom("Relation name is unspecified.".to_owned())),
             reverse_direction: false,
-            root_nodes_specifiers: vec![],
+            root_node_names: vec![],
             max_depth: Some(6),
             batch_sort_key: None,
             batch_sort_asc: false,
@@ -116,8 +124,8 @@ impl QueryGraphParams {
                 self.relation_name = Ok(of);
                 self.reverse_direction = traversal.reverse_direction;
             },
-            QueryGraphConstraint::RootNodes(root_nodes_specifiers) => {
-                self.root_nodes_specifiers = root_nodes_specifiers;
+            QueryGraphConstraint::RootNodes(root_node_names) => {
+                self.root_node_names = root_node_names;
             },
             QueryGraphConstraint::Limit(limit) => {
                 match limit {
@@ -191,12 +199,62 @@ impl Query {
     async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
         let params = QueryGraphParams::from_query_graph_metadata(metadata);
 
-        Self::traverse_with_params(db, params).await;
+        Self::traverse_with_params(db, params).await
+    }
 
-        Ok(QueryResultJson::Graph {
-            nodes: vec![],
-            edges: vec![],
-        })
+    async fn traverse_with_params(db: &DbConn, params: QueryGraphParams) -> Result<QueryResultJson, DbErr> {
+        let builder = db.get_database_backend();
+        let edge_table = &format_edge_table_name(params.relation_name?);
+        let node_table = &format_node_table_name(params.entity_name?);
+
+        // Start with root nodes
+        let pending_nodes = {
+            let root_node_stmt =
+                sea_query::Query::select()
+                    .column(Alias::new("name"))
+                    .from(Alias::new(node_table))
+                    .cond_where(
+                        params.root_node_names.into_iter().fold(Cond::any(), |cond, name| {
+                            cond.add(Expr::col(Alias::new("name")).eq(name))
+                        })
+                    )
+                    .to_owned();
+
+            NodeName::find_by_statement(builder.build(&root_node_stmt)).all(db).await?
+        };
+
+        todo!();
+
+        let mut node_stmt = sea_query::Query::select();
+        node_stmt
+            .column(Alias::new("name"))
+            .from(Alias::new(node_table));
+        if let Some(key) = &params.batch_sort_key {
+            node_stmt.expr_as(Expr::col(Alias::new(key)), Alias::new("weight"));
+        } else {
+            node_stmt.expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"));
+        }
+
+        // Normal direction: Join on "from" -> finding "to"'s
+        // Reverse: Join on "to" -> finding "from"'s
+        let join_col = if !params.reverse_direction { "from_node" } else { "to_node" };
+        let mut edge_stmt = sea_query::Query::select();
+        edge_stmt
+            .columns([Alias::new("from_node"), Alias::new("to_node")])
+            .from(Alias::new(edge_table))
+            .inner_join(
+                Alias::new(node_table),
+                Expr::tbl(Alias::new(node_table), Alias::new("name"))
+                    .equals(Alias::new(edge_table), Alias::new(join_col))
+            );
+        if let Some(key) = params.batch_sort_key {
+            edge_stmt.order_by(
+                (Alias::new(node_table), Alias::new(&key)),
+                if params.batch_sort_asc { Order::Asc } else { Order::Desc }
+            );
+        }
+
+        todo!()
     }
 }
 
