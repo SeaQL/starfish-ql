@@ -208,7 +208,7 @@ impl Query {
         let node_table = &format_node_table_name(params.entity_name?);
 
         // Start with root nodes
-        let pending_nodes = {
+        let mut pending_nodes = {
             let root_node_stmt =
                 sea_query::Query::select()
                 .column(Alias::new("name"))
@@ -229,7 +229,6 @@ impl Query {
         // Normal direction: Join on "from" -> finding "to"'s
         // Reverse: Join on "to" -> finding "from"'s
         let join_col = if !params.reverse_direction { "from_node" } else { "to_node" };
-        let target_col = if !params.reverse_direction { "to_node" } else { "from_node" };
 
         let mut depth = 0;
         while params.max_depth.is_none() || depth < params.max_depth.unwrap() {
@@ -262,7 +261,23 @@ impl Query {
                 QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt)).all(db).await?
             };
 
-            println!("{:?}", target_edges);
+            pending_nodes = target_edges.into_iter()
+                .filter_map(|edge| {
+                    let target_node_name = NodeName {
+                        name: if !params.reverse_direction { edge.to_node.clone() } else { edge.from_node.clone() }
+                    };
+
+                    result_edges.insert(edge);
+
+                    if result_nodes.insert(target_node_name.clone()) {
+                        Some(target_node_name)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            println!("{:?}", pending_nodes);
 
             depth += 1;
             todo!();
