@@ -15,7 +15,7 @@ use sea_orm::{
 use sea_query::{Alias, Expr, SelectStatement, Cond};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{mem, collections::HashMap};
+use std::{mem, collections::{HashMap, HashSet}};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -33,7 +33,7 @@ struct NodeName {
     name: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 /// A queried edge
 pub struct QueryResultEdge {
     from_node: String,
@@ -211,19 +211,62 @@ impl Query {
         let pending_nodes = {
             let root_node_stmt =
                 sea_query::Query::select()
-                    .column(Alias::new("name"))
-                    .from(Alias::new(node_table))
-                    .cond_where(
-                        params.root_node_names.into_iter().fold(Cond::any(), |cond, name| {
-                            cond.add(Expr::col(Alias::new("name")).eq(name))
-                        })
-                    )
-                    .to_owned();
+                .column(Alias::new("name"))
+                .from(Alias::new(node_table))
+                .cond_where(
+                    params.root_node_names.into_iter().fold(Cond::any(), |cond, name| {
+                        cond.add(Expr::col(Alias::new("name")).eq(name))
+                    })
+                )
+                .to_owned();
 
             NodeName::find_by_statement(builder.build(&root_node_stmt)).all(db).await?
         };
 
-        todo!();
+        let mut result_nodes: HashSet<NodeName> = HashSet::from_iter(pending_nodes.iter().cloned());
+        let mut result_edges: HashSet<QueryResultEdge> = HashSet::new();
+
+        // Normal direction: Join on "from" -> finding "to"'s
+        // Reverse: Join on "to" -> finding "from"'s
+        let join_col = if !params.reverse_direction { "from_node" } else { "to_node" };
+        let target_col = if !params.reverse_direction { "to_node" } else { "from_node" };
+
+        let mut depth = 0;
+        while params.max_depth.is_none() || depth < params.max_depth.unwrap() {
+            
+            // Fetch target edges from pending_nodes
+            let target_edges = {
+                let mut target_edge_stmt =
+                    sea_query::Query::select()
+                    .columns([Alias::new("from_node"), Alias::new("to_node")])
+                    .from(Alias::new(edge_table))
+                    .inner_join(
+                        Alias::new(node_table),
+                        Expr::tbl(Alias::new(node_table), Alias::new("name"))
+                            .equals(Alias::new(edge_table), Alias::new(join_col))
+                    )
+                    .cond_where(
+                        pending_nodes.into_iter().fold(Cond::any(), |cond, node_name| {
+                            cond.add(Expr::col(Alias::new(join_col)).eq(node_name.name))
+                        })
+                    )
+                    .to_owned();
+
+                if let Some(key) = params.batch_sort_key {
+                    target_edge_stmt.order_by(
+                        (Alias::new(node_table), Alias::new(&key)),
+                        if params.batch_sort_asc { Order::Asc } else { Order::Desc }
+                    );
+                }
+
+                QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt)).all(db).await?
+            };
+
+            println!("{:?}", target_edges);
+
+            depth += 1;
+            todo!();
+        }
 
         let mut node_stmt = sea_query::Query::select();
         node_stmt
@@ -234,25 +277,7 @@ impl Query {
         } else {
             node_stmt.expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"));
         }
-
-        // Normal direction: Join on "from" -> finding "to"'s
-        // Reverse: Join on "to" -> finding "from"'s
-        let join_col = if !params.reverse_direction { "from_node" } else { "to_node" };
-        let mut edge_stmt = sea_query::Query::select();
-        edge_stmt
-            .columns([Alias::new("from_node"), Alias::new("to_node")])
-            .from(Alias::new(edge_table))
-            .inner_join(
-                Alias::new(node_table),
-                Expr::tbl(Alias::new(node_table), Alias::new("name"))
-                    .equals(Alias::new(edge_table), Alias::new(join_col))
-            );
-        if let Some(key) = params.batch_sort_key {
-            edge_stmt.order_by(
-                (Alias::new(node_table), Alias::new(&key)),
-                if params.batch_sort_asc { Order::Asc } else { Order::Desc }
-            );
-        }
+        
 
         todo!()
     }
