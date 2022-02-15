@@ -208,7 +208,7 @@ impl Query {
         let node_table = &format_node_table_name(params.entity_name?);
 
         // Start with root nodes
-        let mut pending_nodes = {
+        let mut pending_nodes: Vec<String> = {
             let root_node_stmt =
                 sea_query::Query::select()
                 .column(Alias::new("name"))
@@ -220,10 +220,15 @@ impl Query {
                 )
                 .to_owned();
 
-            NodeName::find_by_statement(builder.build(&root_node_stmt)).all(db).await?
+            NodeName::find_by_statement(builder.build(&root_node_stmt))
+                .all(db)
+                .await?
+                .into_iter()
+                .map(|node| node.name)
+                .collect()
         };
 
-        let mut result_nodes: HashSet<NodeName> = HashSet::from_iter(pending_nodes.iter().cloned());
+        let mut result_nodes: HashSet<String> = HashSet::from_iter(pending_nodes.iter().cloned());
         let mut result_edges: HashSet<QueryResultEdge> = HashSet::new();
 
         // Normal direction: Join on "from" -> finding "to"'s
@@ -246,12 +251,12 @@ impl Query {
                     )
                     .cond_where(
                         pending_nodes.into_iter().fold(Cond::any(), |cond, node_name| {
-                            cond.add(Expr::col(Alias::new(join_col)).eq(node_name.name))
+                            cond.add(Expr::col(Alias::new(join_col)).eq(node_name))
                         })
                     )
                     .to_owned();
 
-                if let Some(key) = params.batch_sort_key {
+                if let Some(key) = &params.batch_sort_key {
                     target_edge_stmt.order_by(
                         (Alias::new(node_table), Alias::new(&key)),
                         if params.batch_sort_asc { Order::Asc } else { Order::Desc }
@@ -263,9 +268,7 @@ impl Query {
 
             pending_nodes = target_edges.into_iter()
                 .filter_map(|edge| {
-                    let target_node_name = NodeName {
-                        name: if !params.reverse_direction { edge.to_node.clone() } else { edge.from_node.clone() }
-                    };
+                    let target_node_name = if !params.reverse_direction { edge.to_node.clone() } else { edge.from_node.clone() };
 
                     result_edges.insert(edge);
 
@@ -280,19 +283,9 @@ impl Query {
             println!("{:?}", pending_nodes);
 
             depth += 1;
-            todo!();
         }
 
-        let mut node_stmt = sea_query::Query::select();
-        node_stmt
-            .column(Alias::new("name"))
-            .from(Alias::new(node_table));
-        if let Some(key) = &params.batch_sort_key {
-            node_stmt.expr_as(Expr::col(Alias::new(key)), Alias::new("weight"));
-        } else {
-            node_stmt.expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"));
-        }
-        
+        // Make sure all edges in result_edges use only nodes in result_nodes        
 
         todo!()
     }
