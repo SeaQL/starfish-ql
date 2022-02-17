@@ -152,7 +152,9 @@ impl QueryGraphParams {
             }
             QueryGraphConstraint::Limit(limit) => match limit {
                 QueryGraphConstraintLimitJson::Depth(depth) => self.max_depth = depth,
-                QueryGraphConstraintLimitJson::BatchSize(batch_size) => self.max_batch_size = batch_size,
+                QueryGraphConstraintLimitJson::BatchSize(batch_size) => {
+                    self.max_batch_size = batch_size
+                }
             },
         }
     }

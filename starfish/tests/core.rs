@@ -603,18 +603,15 @@ async fn query_graph_limited_batch_size(db: &DbConn) -> Result<(), DbErr> {
         });
 
         // Assert that the fetched edges in the graph are correct
-        [
-            ("E", "C"),
-            ("E", "F"),
-        ]
-        .into_iter()
-        .map(|(from, to)| QueryResultEdge {
-            from_node: from.to_owned(),
-            to_node: to.to_owned(),
-        })
-        .for_each(|edge| {
-            assert!(edges.contains(&edge));
-        });
+        [("E", "C"), ("E", "F")]
+            .into_iter()
+            .map(|(from, to)| QueryResultEdge {
+                from_node: from.to_owned(),
+                to_node: to.to_owned(),
+            })
+            .for_each(|edge| {
+                assert!(edges.contains(&edge));
+            });
     } else {
         panic!("Query result should be a Graph.");
     }
