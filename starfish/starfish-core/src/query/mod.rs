@@ -28,11 +28,13 @@ const DEBUG: bool = false;
 #[derive(Debug, Clone, Serialize, Deserialize, FromQueryResult)]
 /// A queried node
 pub struct QueryResultNode {
-    name: String,
-    weight: Option<f64>,
+    /// Name of the node
+    pub name: String,
+    /// Associated weight (specified in query)
+    pub weight: Option<f64>,
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, FromQueryResult)]
+#[derive(Debug, Clone, FromQueryResult)]
 /// A helper struct to temporarily store unique nodes
 struct NodeName {
     name: String,
@@ -41,8 +43,10 @@ struct NodeName {
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
 /// A queried edge
 pub struct QueryResultEdge {
-    from_node: String,
-    to_node: String,
+    /// Name of the node in the from side
+    pub from_node: String,
+    /// Name of the node in the to side
+    pub to_node: String,
 }
 
 #[derive(Debug)]
