@@ -22,9 +22,10 @@ use starfish_core::{
     schema::Schema,
 };
 
+/// For testing the 'schema' and 'mutate' endpoints
 #[smol_potat::test]
-async fn main() -> Result<(), DbErr> {
-    let ctx = TestContext::new("starfish_core").await;
+async fn schema_mutate() -> Result<(), DbErr> {
+    let ctx = TestContext::new("starfish_core_schema_mutate").await;
     let db = &ctx.db;
 
     Migrator::fresh(db).await?;
@@ -290,4 +291,89 @@ impl TestEdge {
 
         Self::find_by_statement(builder.build(&stmt)).all(db).await
     }
+}
+
+/// Specifically for testing the 'query' endpoint.
+/// Assumes that the 'schema' and 'mutate' endpoints work correctly.
+#[smol_potat::test]
+async fn query() -> Result<(), DbErr> {
+    let ctx = TestContext::new("starfish_core_schema_mutate").await;
+    let db = &ctx.db;
+
+    Migrator::fresh(db).await?;
+
+    let schema_json = SchemaJson {
+        define: SchemaDefineJson {
+            entities: vec![EntityJson {
+                name: "crate".to_owned(),
+                attributes: vec![EntityAttrJson {
+                    name: "version".to_owned(),
+                    datatype: Datatype::String,
+                }],
+            }],
+            relations: vec![RelationJson {
+                name: "depends".to_owned(),
+                from_entity: "crate".to_owned(),
+                to_entity: "crate".to_owned(),
+                directed: true,
+            }],
+        },
+    };
+
+    Schema::define_schema(db, schema_json).await?;
+
+    construct_mock_graph(db).await?;
+
+    Ok(())
+}
+
+async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
+    let insert_nodes_json = MutateJson::insert(
+        MutateInsertJson::node(
+            NodeJsonBatch {
+                of: "crate".to_owned(),
+                nodes: Node::new_vec(vec!["A", "B", "C", "D", "E", "F"]),
+            }
+        )
+    );
+
+    Mutate::mutate(db, insert_nodes_json, false).await?;
+
+    let insert_edges_json = MutateJson::insert(
+        MutateInsertJson::edge(
+            EdgeJsonBatch {
+                of: "depends".to_owned(),
+                edges: Edge::new_vec(vec![
+                    ("A", "C"),
+                    ("B", "C"),
+                    ("B", "D"),
+                    ("C", "E"),
+                    ("D", "E"),
+                    ("D", "F"),
+                ]),
+            }
+        )
+    );
+
+    Mutate::mutate(db, insert_edges_json, false).await?;
+
+    Mutate::calculate_simple_connectivity(db, "depends", "crate", "crate").await?;
+    Mutate::calculate_compound_connectivity(db, "depends", "crate").await?;
+    for (weight, col_name) in [
+        (0.3, "in_conn_complex03"),
+        (0.5, "in_conn_complex05"),
+        (0.7, "in_conn_complex07"),
+    ] {
+        Mutate::calculate_complex_connectivity(
+            db,
+            "depends",
+            "crate",
+            weight,
+            f64::EPSILON,
+            col_name,
+        )
+        .await?;
+    }
+
+    Ok(())
 }

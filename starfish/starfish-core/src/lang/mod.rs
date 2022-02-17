@@ -110,6 +110,27 @@ pub struct Node {
     pub attributes: HashMap<String, JsonValue>,
 }
 
+impl Node {
+    /// Construct a new Node with no attributes
+    pub fn new<S>(name: S) -> Self
+    where S: Into<String>,
+    {
+        Self {
+            name: name.into(),
+            attributes: Default::default(),
+        }
+    }
+
+    /// Construct a vector of new Nodes with no attributes
+    pub fn new_vec<S>(names: Vec<S>) -> Vec<Self>
+    where S: Into<String>,
+    {
+        names.into_iter()
+            .map(Self::new)
+            .collect()
+    }
+}
+
 /// Metadata of nodes in batch, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeJsonBatch {
@@ -126,6 +147,31 @@ pub struct Edge {
     pub from_node: String,
     /// Name of related node (to side)
     pub to_node: String,
+}
+
+impl Edge {
+    /// Construct a new Edge
+    pub fn new<SFrom, STo>(from: SFrom, to: STo) -> Self
+    where
+        SFrom: Into<String>,
+        STo: Into<String>,
+    {
+        Self {
+            from_node: from.into(),
+            to_node: to.into(),
+        }
+    }
+
+    /// Construct a vector of new Edges
+    pub fn new_vec<SFrom, STo>(pairs: Vec<(SFrom, STo)>) -> Vec<Self>
+    where
+        SFrom: Into<String>,
+        STo: Into<String>,
+    {
+        pairs.into_iter()
+            .map(|(from, to)| Self::new(from, to))
+            .collect()
+    }
 }
 
 /// Metadata of edges in batch, deserialized as struct from json
