@@ -358,15 +358,12 @@ impl Query {
 
         // Make sure all edges in result_edges use only nodes in result_nodes
         let edges: Vec<QueryResultEdge> = {
-            let iter = result_edges
-                .into_iter()
-                .filter(|edge| {
-                    result_nodes.contains(&edge.from_node) && result_nodes.contains(&edge.to_node)
-                });
+            let iter = result_edges.into_iter().filter(|edge| {
+                result_nodes.contains(&edge.from_node) && result_nodes.contains(&edge.to_node)
+            });
 
             if params.reverse_direction {
-                iter.map(|edge| edge.to_flipped())
-                    .collect()
+                iter.map(|edge| edge.to_flipped()).collect()
             } else {
                 iter.collect()
             }

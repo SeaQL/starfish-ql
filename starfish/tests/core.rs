@@ -11,8 +11,10 @@ use starfish_core::lang::mutate::{
     MutateNodeSelectorJson, MutateUpdateJson,
 };
 use starfish_core::lang::query::{
-    QueryCommonConstraint, QueryConstraintSortByJson, QueryConstraintSortByKeyJson, QueryJson,
-    QueryResultJson, QueryVectorConstraintJson, QueryVectorJson, QueryGraphJson, QueryGraphConstraintJson, QueryGraphConstraint, QueryConstraintTraversalJson, QueryGraphConstraintLimitJson,
+    QueryCommonConstraint, QueryConstraintSortByJson, QueryConstraintSortByKeyJson,
+    QueryConstraintTraversalJson, QueryGraphConstraint, QueryGraphConstraintJson,
+    QueryGraphConstraintLimitJson, QueryGraphJson, QueryJson, QueryResultJson,
+    QueryVectorConstraintJson, QueryVectorJson,
 };
 use starfish_core::lang::schema::{SchemaDefineJson, SchemaJson};
 use starfish_core::lang::{ConnectivityTypeJson, Edge, EdgeJsonBatch, Node, NodeJsonBatch};
@@ -339,6 +341,8 @@ async fn query() -> Result<(), DbErr> {
 
     query_graph_normal(db).await?;
 
+    query_graph_reversed(db).await?;
+
     Ok(())
 }
 
@@ -434,34 +438,26 @@ async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
 }
 
 async fn query_graph_normal(db: &DbConn) -> Result<(), DbErr> {
-    let query_json = QueryJson::Graph(
-        QueryGraphJson {
-            of: "letter".to_owned(),
-            constraints: vec![
-                // Sort by simple in_conn
-                QueryGraphConstraintJson::Common(QueryCommonConstraint::SortBy(
-                    QueryConstraintSortByJson {
-                        key: QueryConstraintSortByKeyJson::Connectivity {
-                            of: "likes".to_owned(),
-                            r#type: ConnectivityTypeJson::Simple,
-                        },
-                        desc: true,
-                    },
-                )),
-                // Use the edges in "likes"
-                QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Edge {
-                    of: "likes".to_owned(),
-                    traversal: QueryConstraintTraversalJson { reverse_direction: false }
-                }),
-                // Use "A" as root node
-                QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::RootNodes(vec!["A".to_owned()])),
-                // Set max depth as 2
-                QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
-                    QueryGraphConstraintLimitJson::Depth(2)
-                )),
-            ],
-        }
-    );
+    let query_json = QueryJson::Graph(QueryGraphJson {
+        of: "letter".to_owned(),
+        constraints: vec![
+            // Use the edges in "likes"
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Edge {
+                of: "likes".to_owned(),
+                traversal: QueryConstraintTraversalJson {
+                    reverse_direction: false,
+                },
+            }),
+            // Use "A" as root node
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::RootNodes(vec![
+                "A".to_owned()
+            ])),
+            // Set max depth as 2
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
+                QueryGraphConstraintLimitJson::Depth(2),
+            )),
+        ],
+    });
 
     if let QueryResultJson::Graph { nodes, edges } = Query::query(db, query_json).await? {
         assert_eq!(nodes.len(), 3);
@@ -481,12 +477,84 @@ async fn query_graph_normal(db: &DbConn) -> Result<(), DbErr> {
 
         // Assert that the fetched edges in the graph are correct
         [
-            QueryResultEdge { from_node: "A".to_owned(), to_node: "C".to_owned() },
-            QueryResultEdge { from_node: "C".to_owned(), to_node: "E".to_owned() },
-        ].into_iter().for_each(|edge| {
+            QueryResultEdge {
+                from_node: "A".to_owned(),
+                to_node: "C".to_owned(),
+            },
+            QueryResultEdge {
+                from_node: "C".to_owned(),
+                to_node: "E".to_owned(),
+            },
+        ]
+        .into_iter()
+        .for_each(|edge| {
             assert!(edges.contains(&edge));
         });
+    } else {
+        panic!("Query result should be a Graph.");
+    }
 
+    println!("Queried normal graph successfully.");
+
+    Ok(())
+}
+
+async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
+    let query_json = QueryJson::Graph(QueryGraphJson {
+        of: "letter".to_owned(),
+        constraints: vec![
+            // Use the edges in "likes", but reversed
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Edge {
+                of: "likes".to_owned(),
+                traversal: QueryConstraintTraversalJson {
+                    reverse_direction: true,
+                },
+            }),
+            // Use "E" as root node
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::RootNodes(vec![
+                "E".to_owned()
+            ])),
+            // Set max depth as 2
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
+                QueryGraphConstraintLimitJson::Depth(2),
+            )),
+        ],
+    });
+
+    if let QueryResultJson::Graph { nodes, edges } = Query::query(db, query_json).await? {
+        assert_eq!(nodes.len(), 6);
+        assert_eq!(edges.len(), 7);
+
+        let nodes: HashSet<String> = HashSet::from_iter(nodes.into_iter().map(|node| node.name));
+        let edges: HashSet<QueryResultEdge> = HashSet::from_iter(edges.into_iter());
+
+        // Assert the uniqueness of elements in nodes and edges
+        assert_eq!(nodes.len(), 6);
+        assert_eq!(edges.len(), 7);
+
+        // Assert that the fetched nodes in the graph are correct
+        ["A", "B", "C", "D", "E", "F"].into_iter().for_each(|node| {
+            assert!(nodes.contains(node));
+        });
+
+        // Assert that the fetched edges in the graph are correct
+        [
+            ("F", "D"),
+            ("E", "C"),
+            ("E", "D"),
+            ("E", "F"),
+            ("D", "B"),
+            ("C", "A"),
+            ("C", "B"),
+        ]
+        .into_iter()
+        .map(|(from, to)| QueryResultEdge {
+            from_node: from.to_owned(),
+            to_node: to.to_owned(),
+        })
+        .for_each(|edge| {
+            assert!(edges.contains(&edge));
+        });
     } else {
         panic!("Query result should be a Graph.");
     }
