@@ -1,6 +1,6 @@
 mod common;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use common::TestContext;
 use migration::sea_orm::{ConnectionTrait, DbConn, FromQueryResult};
@@ -12,12 +12,12 @@ use starfish_core::lang::mutate::{
 };
 use starfish_core::lang::query::{
     QueryCommonConstraint, QueryConstraintSortByJson, QueryConstraintSortByKeyJson, QueryJson,
-    QueryResultJson, QueryVectorConstraintJson, QueryVectorJson,
+    QueryResultJson, QueryVectorConstraintJson, QueryVectorJson, QueryGraphJson, QueryGraphConstraintJson, QueryGraphConstraint, QueryConstraintTraversalJson, QueryGraphConstraintLimitJson,
 };
 use starfish_core::lang::schema::{SchemaDefineJson, SchemaJson};
 use starfish_core::lang::{ConnectivityTypeJson, Edge, EdgeJsonBatch, Node, NodeJsonBatch};
 use starfish_core::mutate::Mutate;
-use starfish_core::query::Query;
+use starfish_core::query::{Query, QueryResultEdge};
 use starfish_core::schema::{format_edge_table_name, format_node_table_name};
 use starfish_core::sea_query::{Alias, Cond, Expr};
 use starfish_core::{
@@ -337,6 +337,8 @@ async fn query() -> Result<(), DbErr> {
 
     query_vector(db).await?;
 
+    query_graph_normal(db).await?;
+
     Ok(())
 }
 
@@ -427,6 +429,69 @@ async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
     }
 
     println!("Queried vector successfully.");
+
+    Ok(())
+}
+
+async fn query_graph_normal(db: &DbConn) -> Result<(), DbErr> {
+    let query_json = QueryJson::Graph(
+        QueryGraphJson {
+            of: "letter".to_owned(),
+            constraints: vec![
+                // Sort by simple in_conn
+                QueryGraphConstraintJson::Common(QueryCommonConstraint::SortBy(
+                    QueryConstraintSortByJson {
+                        key: QueryConstraintSortByKeyJson::Connectivity {
+                            of: "likes".to_owned(),
+                            r#type: ConnectivityTypeJson::Simple,
+                        },
+                        desc: true,
+                    },
+                )),
+                // Use the edges in "likes"
+                QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Edge {
+                    of: "likes".to_owned(),
+                    traversal: QueryConstraintTraversalJson { reverse_direction: false }
+                }),
+                // Use "A" as root node
+                QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::RootNodes(vec!["A".to_owned()])),
+                // Set max depth as 2
+                QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
+                    QueryGraphConstraintLimitJson::Depth(2)
+                )),
+            ],
+        }
+    );
+
+    if let QueryResultJson::Graph { nodes, edges } = Query::query(db, query_json).await? {
+        assert_eq!(nodes.len(), 3);
+        assert_eq!(edges.len(), 2);
+
+        let nodes: HashSet<String> = HashSet::from_iter(nodes.into_iter().map(|node| node.name));
+        let edges: HashSet<QueryResultEdge> = HashSet::from_iter(edges.into_iter());
+
+        // Assert the uniqueness of elements in nodes and edges
+        assert_eq!(nodes.len(), 3);
+        assert_eq!(edges.len(), 2);
+
+        // Assert that the fetched nodes in the graph are correct
+        ["A", "C", "E"].into_iter().for_each(|node| {
+            assert!(nodes.contains(node));
+        });
+
+        // Assert that the fetched edges in the graph are correct
+        [
+            QueryResultEdge { from_node: "A".to_owned(), to_node: "C".to_owned() },
+            QueryResultEdge { from_node: "C".to_owned(), to_node: "E".to_owned() },
+        ].into_iter().for_each(|edge| {
+            assert!(edges.contains(&edge));
+        });
+
+    } else {
+        panic!("Query result should be a Graph.");
+    }
+
+    println!("Queried normal graph successfully.");
 
     Ok(())
 }
