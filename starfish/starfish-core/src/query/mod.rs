@@ -151,10 +151,8 @@ impl QueryGraphParams {
                 self.root_node_names = root_node_names;
             }
             QueryGraphConstraint::Limit(limit) => match limit {
-                QueryGraphConstraintLimitJson::Depth(depth) => self.max_depth = Some(depth),
-                QueryGraphConstraintLimitJson::BatchSize(batch_size) => {
-                    self.max_batch_size = Some(batch_size)
-                }
+                QueryGraphConstraintLimitJson::Depth(depth) => self.max_depth = depth,
+                QueryGraphConstraintLimitJson::BatchSize(batch_size) => self.max_batch_size = batch_size,
             },
         }
     }
@@ -333,15 +331,12 @@ impl Query {
                         edge.from_node.clone()
                     };
 
-                    result_edges.insert(edge);
-
-                    if result_nodes.insert(target_node_name.clone()) {
+                    if result_edges.insert(edge) && result_nodes.insert(target_node_name.clone()) {
                         if let Some(max_total_size) = params.max_total_size {
                             if result_nodes.len() >= max_total_size {
                                 total_nodes_full = true;
                             }
                         }
-
                         Some(target_node_name)
                     } else {
                         None
@@ -349,7 +344,7 @@ impl Query {
                 })
                 .collect();
 
-            if total_nodes_full {
+            if pending_nodes.is_empty() || total_nodes_full {
                 break;
             }
 

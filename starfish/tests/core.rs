@@ -363,6 +363,8 @@ async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
             ("C", "E"),
             ("D", "E"),
             ("D", "F"),
+            ("E", "F"),
+            ("F", "D"),
             ("F", "E"),
         ]),
     }));
@@ -414,17 +416,14 @@ async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
         assert_eq!(nodes[0].name, "E");
         assert!(f64_approximately(nodes[0].weight.unwrap(), 3));
 
-        // Assert that the second most liked letter is 'C'.
-        assert_eq!(nodes[1].name, "C");
-        assert!(f64_approximately(nodes[1].weight.unwrap(), 2));
-
         // Assert that the fetched weights of the remaining letters are correct.
         for node in nodes.into_iter().skip(2) {
             match node.name.as_str() {
                 "A" => assert!(f64_approximately(node.weight.unwrap(), 0)),
                 "B" => assert!(f64_approximately(node.weight.unwrap(), 0)),
-                "D" => assert!(f64_approximately(node.weight.unwrap(), 1)),
-                "F" => assert!(f64_approximately(node.weight.unwrap(), 1)),
+                "C" => assert!(f64_approximately(node.weight.unwrap(), 2)),
+                "D" => assert!(f64_approximately(node.weight.unwrap(), 2)),
+                "F" => assert!(f64_approximately(node.weight.unwrap(), 2)),
                 _ => panic!("An unknown letter is fetched."),
             }
         }
@@ -454,7 +453,7 @@ async fn query_graph_normal(db: &DbConn) -> Result<(), DbErr> {
             ])),
             // Set max depth as 2
             QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
-                QueryGraphConstraintLimitJson::Depth(2),
+                QueryGraphConstraintLimitJson::Depth(Some(2)),
             )),
         ],
     });
@@ -514,23 +513,24 @@ async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
             QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::RootNodes(vec![
                 "E".to_owned()
             ])),
-            // Set max depth as 2
+            // Set max depth as None (no limit)
+            // An incorrect implementation leads to infinite loop in cycle traversal
             QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
-                QueryGraphConstraintLimitJson::Depth(2),
+                QueryGraphConstraintLimitJson::Depth(None),
             )),
         ],
     });
 
     if let QueryResultJson::Graph { nodes, edges } = Query::query(db, query_json).await? {
         assert_eq!(nodes.len(), 6);
-        assert_eq!(edges.len(), 7);
+        assert_eq!(edges.len(), 9);
 
         let nodes: HashSet<String> = HashSet::from_iter(nodes.into_iter().map(|node| node.name));
         let edges: HashSet<QueryResultEdge> = HashSet::from_iter(edges.into_iter());
 
         // Assert the uniqueness of elements in nodes and edges
         assert_eq!(nodes.len(), 6);
-        assert_eq!(edges.len(), 7);
+        assert_eq!(edges.len(), 9);
 
         // Assert that the fetched nodes in the graph are correct
         ["A", "B", "C", "D", "E", "F"].into_iter().for_each(|node| {
@@ -540,10 +540,12 @@ async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
         // Assert that the fetched edges in the graph are correct
         [
             ("F", "D"),
+            ("F", "E"),
             ("E", "C"),
             ("E", "D"),
             ("E", "F"),
             ("D", "B"),
+            ("D", "F"),
             ("C", "A"),
             ("C", "B"),
         ]

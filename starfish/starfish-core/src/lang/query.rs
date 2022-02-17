@@ -118,10 +118,12 @@ pub enum QueryConstraintSortByKeyJson {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryGraphConstraintLimitJson {
-    /// Recurse to a certain depth, 0 means root only
-    Depth(u64),
+    /// Recurse to a certain depth, 0 means root only.
+    /// A `null` value means there is no limit
+    Depth(Option<u64>),
     /// Include up to this number of nodes in each batch
-    BatchSize(u64),
+    /// A `null` value means there is no limit
+    BatchSize(Option<u64>),
 }
 
 /// Metadata of a traversal method used in a query request, deserialized as struct from json
