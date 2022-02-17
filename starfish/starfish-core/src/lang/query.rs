@@ -123,7 +123,7 @@ pub enum QueryGraphConstraintLimitJson {
     Depth(Option<u64>),
     /// Include up to this number of nodes in each batch
     /// A `null` value means there is no limit
-    BatchSize(Option<u64>),
+    BatchSize(Option<usize>),
 }
 
 /// Metadata of a traversal method used in a query request, deserialized as struct from json

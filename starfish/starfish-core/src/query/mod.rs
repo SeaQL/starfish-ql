@@ -82,7 +82,7 @@ pub struct QueryGraphParams {
     pub batch_sort_asc: bool,
     /// Include up to this number of nodes in each batch.
     /// All nodes are included in all batches if this value is None.
-    pub max_batch_size: Option<u64>,
+    pub max_batch_size: Option<usize>,
     /// Include up to this number of nodes across the whole recursion.
     /// All nodes are included if this value is None.
     pub max_total_size: Option<usize>,
@@ -283,7 +283,7 @@ impl Query {
         while params.max_depth.is_none() || depth < params.max_depth.unwrap() {
             // Fetch target edges from pending_nodes
             let target_edges = {
-                let mut target_edge_stmt = sea_query::Query::select()
+                let target_edge_stmt = sea_query::Query::select()
                     .columns([Alias::new("from_node"), Alias::new("to_node")])
                     .from(Alias::new(edge_table))
                     .inner_join(
@@ -299,21 +299,6 @@ impl Query {
                             }),
                     )
                     .to_owned();
-
-                if let Some(key) = &params.batch_sort_key {
-                    target_edge_stmt.order_by(
-                        (Alias::new(node_table), Alias::new(key)),
-                        if params.batch_sort_asc {
-                            Order::Asc
-                        } else {
-                            Order::Desc
-                        },
-                    );
-                }
-
-                if let Some(max_batch_size) = params.max_batch_size {
-                    target_edge_stmt.limit(max_batch_size);
-                }
 
                 QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt))
                     .all(db)
@@ -331,7 +316,7 @@ impl Query {
                         edge.from_node.clone()
                     };
 
-                    if result_edges.insert(edge) && result_nodes.insert(target_node_name.clone()) {
+                    if result_edges.insert(edge) && !result_nodes.contains(&target_node_name) {
                         if let Some(max_total_size) = params.max_total_size {
                             if result_nodes.len() >= max_total_size {
                                 total_nodes_full = true;
@@ -343,6 +328,42 @@ impl Query {
                     }
                 })
                 .collect();
+
+            // Sort by specified key if appropriate
+            if let Some(order_by_key) = &params.batch_sort_key {
+                pending_nodes = {
+                    let stmt = sea_query::Query::select()
+                        .column(Alias::new("name"))
+                        .from(Alias::new(node_table))
+                        .cond_where(pending_nodes.into_iter().fold(Cond::any(), |cond, name| {
+                            cond.add(Expr::col(Alias::new("name")).eq(name))
+                        }))
+                        .order_by(
+                            Alias::new(order_by_key),
+                            if params.batch_sort_asc {
+                                Order::Asc
+                            } else {
+                                Order::Desc
+                            },
+                        )
+                        .to_owned();
+
+                    NodeName::find_by_statement(builder.build(&stmt))
+                        .all(db)
+                        .await?
+                        .into_iter()
+                        .map(|node| node.name)
+                        .collect()
+                };
+            }
+
+            if let Some(max_batch_size) = params.max_batch_size {
+                if max_batch_size < pending_nodes.len() {
+                    pending_nodes = pending_nodes[0..max_batch_size].to_vec();
+                }
+            }
+
+            result_nodes.extend(pending_nodes.iter().cloned());
 
             if pending_nodes.is_empty() || total_nodes_full {
                 break;
