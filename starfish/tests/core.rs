@@ -343,6 +343,8 @@ async fn query() -> Result<(), DbErr> {
 
     query_graph_reversed(db).await?;
 
+    query_graph_limited_batch_size(db).await?;
+
     Ok(())
 }
 
@@ -359,7 +361,6 @@ async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
         edges: Edge::new_vec(vec![
             ("A", "C"),
             ("B", "C"),
-            ("B", "D"),
             ("C", "E"),
             ("D", "E"),
             ("D", "F"),
@@ -372,22 +373,6 @@ async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
     Mutate::mutate(db, insert_edges_json, false).await?;
 
     Mutate::calculate_simple_connectivity(db, "likes", "letter", "letter").await?;
-    Mutate::calculate_compound_connectivity(db, "likes", "letter").await?;
-    for (weight, col_name) in [
-        (0.3, "in_conn_complex03"),
-        (0.5, "in_conn_complex05"),
-        (0.7, "in_conn_complex07"),
-    ] {
-        Mutate::calculate_complex_connectivity(
-            db,
-            "likes",
-            "letter",
-            weight,
-            f64::EPSILON,
-            col_name,
-        )
-        .await?;
-    }
 
     Ok(())
 }
@@ -422,7 +407,7 @@ async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
                 "A" => assert!(f64_approximately(node.weight.unwrap(), 0)),
                 "B" => assert!(f64_approximately(node.weight.unwrap(), 0)),
                 "C" => assert!(f64_approximately(node.weight.unwrap(), 2)),
-                "D" => assert!(f64_approximately(node.weight.unwrap(), 2)),
+                "D" => assert!(f64_approximately(node.weight.unwrap(), 1)),
                 "F" => assert!(f64_approximately(node.weight.unwrap(), 2)),
                 _ => panic!("An unknown letter is fetched."),
             }
@@ -523,14 +508,14 @@ async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
 
     if let QueryResultJson::Graph { nodes, edges } = Query::query(db, query_json).await? {
         assert_eq!(nodes.len(), 6);
-        assert_eq!(edges.len(), 9);
+        assert_eq!(edges.len(), 8);
 
         let nodes: HashSet<String> = HashSet::from_iter(nodes.into_iter().map(|node| node.name));
         let edges: HashSet<QueryResultEdge> = HashSet::from_iter(edges.into_iter());
 
         // Assert the uniqueness of elements in nodes and edges
         assert_eq!(nodes.len(), 6);
-        assert_eq!(edges.len(), 9);
+        assert_eq!(edges.len(), 8);
 
         // Assert that the fetched nodes in the graph are correct
         ["A", "B", "C", "D", "E", "F"].into_iter().for_each(|node| {
@@ -544,7 +529,6 @@ async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
             ("E", "C"),
             ("E", "D"),
             ("E", "F"),
-            ("D", "B"),
             ("D", "F"),
             ("C", "A"),
             ("C", "B"),
@@ -561,7 +545,81 @@ async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
         panic!("Query result should be a Graph.");
     }
 
-    println!("Queried normal graph successfully.");
+    println!("Queried reversed graph successfully.");
+
+    Ok(())
+}
+
+async fn query_graph_limited_batch_size(db: &DbConn) -> Result<(), DbErr> {
+    let query_json = QueryJson::Graph(QueryGraphJson {
+        of: "letter".to_owned(),
+        constraints: vec![
+            // Use the edges in "likes", but reversed
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Edge {
+                of: "likes".to_owned(),
+                traversal: QueryConstraintTraversalJson {
+                    reverse_direction: true,
+                },
+            }),
+            // Use "E" as root node
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::RootNodes(vec![
+                "E".to_owned()
+            ])),
+            // Set max depth as 1
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
+                QueryGraphConstraintLimitJson::Depth(Some(1)),
+            )),
+            // Set max batch size as 2
+            QueryGraphConstraintJson::Exclusive(QueryGraphConstraint::Limit(
+                QueryGraphConstraintLimitJson::BatchSize(Some(2)),
+            )),
+            // Sort by simple in_conn descendingly
+            QueryGraphConstraintJson::Common(QueryCommonConstraint::SortBy(
+                QueryConstraintSortByJson {
+                    key: QueryConstraintSortByKeyJson::Connectivity {
+                        of: "likes".to_owned(),
+                        r#type: ConnectivityTypeJson::Simple,
+                    },
+                    desc: true,
+                },
+            )),
+        ],
+    });
+
+    if let QueryResultJson::Graph { nodes, edges } = Query::query(db, query_json).await? {
+        assert_eq!(nodes.len(), 3);
+        assert_eq!(edges.len(), 2);
+
+        let nodes: HashSet<String> = HashSet::from_iter(nodes.into_iter().map(|node| node.name));
+        let edges: HashSet<QueryResultEdge> = HashSet::from_iter(edges.into_iter());
+
+        // Assert the uniqueness of elements in nodes and edges
+        assert_eq!(nodes.len(), 3);
+        assert_eq!(edges.len(), 2);
+
+        // Assert that the fetched nodes in the graph are correct
+        ["C", "E", "F"].into_iter().for_each(|node| {
+            assert!(nodes.contains(node));
+        });
+
+        // Assert that the fetched edges in the graph are correct
+        [
+            ("E", "C"),
+            ("E", "F"),
+        ]
+        .into_iter()
+        .map(|(from, to)| QueryResultEdge {
+            from_node: from.to_owned(),
+            to_node: to.to_owned(),
+        })
+        .for_each(|edge| {
+            assert!(edges.contains(&edge));
+        });
+    } else {
+        panic!("Query result should be a Graph.");
+    }
+
+    println!("Queried limited batch size graph successfully.");
 
     Ok(())
 }
