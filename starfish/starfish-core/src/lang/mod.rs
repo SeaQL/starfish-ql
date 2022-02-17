@@ -113,7 +113,8 @@ pub struct Node {
 impl Node {
     /// Construct a new Node with no attributes
     pub fn new<S>(name: S) -> Self
-    where S: Into<String>,
+    where
+        S: Into<String>,
     {
         Self {
             name: name.into(),
@@ -123,11 +124,10 @@ impl Node {
 
     /// Construct a vector of new Nodes with no attributes
     pub fn new_vec<S>(names: Vec<S>) -> Vec<Self>
-    where S: Into<String>,
+    where
+        S: Into<String>,
     {
-        names.into_iter()
-            .map(Self::new)
-            .collect()
+        names.into_iter().map(Self::new).collect()
     }
 }
 
@@ -168,7 +168,8 @@ impl Edge {
         SFrom: Into<String>,
         STo: Into<String>,
     {
-        pairs.into_iter()
+        pairs
+            .into_iter()
             .map(|(from, to)| Self::new(from, to))
             .collect()
     }
@@ -185,7 +186,7 @@ pub struct EdgeJsonBatch {
 
 /// Metadata of the connectivity in a 'sortBy' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub enum ConnectivityTypeJson {
     /// Simple in-connectivity
     Simple,

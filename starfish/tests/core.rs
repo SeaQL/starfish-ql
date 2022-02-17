@@ -10,17 +10,31 @@ use starfish_core::lang::mutate::{
     MutateDeleteJson, MutateEdgeContentJson, MutateEdgeSelectorJson, MutateInsertJson, MutateJson,
     MutateNodeSelectorJson, MutateUpdateJson,
 };
+use starfish_core::lang::query::{
+    QueryCommonConstraint, QueryConstraintSortByJson, QueryConstraintSortByKeyJson, QueryJson,
+    QueryResultJson, QueryVectorConstraintJson, QueryVectorJson,
+};
 use starfish_core::lang::schema::{SchemaDefineJson, SchemaJson};
-use starfish_core::lang::{Edge, EdgeJsonBatch, Node, NodeJsonBatch};
+use starfish_core::lang::{ConnectivityTypeJson, Edge, EdgeJsonBatch, Node, NodeJsonBatch};
 use starfish_core::mutate::Mutate;
+use starfish_core::query::Query;
 use starfish_core::schema::{format_edge_table_name, format_node_table_name};
-use starfish_core::sea_orm;
-use starfish_core::sea_query::{Alias, Cond, Expr, Query};
+use starfish_core::sea_query::{Alias, Cond, Expr};
 use starfish_core::{
     entities::entity_attribute::Datatype,
     lang::{EntityAttrJson, EntityJson, RelationJson},
     schema::Schema,
 };
+use starfish_core::{sea_orm, sea_query};
+
+#[allow(unused)]
+fn f64_approximately<FA, FB>(a: FA, b: FB) -> bool
+where
+    FA: Into<f64>,
+    FB: Into<f64>,
+{
+    (a.into() - b.into()).abs() <= f64::EPSILON
+}
 
 /// For testing the 'schema' and 'mutate' endpoints
 #[smol_potat::test]
@@ -238,7 +252,7 @@ struct TestNode {
 
 impl TestNode {
     async fn get_with_name(db: &DbConn, of: &str, name: &str) -> Result<Option<Self>, DbErr> {
-        let stmt = Query::select()
+        let stmt = sea_query::Query::select()
             .column(Alias::new("name"))
             .column(Alias::new("attr_version"))
             .from(Alias::new(&format_node_table_name(of)))
@@ -264,7 +278,7 @@ impl TestEdge {
         from: &str,
         to: &str,
     ) -> Result<Option<Self>, DbErr> {
-        let stmt = Query::select()
+        let stmt = sea_query::Query::select()
             .column(Alias::new("from_node"))
             .column(Alias::new("to_node"))
             .from(Alias::new(&format_edge_table_name(of)))
@@ -281,7 +295,7 @@ impl TestEdge {
     }
 
     async fn get_all(db: &DbConn, of: &str) -> Result<Vec<Self>, DbErr> {
-        let stmt = Query::select()
+        let stmt = sea_query::Query::select()
             .column(Alias::new("from_node"))
             .column(Alias::new("to_node"))
             .from(Alias::new(&format_edge_table_name(of)))
@@ -297,7 +311,7 @@ impl TestEdge {
 /// Assumes that the 'schema' and 'mutate' endpoints work correctly.
 #[smol_potat::test]
 async fn query() -> Result<(), DbErr> {
-    let ctx = TestContext::new("starfish_core_schema_mutate").await;
+    let ctx = TestContext::new("starfish_core_query").await;
     let db = &ctx.db;
 
     Migrator::fresh(db).await?;
@@ -305,16 +319,13 @@ async fn query() -> Result<(), DbErr> {
     let schema_json = SchemaJson {
         define: SchemaDefineJson {
             entities: vec![EntityJson {
-                name: "crate".to_owned(),
-                attributes: vec![EntityAttrJson {
-                    name: "version".to_owned(),
-                    datatype: Datatype::String,
-                }],
+                name: "letter".to_owned(),
+                attributes: vec![],
             }],
             relations: vec![RelationJson {
-                name: "depends".to_owned(),
-                from_entity: "crate".to_owned(),
-                to_entity: "crate".to_owned(),
+                name: "likes".to_owned(),
+                from_entity: "letter".to_owned(),
+                to_entity: "letter".to_owned(),
                 directed: true,
             }],
         },
@@ -324,41 +335,36 @@ async fn query() -> Result<(), DbErr> {
 
     construct_mock_graph(db).await?;
 
+    query_vector(db).await?;
+
     Ok(())
 }
 
 async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
-    let insert_nodes_json = MutateJson::insert(
-        MutateInsertJson::node(
-            NodeJsonBatch {
-                of: "crate".to_owned(),
-                nodes: Node::new_vec(vec!["A", "B", "C", "D", "E", "F"]),
-            }
-        )
-    );
+    let insert_nodes_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
+        of: "letter".to_owned(),
+        nodes: Node::new_vec(vec!["A", "B", "C", "D", "E", "F"]),
+    }));
 
     Mutate::mutate(db, insert_nodes_json, false).await?;
 
-    let insert_edges_json = MutateJson::insert(
-        MutateInsertJson::edge(
-            EdgeJsonBatch {
-                of: "depends".to_owned(),
-                edges: Edge::new_vec(vec![
-                    ("A", "C"),
-                    ("B", "C"),
-                    ("B", "D"),
-                    ("C", "E"),
-                    ("D", "E"),
-                    ("D", "F"),
-                ]),
-            }
-        )
-    );
+    let insert_edges_json = MutateJson::insert(MutateInsertJson::edge(EdgeJsonBatch {
+        of: "likes".to_owned(),
+        edges: Edge::new_vec(vec![
+            ("A", "C"),
+            ("B", "C"),
+            ("B", "D"),
+            ("C", "E"),
+            ("D", "E"),
+            ("D", "F"),
+            ("F", "E"),
+        ]),
+    }));
 
     Mutate::mutate(db, insert_edges_json, false).await?;
 
-    Mutate::calculate_simple_connectivity(db, "depends", "crate", "crate").await?;
-    Mutate::calculate_compound_connectivity(db, "depends", "crate").await?;
+    Mutate::calculate_simple_connectivity(db, "likes", "letter", "letter").await?;
+    Mutate::calculate_compound_connectivity(db, "likes", "letter").await?;
     for (weight, col_name) in [
         (0.3, "in_conn_complex03"),
         (0.5, "in_conn_complex05"),
@@ -366,14 +372,61 @@ async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
     ] {
         Mutate::calculate_complex_connectivity(
             db,
-            "depends",
-            "crate",
+            "likes",
+            "letter",
             weight,
             f64::EPSILON,
             col_name,
         )
         .await?;
     }
+
+    Ok(())
+}
+
+async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
+    let query_json = QueryJson::Vector(QueryVectorJson {
+        of: "letter".to_owned(),
+        constraints: vec![
+            // Sort by simple in_conn
+            QueryVectorConstraintJson::Common(QueryCommonConstraint::SortBy(
+                QueryConstraintSortByJson {
+                    key: QueryConstraintSortByKeyJson::Connectivity {
+                        of: "likes".to_owned(),
+                        r#type: ConnectivityTypeJson::Simple,
+                    },
+                    desc: true,
+                },
+            )),
+        ],
+    });
+
+    if let QueryResultJson::Vector(nodes) = Query::query(db, query_json).await? {
+        assert_eq!(nodes.len(), 6);
+
+        // Assert that the most liked letter is 'E'.
+        assert_eq!(nodes[0].name, "E");
+        assert!(f64_approximately(nodes[0].weight.unwrap(), 3));
+
+        // Assert that the second most liked letter is 'C'.
+        assert_eq!(nodes[1].name, "C");
+        assert!(f64_approximately(nodes[1].weight.unwrap(), 2));
+
+        // Assert that the fetched weights of the remaining letters are correct.
+        for node in nodes.into_iter().skip(2) {
+            match node.name.as_str() {
+                "A" => assert!(f64_approximately(node.weight.unwrap(), 0)),
+                "B" => assert!(f64_approximately(node.weight.unwrap(), 0)),
+                "D" => assert!(f64_approximately(node.weight.unwrap(), 1)),
+                "F" => assert!(f64_approximately(node.weight.unwrap(), 1)),
+                _ => panic!("An unknown letter is fetched."),
+            }
+        }
+    } else {
+        panic!("Query result should be a Vector.");
+    }
+
+    println!("Queried vector successfully.");
 
     Ok(())
 }
