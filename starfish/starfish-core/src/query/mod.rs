@@ -49,6 +49,16 @@ pub struct QueryResultEdge {
     pub to_node: String,
 }
 
+impl QueryResultEdge {
+    /// Convert self to an edge with flipped directions
+    pub fn to_flipped(self) -> Self {
+        Self {
+            from_node: self.to_node,
+            to_node: self.from_node,
+        }
+    }
+}
+
 #[derive(Debug)]
 /// A helper struct to specify how to perform a graph query
 pub struct QueryGraphParams {
@@ -347,12 +357,20 @@ impl Query {
         }
 
         // Make sure all edges in result_edges use only nodes in result_nodes
-        let edges: Vec<QueryResultEdge> = result_edges
-            .into_iter()
-            .filter(|edge| {
-                result_nodes.contains(&edge.from_node) && result_nodes.contains(&edge.to_node)
-            })
-            .collect();
+        let edges: Vec<QueryResultEdge> = {
+            let iter = result_edges
+                .into_iter()
+                .filter(|edge| {
+                    result_nodes.contains(&edge.from_node) && result_nodes.contains(&edge.to_node)
+                });
+
+            if params.reverse_direction {
+                iter.map(|edge| edge.to_flipped())
+                    .collect()
+            } else {
+                iter.collect()
+            }
+        };
 
         // Fetch the weights if needed
         let nodes: Vec<QueryResultNode> = if let Some(weight_key) = params.batch_sort_key {
