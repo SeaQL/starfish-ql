@@ -185,25 +185,25 @@ pub struct EdgeJsonBatch {
 
 /// Metadata of the connectivity in a 'sortBy' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
+#[serde(rename_all="camelCase")]
 pub enum ConnectivityTypeJson {
     /// Simple in-connectivity
-    simple,
+    Simple,
     /// Compound in-connectivity
-    compound,
+    Compound,
     /// Complex in-connectivity with decay factor 0.3
-    complex03,
+    Complex03,
     /// Complex in-connectivity with decay factor 0.5
-    complex05,
+    Complex05,
     /// Complex in-connectivity with decay factor 0.7
-    complex07,
+    Complex07,
     /// out-connectivity
-    out,
+    Out,
 }
 
 impl Default for ConnectivityTypeJson {
     fn default() -> Self {
-        Self::simple
+        Self::Simple
     }
 }
 
@@ -214,12 +214,12 @@ impl ConnectivityTypeJson {
             "{}_{}",
             relation_name.into(),
             match self {
-                Self::simple => "in_conn",
-                Self::compound => "in_conn_compound",
-                Self::complex03 => "in_conn_complex03",
-                Self::complex05 => "in_conn_complex05",
-                Self::complex07 => "in_conn_complex07",
-                Self::out => "out_conn",
+                Self::Simple => "in_conn",
+                Self::Compound => "in_conn_compound",
+                Self::Complex03 => "in_conn_complex03",
+                Self::Complex05 => "in_conn_complex05",
+                Self::Complex07 => "in_conn_complex07",
+                Self::Out => "out_conn",
             }
         )
     }
