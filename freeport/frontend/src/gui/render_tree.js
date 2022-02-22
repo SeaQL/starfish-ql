@@ -25,6 +25,24 @@ if (ColorScheme.length !== TreeElemType.NUM_TREE_ELEM_TYPE) {
     console.error("Number of colors in ColorScheme does not match with number of tree element types.");
 }
 
+/*
+'data' must follow this format:
+    data = {
+        nodes: [
+            { id: "A", type: 0 },
+            { id: "B", type: 1 },
+            { id: "C", type: 2 },
+        ],
+        links: [
+            { source: "A", target: "B" },
+            { source: "C", target: "A" },
+        ]
+    };
+The behavior is undefined unless all id's in 'data.nodes' are unique.
+
+'containerElem' is the container (HTMLElement) that contains the constructed svg graph.
+*/
+
 export function renderTree(
     data,
     containerElem,

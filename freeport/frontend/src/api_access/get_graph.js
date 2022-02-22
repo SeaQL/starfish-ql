@@ -27,7 +27,8 @@ export const getGraph = async (topN, limit, depth, weightDecayMode) => {
                     }
                 ]
             }
-        }
+        },
+        (e) => { throw e; }
     );
 
     const res = await postRequest(
