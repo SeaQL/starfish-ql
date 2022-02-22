@@ -5,6 +5,31 @@ import MOCK_GRAPH_SIMPLE from "../data/mock_graph/simple.json";
 export const getGraph = async (topN, limit, depth, weightDecayMode) => {
     const url = constructUrl("query");
 
+    const { data: topNNodes} = await postRequest(
+        url,
+        {
+            vector: {
+                of: "crate",
+                constraints: [
+                    {
+                        sortBy: {
+                            key: {
+                                connectivity: {
+                                    of: "depends",
+                                    type: weightDecayMode
+                                }
+                            },
+                            desc: true
+                        }
+                    },
+                    {
+                        limit: topN
+                    }
+                ]
+            }
+        }
+    );
+
     const res = await postRequest(
         url,
         {
@@ -12,9 +37,7 @@ export const getGraph = async (topN, limit, depth, weightDecayMode) => {
                 of: "crate",
                 constraints: [
                     {
-                        rootNodes: [
-                            "sea-orm"
-                        ]
+                        rootNodes: topNNodes.map((node) => node.name)
                     },
                     {
                         edge: {
@@ -22,8 +45,24 @@ export const getGraph = async (topN, limit, depth, weightDecayMode) => {
                         }
                     },
                     {
+                        sortBy: {
+                            key: {
+                                connectivity: {
+                                    of: "depends",
+                                    type: weightDecayMode
+                                }
+                            },
+                            desc: true
+                        }
+                    },
+                    {
                         limit: {
-                            "depth": 3
+                            depth
+                        }
+                    },
+                    {
+                        limit: {
+                            batchSize: limit
                         }
                     }
                 ]
