@@ -3,63 +3,85 @@ const { postRequest } = require("./util");
 
 const insertNode = (entity) => async (name, attributes = {}) => {
     await postRequest(
-        constructUrl("mutate/insert-node"),
+        constructUrl("mutate"),
         {
-            of: entity,
-            name,
-            attributes,
+            insert: {
+                node: {
+                    of: entity,
+                    nodes: [
+                        {
+                            name,
+                            attributes
+                        }
+                    ]
+                }
+            }
         }
     )
 };
 const insertCrateNode = insertNode("crate");
 
-const createNode = (entity) => (name, attributes = {}) => {
-    return { of: entity, name, attributes };
+const createNode = (name, attributes = {}) => {
+    return { name, attributes };
 };
-const createCrateNode = createNode("crate");
 
-const insertNodesBatch = async (nodes) => {
+const insertCrateNodesBatch = async (nodes) => {
     await postRequest(
-        constructUrl("mutate/insert-node-batch"),
+        constructUrl("mutate"),
         {
-            of: "crate",
-            nodes,
+            insert: {
+                node: {
+                    of: "crate",
+                    nodes
+                }
+            }
         }
     )
 };
 
 const insertEdge = (relation) => async (fromNode, toNode) => {
     await postRequest(
-        constructUrl("mutate/insert-edge"),
+        constructUrl("mutate"),
         {
-            name: relation,
-            from_node: fromNode,
-            to_node: toNode
+            insert: {
+                edge: {
+                    of: relation,
+                    edges: [
+                        {
+                            from_node: fromNode,
+                            to_node: toNode
+                        }
+                    ]
+                }
+            }
         }
     )
 };
 const insertDependsEdge = insertEdge("depends");
 
-const createEdge = (relation) => (fromNode, toNode) => {
-    return { name: relation, from_node: fromNode, to_node: toNode };
+const createEdge = (fromNode, toNode) => {
+    return { from_node: fromNode, to_node: toNode };
 };
-const createDependsEdge = createEdge("depends");
 
-const insertEdgesBatch = async (edges) => {
+const insertDependsEdgesBatch = async (edges) => {
     await postRequest(
-        constructUrl("mutate/insert-edge-batch"),
+        constructUrl("mutate"),
         {
-            name: "depends",
-            edges,
+            insert: {
+                edge: {
+                    of: "depends",
+                    edges
+                }
+            }
         }
     )
 };
 
 module.exports = {
     insertCrateNode,
-    createCrateNode,
-    insertNodesBatch,
+    createNode,
+    insertCrateNodesBatch,
     insertDependsEdge,
-    createDependsEdge,
-    insertEdgesBatch,
+    createEdge,
+    insertDependsEdgesBatch,
 };

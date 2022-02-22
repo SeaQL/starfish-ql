@@ -1,7 +1,7 @@
 const { writeToEndOfFile } = require("../scrap/file_io");
 const { promisedExecInFolder } = require("../scrap/util");
 const { AsyncBatch } = require("./batch");
-const { insertNodesBatch, insertEdgesBatch, createCrateNode, createDependsEdge } = require("./insert");
+const { insertCrateNodesBatch, insertDependsEdgesBatch, createNode, createEdge } = require("./insert");
 
 const now = () => (new Date()).getTime();
 
@@ -25,7 +25,7 @@ const insertDataIntoDatabase = async (
 
         // Create own node
         nodes.push(
-            createCrateNode(datum.name, {
+            createNode(datum.name, {
                 version: datum.vers,
             })
         );
@@ -40,7 +40,7 @@ const insertDataIntoDatabase = async (
             depNames.add(depName);
             // Create depends edge
             edges.push(
-                createDependsEdge(datum.name, depName)
+                createEdge(datum.name, depName)
             );
         }
     };
@@ -51,8 +51,8 @@ const insertDataIntoDatabase = async (
         errors.push(e);
         console.error(e.response.data);
     };
-    const nodesBatch = new AsyncBatch(batchReleaseThreshold, insertNodesBatch, shouldLog, errorHandler);
-    const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertEdgesBatch, shouldLog, errorHandler);
+    const nodesBatch = new AsyncBatch(batchReleaseThreshold, insertCrateNodesBatch, shouldLog, errorHandler);
+    const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertDependsEdgesBatch, shouldLog, errorHandler);
 
     await nodesBatch.consumeArray(nodes, "nodes");
     await edgesBatch.consumeArray(edges, "edges");
