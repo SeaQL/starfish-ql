@@ -21,7 +21,6 @@ export const graphMain = async (GlobalConfig) => {
         )
         // getMockGraphSimple()
         .then((dataGraph) => {
-            
             outputElem.innerText = "";
             
             normalizeData(
@@ -37,6 +36,7 @@ export const graphMain = async (GlobalConfig) => {
                     newMax: GlobalConfig.maxWeight,
                 }
             );
+
             renderGraph(
                 dataGraph,
                 document.getElementById(GlobalConfig.outputElemId),
