@@ -45,7 +45,7 @@ async fn mutate(
     Ok(())
 }
 
-#[get("/query", data = "<input_data>")]
+#[post("/query", data = "<input_data>")]
 async fn query(
     conn: Connection<'_, Db>,
     input_data: Json<QueryJson>,
