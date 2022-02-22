@@ -236,6 +236,8 @@ impl Query {
     async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
         let params = QueryGraphParams::from_query_graph_metadata(metadata);
 
+        println!("Querying a graph with params:\n{:?}", params);
+
         Self::traverse_with_params(db, params).await
     }
 
@@ -252,14 +254,7 @@ impl Query {
             let root_node_stmt = sea_query::Query::select()
                 .column(Alias::new("name"))
                 .from(Alias::new(node_table))
-                .cond_where(
-                    params
-                        .root_node_names
-                        .into_iter()
-                        .fold(Cond::any(), |cond, name| {
-                            cond.add(Expr::col(Alias::new("name")).eq(name))
-                        }),
-                )
+                .and_where(Expr::col(Alias::new("name")).is_in(params.root_node_names))
                 .to_owned();
 
             NodeName::find_by_statement(builder.build(&root_node_stmt))
@@ -293,13 +288,7 @@ impl Query {
                         Expr::tbl(Alias::new(node_table), Alias::new("name"))
                             .equals(Alias::new(edge_table), Alias::new(join_col)),
                     )
-                    .cond_where(
-                        pending_nodes
-                            .into_iter()
-                            .fold(Cond::any(), |cond, node_name| {
-                                cond.add(Expr::col(Alias::new(join_col)).eq(node_name))
-                            }),
-                    )
+                    .and_where(Expr::col(Alias::new(join_col)).is_in(pending_nodes))
                     .to_owned();
 
                 QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt))
@@ -337,9 +326,7 @@ impl Query {
                     let stmt = sea_query::Query::select()
                         .column(Alias::new("name"))
                         .from(Alias::new(node_table))
-                        .cond_where(pending_nodes.into_iter().fold(Cond::any(), |cond, name| {
-                            cond.add(Expr::col(Alias::new("name")).eq(name))
-                        }))
+                        .and_where(Expr::col(Alias::new("name")).is_in(pending_nodes))
                         .order_by(
                             Alias::new(order_by_key),
                             if params.batch_sort_asc {
@@ -393,9 +380,7 @@ impl Query {
                 .column(Alias::new("name"))
                 .expr_as(Expr::col(Alias::new(&weight_key)), Alias::new("weight"))
                 .from(Alias::new(node_table))
-                .cond_where(result_nodes.into_iter().fold(Cond::any(), |cond, name| {
-                    cond.add(Expr::col(Alias::new("name")).eq(name))
-                }))
+                .and_where(Expr::col(Alias::new("name")).is_in(result_nodes))
                 .to_owned();
 
             QueryResultNode::find_by_statement(builder.build(&stmt))
