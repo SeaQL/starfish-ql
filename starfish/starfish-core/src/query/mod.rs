@@ -41,6 +41,7 @@ struct NodeName {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
+#[serde(rename_all="camelCase")]
 /// A queried edge
 pub struct QueryResultEdge {
     /// Name of the node in the from side
