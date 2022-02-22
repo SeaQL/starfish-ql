@@ -252,17 +252,24 @@ impl Query {
 
         // Start with root nodes
         let mut pending_nodes: Vec<String> = {
+            let root_node_set: HashSet<String> = HashSet::from_iter(params.root_node_names.into_iter());
+
             let root_node_stmt = sea_query::Query::select()
                 .column(Alias::new("name"))
                 .from(Alias::new(node_table))
-                .and_where(Expr::col(Alias::new("name")).is_in(params.root_node_names))
                 .to_owned();
 
             NodeName::find_by_statement(builder.build(&root_node_stmt))
                 .all(db)
                 .await?
                 .into_iter()
-                .map(|node| node.name)
+                .filter_map(|node| {
+                    if root_node_set.contains(&node.name) {
+                        Some(node.name)
+                    } else {
+                        None
+                    }
+                })
                 .collect()
         };
 
@@ -324,10 +331,11 @@ impl Query {
             // Sort by specified key if appropriate
             if let Some(order_by_key) = &params.batch_sort_key {
                 pending_nodes = {
+                    let pending_nodes_set: HashSet<String> = HashSet::from_iter(pending_nodes.into_iter());
+
                     let stmt = sea_query::Query::select()
                         .column(Alias::new("name"))
                         .from(Alias::new(node_table))
-                        .and_where(Expr::col(Alias::new("name")).is_in(pending_nodes))
                         .order_by(
                             Alias::new(order_by_key),
                             if params.batch_sort_asc {
@@ -342,7 +350,13 @@ impl Query {
                         .all(db)
                         .await?
                         .into_iter()
-                        .map(|node| node.name)
+                        .filter_map(|node| {
+                            if pending_nodes_set.contains(&node.name) {
+                                Some(node.name)
+                            } else {
+                                None
+                            }
+                        }) 
                         .collect()
                 };
             }
