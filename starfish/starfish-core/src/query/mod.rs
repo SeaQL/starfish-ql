@@ -20,7 +20,10 @@ use sea_orm::{
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{collections::{HashSet, HashMap}, mem};
+use std::{
+    collections::{HashMap, HashSet},
+    mem,
+};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -335,12 +338,11 @@ impl Query {
                 })
                 .collect();
 
-            pending_nodes.iter()
-                .for_each(|node_name| {
-                    if !node_depths.contains_key(node_name) {
-                        node_depths.insert(node_name.clone(), depth+1);
-                    }
-                });
+            pending_nodes.iter().for_each(|node_name| {
+                if !node_depths.contains_key(node_name) {
+                    node_depths.insert(node_name.clone(), depth + 1);
+                }
+            });
 
             // Sort by specified key if appropriate
             if let Some(order_by_key) = &params.batch_sort_key {
@@ -429,7 +431,11 @@ impl Query {
                 .into_iter()
                 .map(|name| {
                     let depth = node_depths.get(&name).cloned().unwrap_or_default();
-                    QueryResultNode { name, weight: None, depth: Some(depth) }
+                    QueryResultNode {
+                        name,
+                        weight: None,
+                        depth: Some(depth),
+                    }
                 })
                 .collect()
         };
