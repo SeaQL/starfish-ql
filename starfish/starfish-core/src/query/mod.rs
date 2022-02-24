@@ -32,6 +32,9 @@ pub struct QueryResultNode {
     pub name: String,
     /// Associated weight (specified in query)
     pub weight: Option<f64>,
+    /// Depth when this node is first found in the graph.
+    /// None if querying a vector.
+    pub depth: Option<u64>,
 }
 
 #[derive(Debug, Clone, FromQueryResult)]
@@ -182,6 +185,7 @@ impl Query {
 
         stmt.column(Alias::new("name"))
             .expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"))
+            .expr_as(Expr::val(Option::<u64>::None), Alias::new("depth"))
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
         for constraint in metadata.constraints {
@@ -396,6 +400,7 @@ impl Query {
             let stmt = sea_query::Query::select()
                 .column(Alias::new("name"))
                 .expr_as(Expr::col(Alias::new(&weight_key)), Alias::new("weight"))
+                .expr_as(Expr::val(Some(0_u64)), Alias::new("depth"))
                 .from(Alias::new(node_table))
                 .and_where(Expr::col(Alias::new("name")).is_in(result_nodes))
                 .to_owned();
@@ -406,7 +411,7 @@ impl Query {
         } else {
             result_nodes
                 .into_iter()
-                .map(|name| QueryResultNode { name, weight: None })
+                .map(|name| QueryResultNode { name, weight: None, depth: None })
                 .collect()
         };
 
