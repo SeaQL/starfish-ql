@@ -17,7 +17,7 @@ use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Order, QueryFilter,
     Statement,
 };
-use sea_query::{Alias, Cond, Expr, SelectStatement};
+use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
 use std::{collections::HashSet, mem};
@@ -41,7 +41,7 @@ struct NodeName {
 }
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize, FromQueryResult)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 /// A queried edge
 pub struct QueryResultEdge {
     /// Name of the node in the from side
@@ -252,7 +252,8 @@ impl Query {
 
         // Start with root nodes
         let mut pending_nodes: Vec<String> = {
-            let root_node_set: HashSet<String> = HashSet::from_iter(params.root_node_names.into_iter());
+            let root_node_set: HashSet<String> =
+                HashSet::from_iter(params.root_node_names.into_iter());
 
             let root_node_stmt = sea_query::Query::select()
                 .column(Alias::new("name"))
@@ -331,7 +332,8 @@ impl Query {
             // Sort by specified key if appropriate
             if let Some(order_by_key) = &params.batch_sort_key {
                 pending_nodes = {
-                    let pending_nodes_set: HashSet<String> = HashSet::from_iter(pending_nodes.into_iter());
+                    let pending_nodes_set: HashSet<String> =
+                        HashSet::from_iter(pending_nodes.into_iter());
 
                     let stmt = sea_query::Query::select()
                         .column(Alias::new("name"))
@@ -356,7 +358,7 @@ impl Query {
                             } else {
                                 None
                             }
-                        }) 
+                        })
                         .collect()
                 };
             }
