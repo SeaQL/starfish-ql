@@ -20,7 +20,10 @@ use sea_orm::{
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{collections::HashSet, mem};
+use std::{
+    collections::{HashMap, HashSet},
+    mem,
+};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -32,6 +35,10 @@ pub struct QueryResultNode {
     pub name: String,
     /// Associated weight (specified in query)
     pub weight: Option<f64>,
+    /// Depth when this node is first found in the graph.
+    /// Some(0) for root nodes.
+    /// None if querying a vector.
+    pub depth: Option<u64>,
 }
 
 #[derive(Debug, Clone, FromQueryResult)]
@@ -182,6 +189,7 @@ impl Query {
 
         stmt.column(Alias::new("name"))
             .expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"))
+            .expr_as(Expr::val(Option::<u64>::None), Alias::new("depth"))
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
         for constraint in metadata.constraints {
@@ -275,6 +283,7 @@ impl Query {
         };
 
         let mut result_nodes: HashSet<String> = HashSet::from_iter(pending_nodes.iter().cloned());
+        let mut node_depths: HashMap<String, u64> = HashMap::new();
         let mut result_edges: HashSet<QueryResultEdge> = HashSet::new();
 
         // Normal direction: Join on "from" -> finding "to"'s
@@ -328,6 +337,12 @@ impl Query {
                     }
                 })
                 .collect();
+
+            pending_nodes.iter().for_each(|node_name| {
+                if !node_depths.contains_key(node_name) {
+                    node_depths.insert(node_name.clone(), depth + 1);
+                }
+            });
 
             // Sort by specified key if appropriate
             if let Some(order_by_key) = &params.batch_sort_key {
@@ -396,6 +411,7 @@ impl Query {
             let stmt = sea_query::Query::select()
                 .column(Alias::new("name"))
                 .expr_as(Expr::col(Alias::new(&weight_key)), Alias::new("weight"))
+                .expr_as(Expr::val(Some(0_u64)), Alias::new("depth"))
                 .from(Alias::new(node_table))
                 .and_where(Expr::col(Alias::new("name")).is_in(result_nodes))
                 .to_owned();
@@ -403,10 +419,24 @@ impl Query {
             QueryResultNode::find_by_statement(builder.build(&stmt))
                 .all(db)
                 .await?
+                .into_iter()
+                .map(|mut node| {
+                    let depth = node_depths.get(&node.name).cloned().unwrap_or_default();
+                    node.depth = Some(depth);
+                    node
+                })
+                .collect()
         } else {
             result_nodes
                 .into_iter()
-                .map(|name| QueryResultNode { name, weight: None })
+                .map(|name| {
+                    let depth = node_depths.get(&name).cloned().unwrap_or_default();
+                    QueryResultNode {
+                        name,
+                        weight: None,
+                        depth: Some(depth),
+                    }
+                })
                 .collect()
         };
 
