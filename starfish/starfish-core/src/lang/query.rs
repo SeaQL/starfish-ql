@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-
-use sea_orm::JsonValue;
 use serde::{Deserialize, Serialize};
 
 use crate::query::{QueryResultEdge, QueryResultNode};
