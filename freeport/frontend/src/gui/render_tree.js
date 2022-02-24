@@ -29,13 +29,15 @@ if (ColorScheme.length !== TreeElemType.NUM_TREE_ELEM_TYPE) {
 'data' must follow this format:
     data = {
         nodes: [
-            { id: "A", type: 0 },
-            { id: "B", type: 1 },
-            { id: "C", type: 2 },
+            { id: "A", type: 0, depthInv: 0 },
+            { id: "B", type: 1, depthInv: 1 },
+            { id: "C", type: 2, depthInv: 1 },
+            { id: "D", type: 2, depthInv: 2 },
         ],
         links: [
-            { source: "A", target: "B" },
-            { source: "C", target: "A" },
+            { source: "A", target: "B", type: 1 },
+            { source: "C", target: "A", type: 2 },
+            { source: "D", target: "C", type: 2 },
         ]
     };
 The behavior is undefined unless all id's in 'data.nodes' are unique.
@@ -95,10 +97,10 @@ export function renderTree(
     // Find max depth inverse in both dependencies and dependents for evaluating color gradient
     let maxDepthInvDependency = -1, maxDepthInvDependent = -1;
     for (let node of data.nodes) {
-        if (node.type === TreeElemType.Dependency && node.depth_inv > maxDepthInvDependency) {
-            maxDepthInvDependency = node.depth_inv;
-        } else if (node.type === TreeElemType.Dependent && node.depth_inv > maxDepthInvDependent) {
-            maxDepthInvDependent = node.depth_inv;
+        if (node.type === TreeElemType.Dependency && node.depthInv > maxDepthInvDependency) {
+            maxDepthInvDependency = node.depthInv;
+        } else if (node.type === TreeElemType.Dependent && node.depthInv > maxDepthInvDependent) {
+            maxDepthInvDependent = node.depthInv;
         }
     }
     const depthRange = maxDepthInvDependency + maxDepthInvDependent;
@@ -111,12 +113,12 @@ export function renderTree(
                 return ColorScheme[TreeElemType.Root].hex;
             }
 
-            let t = d.depth_inv;
+            let t = d.depthInv;
             if (d.type === TreeElemType.Dependency) {
-                t = maxDepthInvDependency - d.depth_inv + 1;
+                t = maxDepthInvDependency - d.depthInv + 1;
                 t /= maxDepthInvDependency;
             } else if (d.type === TreeElemType.Dependent) {
-                t = maxDepthInvDependent - d.depth_inv + 1;
+                t = maxDepthInvDependent - d.depthInv + 1;
                 t /= maxDepthInvDependent;
             }
             if (t < 0 || t > 1) {
@@ -147,7 +149,7 @@ export function renderTree(
             infobox,
             [
                 "Id: " + d.id,
-                "Depth Inverse: " + d.depth_inv,
+                "Depth Inverse: " + d.depthInv,
             ],
         );
     });
@@ -170,9 +172,9 @@ export function renderTree(
                 default:
                     return center.x;
                 case TreeElemType.Dependency:
-                    return leftX(d.depth_inv);
+                    return leftX(d.depthInv);
                 case TreeElemType.Dependent:
-                    return rightX(d.depth_inv);
+                    return rightX(d.depthInv);
             }
         }))
         .force("link", d3.forceLink()
