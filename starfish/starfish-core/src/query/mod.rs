@@ -20,7 +20,7 @@ use sea_orm::{
 use sea_query::{Alias, Expr, SelectStatement};
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
-use std::{collections::HashSet, mem};
+use std::{collections::{HashSet, HashMap}, mem};
 
 const BATCH_SIZE: usize = 300;
 const DEBUG: bool = false;
@@ -33,6 +33,7 @@ pub struct QueryResultNode {
     /// Associated weight (specified in query)
     pub weight: Option<f64>,
     /// Depth when this node is first found in the graph.
+    /// Some(0) for root nodes.
     /// None if querying a vector.
     pub depth: Option<u64>,
 }
@@ -279,6 +280,7 @@ impl Query {
         };
 
         let mut result_nodes: HashSet<String> = HashSet::from_iter(pending_nodes.iter().cloned());
+        let mut node_depths: HashMap<String, u64> = HashMap::new();
         let mut result_edges: HashSet<QueryResultEdge> = HashSet::new();
 
         // Normal direction: Join on "from" -> finding "to"'s
@@ -332,6 +334,13 @@ impl Query {
                     }
                 })
                 .collect();
+
+            pending_nodes.iter()
+                .for_each(|node_name| {
+                    if !node_depths.contains_key(node_name) {
+                        node_depths.insert(node_name.clone(), depth+1);
+                    }
+                });
 
             // Sort by specified key if appropriate
             if let Some(order_by_key) = &params.batch_sort_key {
@@ -408,10 +417,20 @@ impl Query {
             QueryResultNode::find_by_statement(builder.build(&stmt))
                 .all(db)
                 .await?
+                .into_iter()
+                .map(|mut node| {
+                    let depth = node_depths.get(&node.name).cloned().unwrap_or_default();
+                    node.depth = Some(depth);
+                    node
+                })
+                .collect()
         } else {
             result_nodes
                 .into_iter()
-                .map(|name| QueryResultNode { name, weight: None, depth: None })
+                .map(|name| {
+                    let depth = node_depths.get(&name).cloned().unwrap_or_default();
+                    QueryResultNode { name, weight: None, depth: Some(depth) }
+                })
                 .collect()
         };
 
