@@ -1,72 +1,127 @@
-use std::{fs, thread};
-use tokio::runtime::Runtime;
+use futures::{stream, StreamExt};
+use reqwest::{Client, Error};
+use serde_json::Value;
+use std::{collections::HashMap, fs};
 
 const NUM_THREADS: usize = 10;
 const BASE_URL: &str = "https://crates.io/api/v1/crates/";
 
+#[derive(Debug)]
 struct CrateMeta {
     name: String,
     categories: Vec<String>,
     keywords: Vec<String>,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let crate_names: Vec<String> = serde_json::from_str(
-        &fs::read_to_string("crate_names.json").expect("Unable to read the JSON file."),
+        &fs::read_to_string("in/crate_names.json").expect("Unable to read the JSON file."),
     )
     .expect("The JSON file is not well-formatted.");
 
     println!("Number of crate names: {}", crate_names.len());
 
-    // let mut children = Vec::with_capacity(NUM_THREADS);
-
-    let mut chunked_crate_names = vec![vec![]; NUM_THREADS];
-    crate_names.into_iter()
-        .enumerate()
-        .for_each(|(i, crate_name)| {
-            chunked_crate_names[i % NUM_THREADS].push(crate_name)
-        });
-
-    let rt = Runtime::new().expect("Unable to create Tokio runtime.");
-
-    let client_builder = reqwest::Client::builder().user_agent("SeaQL (hello@sea-ql.org)");
+    let client_builder = Client::builder().user_agent("SeaQL (hello@sea-ql.org)");
     let client = client_builder.build().expect("Unable to build client.");
 
-    let res = rt.block_on(client.get(BASE_URL.to_owned() + "serde").send()).expect("Cannot send GET request");
+    let bodies: Vec<_> = stream::iter(crate_names)
+        .map(|crate_name| {
+            let client = client.clone();
+            tokio::spawn(async move {
+                let url = BASE_URL.to_owned() + &crate_name;
 
-    let text = rt.block_on(res.text()).expect("Unable to parse body of response.");
+                let res = client.get(url).send().await?;
+                let text = res.text().await?;
 
-    let json: serde_json::Value = serde_json::from_str(&text).expect("The JSON file is not well-formatted.");
+                let json: Value =
+                    serde_json::from_str(&text).expect("The JSON file is not well-formatted.");
 
-    let categories: Vec<&str> = json.get("categories").unwrap().as_array().unwrap().iter().map(|obj| obj.get("category").unwrap().as_str().unwrap()).collect();
-    let keywords: Vec<&str> = json.get("crate").unwrap().get("keywords").unwrap().as_array().unwrap().iter().map(|val| val.as_str().unwrap()).collect();
+                let categories: Vec<String> = json
+                    .get("categories")
+                    .unwrap()
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|obj| obj.get("category").unwrap().as_str().unwrap().to_owned())
+                    .collect();
+                let keywords: Vec<String> = json
+                    .get("crate")
+                    .unwrap()
+                    .get("keywords")
+                    .unwrap()
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|val| val.as_str().unwrap().to_owned())
+                    .collect();
 
-    println!("{:?}", categories);
-    println!("{:?}", keywords);
+                let crate_meta = CrateMeta {
+                    name: crate_name,
+                    categories,
+                    keywords,
+                };
 
-    // for (i, chunk) in chunked_crate_names.into_iter().enumerate() {
-    //     children.push(thread::spawn(move || -> Result<Vec<CrateMeta>, reqwest::Error> {
-    //         println!("Child {} started.", i);
+                Result::<CrateMeta, Error>::Ok(crate_meta)
+            })
+        })
+        .buffer_unordered(NUM_THREADS)
+        .collect()
+        .await;
 
-    //         let mut j = 0;
-    //         for crate_name in chunk {
-    //             println!("{}", 1);
+    let mut mappings = HashMap::new();
+    mappings.insert("categories", HashMap::new());
+    mappings.insert("keywords", HashMap::new());
 
-    //             let res = block_on(reqwest::get(BASE_URL.to_owned() + &crate_name))?;
-    //             println!("{}", 2);
+    bodies.into_iter().for_each(|body| match body {
+        Ok(Ok(crate_meta)) => {
+            println!("{:?}", crate_meta);
 
-    //             let text = block_on(res.text())?;
+            crate_meta.categories.into_iter().for_each(|category| {
+                if !mappings
+                    .get_mut("categories")
+                    .unwrap()
+                    .contains_key(&category)
+                {
+                    mappings
+                        .get_mut("categories")
+                        .unwrap()
+                        .insert(category.clone(), vec![]);
+                }
+                mappings
+                    .get_mut("categories")
+                    .unwrap()
+                    .get_mut(&category)
+                    .unwrap()
+                    .push(crate_meta.name.clone());
+            });
 
-    //             println!("HIHI: {}", text);
+            crate_meta.keywords.into_iter().for_each(|keyword| {
+                if !mappings.get_mut("keywords").unwrap().contains_key(&keyword) {
+                    mappings
+                        .get_mut("keywords")
+                        .unwrap()
+                        .insert(keyword.clone(), vec![]);
+                }
+                mappings
+                    .get_mut("keywords")
+                    .unwrap()
+                    .get_mut(&keyword)
+                    .unwrap()
+                    .push(crate_meta.name.clone());
+            });
+        }
+        Ok(Err(e)) => {
+            eprintln!("Got a reqwest::Error: {}", e);
+        }
+        Err(e) => {
+            eprintln!("Got a tokio::JoinError: {}", e);
+        }
+    });
 
-    //             j += 1;
-    //             if j > 10 {
-    //                 break;
-    //             }
-    //         }
-
-    //         println!("Child {} finished.", i);
-    //         Ok(vec![])
-    //     }));
-    // }
+    fs::write(
+        "out/mappings.json",
+        serde_json::to_string(&mappings).unwrap(),
+    )
+    .expect("Unable to write mappings to file.");
 }
