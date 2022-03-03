@@ -3,7 +3,7 @@ use reqwest::{Client, Error};
 use serde_json::Value;
 use std::{collections::HashMap, fs};
 
-const NUM_THREADS: usize = 10;
+const PARALLEL_FACTOR: usize = 1000;
 const BASE_URL: &str = "https://crates.io/api/v1/crates/";
 
 #[derive(Debug)]
@@ -65,7 +65,7 @@ async fn main() {
                 Result::<CrateMeta, Error>::Ok(crate_meta)
             })
         })
-        .buffer_unordered(NUM_THREADS)
+        .buffer_unordered(PARALLEL_FACTOR)
         .collect()
         .await;
 
@@ -73,8 +73,14 @@ async fn main() {
     mappings.insert("categories", HashMap::new());
     mappings.insert("keywords", HashMap::new());
 
+    let mut req_errs = vec![];
+    let mut join_errs = vec![];
+
+    let mut num_crate_metas = 0;
+
     bodies.into_iter().for_each(|body| match body {
         Ok(Ok(crate_meta)) => {
+            num_crate_metas += 1;
             println!("{:?}", crate_meta);
 
             crate_meta.categories.into_iter().for_each(|category| {
@@ -113,11 +119,25 @@ async fn main() {
         }
         Ok(Err(e)) => {
             eprintln!("Got a reqwest::Error: {}", e);
+            req_errs.push(e);
         }
         Err(e) => {
             eprintln!("Got a tokio::JoinError: {}", e);
+            join_errs.push(e);
         }
     });
+
+    println!();
+    eprintln!("reqwest errors:");
+    req_errs
+        .into_iter()
+        .for_each(|e| eprintln!("Got a reqwest::Error: {}", e));
+    eprintln!("join errors:");
+    join_errs
+        .into_iter()
+        .for_each(|e| eprintln!("Got a tokio::JoinError: {}", e));
+
+    println!("{} crate metas successfully processed.", num_crate_metas);
 
     fs::write(
         "out/mappings.json",
