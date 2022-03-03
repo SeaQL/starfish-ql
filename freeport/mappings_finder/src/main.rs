@@ -1,9 +1,11 @@
 use futures::{stream, StreamExt};
 use reqwest::{Client, Error};
 use serde_json::Value;
-use std::{collections::HashMap, fs};
+use std::{collections::HashMap, fs, sync::Arc, time::Duration};
+use tokio::{sync::Mutex, time::sleep};
 
-const PARALLEL_FACTOR: usize = 1000;
+const REQUEST_BATCH_SIZE: usize = 150;
+const SLEEP_BETWEEN_BATCHES: u64 = 4000; // in ms
 const BASE_URL: &str = "https://crates.io/api/v1/crates/";
 
 #[derive(Debug)]
@@ -19,16 +21,32 @@ async fn main() {
         &fs::read_to_string("in/crate_names.json").expect("Unable to read the JSON file."),
     )
     .expect("The JSON file is not well-formatted.");
+    let num_crate_names = crate_names.len();
 
-    println!("Number of crate names: {}", crate_names.len());
+    println!("Number of crate names: {}", num_crate_names);
 
     let client_builder = Client::builder().user_agent("SeaQL (hello@sea-ql.org)");
     let client = client_builder.build().expect("Unable to build client.");
 
+    let batch = Arc::new(Mutex::new(REQUEST_BATCH_SIZE));
+    let progress = Arc::new(Mutex::new(0));
+
     let bodies: Vec<_> = stream::iter(crate_names)
         .map(|crate_name| {
             let client = client.clone();
+            let batch = Arc::clone(&batch);
+            let progress = Arc::clone(&progress);
+
             tokio::spawn(async move {
+                {
+                    let mut lock = batch.lock().await;
+                    if *lock == 0 {
+                        sleep(Duration::from_millis(SLEEP_BETWEEN_BATCHES)).await;
+                        *lock = REQUEST_BATCH_SIZE;
+                    }
+                    *lock -= 1;
+                }
+
                 let url = BASE_URL.to_owned() + &crate_name;
 
                 let res = client.get(url).send().await?;
@@ -62,10 +80,18 @@ async fn main() {
                     keywords,
                 };
 
+                {
+                    let mut lock = progress.lock().await;
+                    *lock += 1;
+                    if *lock == 1 || (*lock % 500) == 0 || *lock == num_crate_names {
+                        println!("{}/{} processed.", *lock, num_crate_names);
+                    }
+                }
+
                 Result::<CrateMeta, Error>::Ok(crate_meta)
             })
         })
-        .buffer_unordered(PARALLEL_FACTOR)
+        .buffer_unordered(num_crate_names)
         .collect()
         .await;
 
@@ -81,7 +107,6 @@ async fn main() {
     bodies.into_iter().for_each(|body| match body {
         Ok(Ok(crate_meta)) => {
             num_crate_metas += 1;
-            println!("{:?}", crate_meta);
 
             crate_meta.categories.into_iter().for_each(|category| {
                 if !mappings
@@ -137,7 +162,7 @@ async fn main() {
         .into_iter()
         .for_each(|e| eprintln!("Got a tokio::JoinError: {}", e));
 
-    println!("{} crate metas successfully processed.", num_crate_metas);
+    println!("{}/{} crate metas successfully processed.", num_crate_metas, num_crate_names);
 
     fs::write(
         "out/mappings.json",
