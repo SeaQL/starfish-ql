@@ -7,7 +7,7 @@ const scrap = async ({
     shouldLog = true,
 }) => {
     const REPO_NAME = "crates.io-index";
-    const REPO_URL = "git clone https://github.com/rust-lang/crates.io-index.git";
+    const REPO_URL = "https://github.com/rust-lang/crates.io-index.git";
     const DATA_PATH = "data/"; // Scrapped data storage, must end with '/'
     const META_NAME = "meta";
 
@@ -17,13 +17,13 @@ const scrap = async ({
     if (!folders.find((folder) => folder === REPO_NAME)) {
         // Clone the repo
         shouldLog && console.log("Repo not found, cloning...");
-        await promisedExec(REPO_URL);
+        await promisedExec("git clone " + REPO_URL);
     } else {
         shouldLog && console.log("Repo found");
     }
 
     // Make sure the repo is up to date
-    await promisedExecInFolder(REPO_NAME, "git checkout master && git pull");
+    await promisedExecInFolder(REPO_NAME, "git checkout master && git fetch origin && git reset --hard origin/master");
 
     // Branch on whether the metadata file is verified
     const metadata = await parseMetadata(DATA_PATH + META_NAME, shouldLog);
