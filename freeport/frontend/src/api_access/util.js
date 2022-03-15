@@ -37,7 +37,7 @@ export const formatTreeData = (rootNode, lhsData, rhsData) => {
         return {
             id: node.name,
             type: TreeElemType.Dependency,
-            depthInv: 1
+            depth: node.depth
         }
     }));
 
@@ -45,7 +45,7 @@ export const formatTreeData = (rootNode, lhsData, rhsData) => {
         return {
             id: node.name,
             type: TreeElemType.Dependent,
-            depthInv: 1
+            depth: node.depth
         }
     }));
 
@@ -68,8 +68,6 @@ export const formatTreeData = (rootNode, lhsData, rhsData) => {
             type: TreeElemType.Dependent,
         }
     }));
-
-    console.log(combined);
 
     return combined;
 };

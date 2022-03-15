@@ -52,6 +52,9 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     };
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 
+    // Store all crate names in an array for later use
+    require('fs').writeFileSync(dataPath + "crate_names.json", JSON.stringify(entries.map((entry) => entry.name)));
+
     await insertDataIntoDatabaseAndLog(
         entries,
         dataPath,

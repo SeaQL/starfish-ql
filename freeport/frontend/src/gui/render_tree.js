@@ -29,10 +29,10 @@ if (ColorScheme.length !== TreeElemType.NUM_TREE_ELEM_TYPE) {
 'data' must follow this format:
     data = {
         nodes: [
-            { id: "A", type: 0, depthInv: 0 },
-            { id: "B", type: 1, depthInv: 1 },
-            { id: "C", type: 2, depthInv: 1 },
-            { id: "D", type: 2, depthInv: 2 },
+            { id: "A", type: 0, depth: 0 },
+            { id: "C", type: 2, depth: 1 },
+            { id: "B", type: 1, depth: 1 },
+            { id: "D", type: 2, depth: 2 },
         ],
         links: [
             { source: "A", target: "B", type: 1 },
@@ -95,15 +95,15 @@ export function renderTree(
         });
 
     // Find max depth inverse in both dependencies and dependents for evaluating color gradient
-    let maxDepthInvDependency = -1, maxDepthInvDependent = -1;
+    let maxDepthDependency = -1, maxDepthDependent = -1;
     for (let node of data.nodes) {
-        if (node.type === TreeElemType.Dependency && node.depthInv > maxDepthInvDependency) {
-            maxDepthInvDependency = node.depthInv;
-        } else if (node.type === TreeElemType.Dependent && node.depthInv > maxDepthInvDependent) {
-            maxDepthInvDependent = node.depthInv;
+        if (node.type === TreeElemType.Dependency && node.depth > maxDepthDependency) {
+            maxDepthDependency = node.depth;
+        } else if (node.type === TreeElemType.Dependent && node.depth > maxDepthDependent) {
+            maxDepthDependent = node.depth;
         }
     }
-    const depthRange = maxDepthInvDependency + maxDepthInvDependent;
+    const depthRange = maxDepthDependency + maxDepthDependent;
 
     // Draw circles for the nodes
     node.append("circle")
@@ -113,13 +113,11 @@ export function renderTree(
                 return ColorScheme[TreeElemType.Root].hex;
             }
 
-            let t = d.depthInv;
+            let t = d.depth;
             if (d.type === TreeElemType.Dependency) {
-                t = maxDepthInvDependency - d.depthInv + 1;
-                t /= maxDepthInvDependency;
+                t /= maxDepthDependency;
             } else if (d.type === TreeElemType.Dependent) {
-                t = maxDepthInvDependent - d.depthInv + 1;
-                t /= maxDepthInvDependent;
+                t /= maxDepthDependent;
             }
             if (t < 0 || t > 1) {
                 console.error("Error evaluating color gradient.");
@@ -149,7 +147,7 @@ export function renderTree(
             infobox,
             [
                 "Id: " + d.id,
-                "Depth Inverse: " + d.depthInv,
+                "Depth: " + d.depth,
             ],
         );
     });
@@ -161,9 +159,9 @@ export function renderTree(
     );
     node.on("mouseout.resetHighlight", (_) => resetAllHighlight(node, link));
 
-    const depthInvToXMagnitude = (depthInv) => (width * 2 / 3) / depthInv;
-    const leftX = (depthInv) => center.x - depthInvToXMagnitude(depthInv);
-    const rightX = (depthInv) => center.x + depthInvToXMagnitude(depthInv);
+    const depthToXMagnitude = (depth) => (width / 4) * depth;
+    const leftX = (depth) => center.x - depthToXMagnitude(depth);
+    const rightX = (depth) => center.x + depthToXMagnitude(depth);
 
     const simulation = d3.forceSimulation(data.nodes)
         .force("x", d3.forceX((d) => {
@@ -172,9 +170,9 @@ export function renderTree(
                 default:
                     return center.x;
                 case TreeElemType.Dependency:
-                    return leftX(d.depthInv);
+                    return leftX(d.depth);
                 case TreeElemType.Dependent:
-                    return rightX(d.depthInv);
+                    return rightX(d.depth);
             }
         }))
         .force("link", d3.forceLink()
