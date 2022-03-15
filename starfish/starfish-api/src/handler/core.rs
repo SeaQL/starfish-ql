@@ -6,9 +6,8 @@ use starfish_core::lang::query::{QueryJson, QueryResultJson};
 use starfish_core::lang::schema::SchemaJson;
 use starfish_core::mutate::Mutate;
 use starfish_core::query::Query;
-use std::env;
 
-use crate::{db::pool::Db, ErrorResponder};
+use crate::{check_auth_match, db::pool::Db, ErrorResponder};
 use starfish_core::schema::Schema;
 
 pub fn routes() -> Vec<rocket::Route> {
@@ -63,19 +62,4 @@ async fn query(
     Ok(Json(
         Query::query(db, query_json).await.map_err(Into::into)?,
     ))
-}
-
-fn check_auth_match(auth: Option<String>) -> Result<(), ErrorResponder> {
-    let err = Err("Authorization failed.".into());
-    match (auth, env::var("API_AUTH_KEY").ok()) {
-        (Some(auth), Some(expected)) => {
-            if !auth.eq(&expected) {
-                err
-            } else {
-                Ok(())
-            }
-        }
-        (None, Some(_)) => err,
-        (_, None) => Ok(()),
-    }
 }

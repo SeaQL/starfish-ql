@@ -75,6 +75,21 @@ impl Into<ErrorResponder> for &str {
     }
 }
 
+fn check_auth_match(auth: Option<String>) -> Result<(), ErrorResponder> {
+    let err = Err("Authorization failed.".into());
+    match (auth, std::env::var("API_AUTH_KEY").ok()) {
+        (Some(auth), Some(expected)) => {
+            if !auth.eq(&expected) {
+                err
+            } else {
+                Ok(())
+            }
+        }
+        (None, Some(_)) => err,
+        (_, None) => Ok(()),
+    }
+}
+
 #[derive(Debug)]
 pub struct Cors;
 
