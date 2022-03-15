@@ -1,10 +1,11 @@
 mod common;
 
 use common::TestContext;
-use migration::SchemaManager;
-use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult};
 use sea_query::Alias;
+use starfish_core::migrator::Migrator;
+use starfish_core::migrator::MigratorTrait;
+use starfish_core::migrator::SchemaManager;
 use starfish_core::sea_orm;
 use starfish_core::sea_query;
 use starfish_core::{

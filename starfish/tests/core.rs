@@ -3,8 +3,6 @@ mod common;
 use std::collections::{HashMap, HashSet};
 
 use common::TestContext;
-use migration::sea_orm::{ConnectionTrait, DbConn, FromQueryResult};
-use migration::{Migrator, MigratorTrait, SchemaManager};
 use sea_orm::DbErr;
 use starfish_core::lang::mutate::{
     MutateDeleteJson, MutateEdgeContentJson, MutateEdgeSelectorJson, MutateInsertJson, MutateJson,
@@ -18,9 +16,11 @@ use starfish_core::lang::query::{
 };
 use starfish_core::lang::schema::{SchemaDefineJson, SchemaJson};
 use starfish_core::lang::{ConnectivityTypeJson, Edge, EdgeJsonBatch, Node, NodeJsonBatch};
+use starfish_core::migrator::{Migrator, MigratorTrait, SchemaManager};
 use starfish_core::mutate::Mutate;
 use starfish_core::query::{Query, QueryResultEdge};
 use starfish_core::schema::{format_edge_table_name, format_node_table_name};
+use starfish_core::sea_orm::{FromQueryResult, DbConn, ConnectionTrait};
 use starfish_core::sea_query::{Alias, Cond, Expr};
 use starfish_core::{
     entities::entity_attribute::Datatype,
@@ -47,6 +47,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
     Migrator::fresh(db).await?;
 
     let schema_json = SchemaJson {
+        reset: true,
         define: SchemaDefineJson {
             entities: vec![EntityJson {
                 name: "crate".to_owned(),
@@ -83,7 +84,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
 
     println!("# Schema defined successfully! #");
 
-    let mutate_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
+    let mutate_json = MutateJson::Insert(MutateInsertJson::node(NodeJsonBatch {
         of: "crate".to_owned(),
         nodes: vec![Node {
             name: "sea-orm".to_owned(),
@@ -102,7 +103,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
         assert_eq!(sea_orm.attr_version, "1.0");
     }
 
-    let mutate_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
+    let mutate_json = MutateJson::Insert(MutateInsertJson::node(NodeJsonBatch {
         of: "crate".to_owned(),
         nodes: vec![
             Node {
@@ -135,7 +136,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
         assert_eq!(sea_orm.attr_version, "2.0");
     }
 
-    let mutate_json = MutateJson::insert(MutateInsertJson::edge(EdgeJsonBatch {
+    let mutate_json = MutateJson::Insert(MutateInsertJson::edge(EdgeJsonBatch {
         of: "depends".to_owned(),
         edges: vec![Edge {
             from_node: "sea-orm".to_owned(),
@@ -165,7 +166,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
 
     println!("# Node and edges inserted successfully! #");
 
-    let mutate_json = MutateJson::update(MutateUpdateJson::node {
+    let mutate_json = MutateJson::Update(MutateUpdateJson::node {
         selector: MutateNodeSelectorJson {
             of: "crate".to_owned(),
             name: None,
@@ -183,7 +184,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
         assert_eq!(sea_orm.attr_version, "3.14");
     }
 
-    let mutate_json = MutateJson::update(MutateUpdateJson::edge {
+    let mutate_json = MutateJson::Update(MutateUpdateJson::edge {
         selector: MutateEdgeSelectorJson {
             of: "depends".to_owned(),
             edge_content: MutateEdgeContentJson {
@@ -211,7 +212,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
 
     println!("# Node and edges updated successfully! #");
 
-    let mutate_json = MutateJson::delete(MutateDeleteJson::edge(MutateEdgeSelectorJson {
+    let mutate_json = MutateJson::Delete(MutateDeleteJson::edge(MutateEdgeSelectorJson {
         of: "depends".to_owned(),
         edge_content: MutateEdgeContentJson {
             from_node: Some("sea-query".to_owned()),
@@ -225,7 +226,7 @@ async fn schema_mutate() -> Result<(), DbErr> {
         assert!(TestEdge::get_all(db, "depends").await?.is_empty());
     }
 
-    let mutate_json = MutateJson::delete(MutateDeleteJson::node(MutateNodeSelectorJson {
+    let mutate_json = MutateJson::Delete(MutateDeleteJson::node(MutateNodeSelectorJson {
         of: "crate".to_owned(),
         name: Some("sea-orm".to_owned()),
         attributes: HashMap::new(),
@@ -242,6 +243,13 @@ async fn schema_mutate() -> Result<(), DbErr> {
     }
 
     println!("# Node and edges deleted successfully! #");
+
+    Schema::define_schema(db, SchemaJson { reset: true, define: Default::default() }).await?;
+
+    assert!(!schema_manager.has_table("node_crate").await?);
+    assert!(!schema_manager.has_table("edge_depends").await?);
+
+    println!("# Schema is reset successfully! #");
 
     Ok(())
 }
@@ -319,6 +327,7 @@ async fn query() -> Result<(), DbErr> {
     Migrator::fresh(db).await?;
 
     let schema_json = SchemaJson {
+        reset: true,
         define: SchemaDefineJson {
             entities: vec![EntityJson {
                 name: "letter".to_owned(),
@@ -349,14 +358,14 @@ async fn query() -> Result<(), DbErr> {
 }
 
 async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
-    let insert_nodes_json = MutateJson::insert(MutateInsertJson::node(NodeJsonBatch {
+    let insert_nodes_json = MutateJson::Insert(MutateInsertJson::node(NodeJsonBatch {
         of: "letter".to_owned(),
         nodes: Node::new_vec(vec!["A", "B", "C", "D", "E", "F"]),
     }));
 
     Mutate::mutate(db, insert_nodes_json, false).await?;
 
-    let insert_edges_json = MutateJson::insert(MutateInsertJson::edge(EdgeJsonBatch {
+    let insert_edges_json = MutateJson::Insert(MutateInsertJson::edge(EdgeJsonBatch {
         of: "likes".to_owned(),
         edges: Edge::new_vec(vec![
             ("A", "C"),
