@@ -1,47 +1,36 @@
 const { constructUrl } = require("./url");
 const { postRequest } = require("./util");
 
-const resetDatabase = async () => {
+const defineSchema = async (reset = true) => {
     await postRequest(
         constructUrl("schema"),
         {
-            reset: true
+            reset,
+            define: {
+                entities: [
+                    {
+                        name: "crate",
+                        attributes: [
+                            {
+                                name: "version",
+                                datatype: "String",
+                            }
+                        ]
+                    }
+                ],
+                relations: [
+                    {
+                        name: "depends",
+                        from_entity: "crate",
+                        to_entity: "crate",
+                        directed: true
+                    }
+                ]
+            }
         }
     );
-};
-
-const defineSchema = async () => {
-    await postRequest(
-        constructUrl("schema"),
-        {
-            entities: [
-                {
-                    name: "crate",
-                    attributes: [
-                        {
-                            name: "version",
-                            datatype: "String",
-                        }
-                    ]
-                }
-            ],
-            relations: [
-                {
-                    name: "depends",
-                    from_entity: "crate",
-                    to_entity: "crate",
-                    directed: true
-                }
-            ]
-        }
-    );
-};
-
-const resetSchema = async () => {
-    await resetDatabase();
-    await defineSchema();
 };
 
 module.exports = {
-    resetSchema
+    defineSchema
 };
