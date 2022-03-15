@@ -1,3 +1,4 @@
+const dotenv = require('dotenv-webpack');
 const path = require('path');
 
 module.exports = {
@@ -10,5 +11,10 @@ module.exports = {
   devServer: {
   	//host: "0.0.0.0",
     port: 8080,
-  }
+  },
+  plugins: [
+    new dotenv({
+      systemvars: true
+    })
+  ]
 };

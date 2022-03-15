@@ -15,6 +15,7 @@
     "axios": "^0.26.0",
     "colorsys": "^1.0.22",
     "d3": "^7.2.1",
+    "dotenv-webpack": "^7.1.0",
     "webpack": "^4.41.5"
   },
   "devDependencies": {
