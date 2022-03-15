@@ -5,7 +5,7 @@ use std::{collections::HashMap, fs, sync::Arc, time::Duration};
 use tokio::{sync::Mutex, time::sleep};
 
 const REQUEST_BATCH_SIZE: usize = 150;
-const SLEEP_BETWEEN_BATCHES: u64 = 4000; // in ms
+const SLEEP_BETWEEN_BATCHES: u64 = 5000; // in ms
 const BASE_URL: &str = "https://crates.io/api/v1/crates/";
 
 #[derive(Debug)]
