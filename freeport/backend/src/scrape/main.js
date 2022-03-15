@@ -3,12 +3,12 @@ const { parseMetadata } = require("./meta");
 const { initialScrap } = require("./initial");
 const { updateScrap } = require("./update");
 
-const scrap = async ({
+const scrape = async ({
     shouldLog = true,
 }) => {
     const REPO_NAME = "crates.io-index";
     const REPO_URL = "https://github.com/rust-lang/crates.io-index.git";
-    const DATA_PATH = "data/"; // Scrapped data storage, must end with '/'
+    const DATA_PATH = "data/"; // Scraped data storage, must end with '/'
     const META_NAME = "meta";
 
     const folders = await promisedExec("ls");
@@ -35,5 +35,5 @@ const scrap = async ({
 };
 
 module.exports = {
-    scrap
+    scrape
 };

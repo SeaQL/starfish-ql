@@ -1,6 +1,6 @@
-const { scrap } = require("./src/scrap/main");
+const { scrape } = require("./src/scrape/main");
 
-scrap({
+scrape({
     shouldLog: true
 })
 .catch(console.error);

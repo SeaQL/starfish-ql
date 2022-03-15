@@ -10,7 +10,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     await resetSchema();
     shouldLog && console.log("Resetting database...");
 
-    shouldLog && console.log("Commencing initial scrap...");
+    shouldLog && console.log("Commencing initial scrape...");
 
     // Clear data and metadata
     shouldLog && console.log("Removing existing data and metadata if any...");

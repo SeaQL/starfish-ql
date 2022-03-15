@@ -1,11 +1,11 @@
-const { writeToEndOfFile } = require("../scrap/file_io");
-const { promisedExecInFolder } = require("../scrap/util");
+const { writeToEndOfFile } = require("../scrape/file_io");
+const { promisedExecInFolder } = require("../scrape/util");
 const { AsyncBatch } = require("./batch");
 const { insertCrateNodesBatch, insertDependsEdgesBatch, createNode, createEdge } = require("./insert");
 
 const now = () => (new Date()).getTime();
 
-/// 'data' is obtained from the 'scrap/main' module.
+/// 'data' is obtained from the 'scrape/main' module.
 const insertDataIntoDatabase = async (
     data,
     batchReleaseThreshold,
