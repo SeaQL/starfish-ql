@@ -9,7 +9,7 @@ use crate::{
     schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Value};
-use sea_query::{Alias, Cond, Expr, Query, SimpleExpr};
+use sea_query::{Alias, Cond, Expr, Query, QueryStatementBuilder, SimpleExpr};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -197,7 +197,7 @@ impl Mutate {
         let mut stmt = Query::update();
         stmt.table(Alias::new(node_table)).value_expr(
             Alias::new(&format!("{}_out_conn", relation_name)),
-            SimpleExpr::SubQuery(Box::new(select)),
+            SimpleExpr::SubQuery(Box::new(select.into_sub_query_statement())),
         );
         db.execute(builder.build(&stmt)).await?;
 
@@ -213,7 +213,7 @@ impl Mutate {
         let mut stmt = Query::update();
         stmt.table(Alias::new(node_table)).value_expr(
             Alias::new(&format!("{}_in_conn", relation_name)),
-            SimpleExpr::SubQuery(Box::new(select)),
+            SimpleExpr::SubQuery(Box::new(select.into_sub_query_statement())),
         );
         db.execute(builder.build(&stmt)).await?;
 
