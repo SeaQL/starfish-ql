@@ -1,12 +1,12 @@
 use crate::db::pool::Db;
 use crate::ErrorResponder;
-use migration::sea_orm::EntityTrait;
 use rocket::serde::json::Json;
 use rocket::{post, routes};
 use sea_orm_rocket::Connection;
 use starfish_core::entities;
 use starfish_core::lang::{ClearEdgeJson, EdgeJson, EdgeJsonBatch, NodeJson, NodeJsonBatch};
 use starfish_core::mutate::Mutate;
+use starfish_core::sea_orm::EntityTrait;
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![

@@ -6,8 +6,9 @@ mod relation;
 pub use entity::*;
 pub use relation::*;
 use sea_orm::{DbConn, DbErr};
+use sea_schema::migration::MigratorTrait;
 
-use crate::lang::schema::SchemaJson;
+use crate::{lang::schema::SchemaJson, migrator::Migrator};
 
 /// Define new entity and relation
 #[derive(Debug)]

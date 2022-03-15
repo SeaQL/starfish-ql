@@ -30,6 +30,7 @@ sea-orm = { git = "https://github.com/SeaQL/sea-orm.git", branch = "migration", 
     "runtime-async-std-native-tls",
     "debug-print",
 ]}
+sea-schema = { git = "https://github.com/SeaQL/sea-schema.git", branch = "schema-manager", default-features = false, features = [ "migration", "debug-print" ] }
 sea-query = { version = "^0.20.0", features = ["thread-safe"] }
 futures-executor = { version = "^0.3" }
 async-trait = { version = "^0.1" }

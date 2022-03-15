@@ -5,7 +5,6 @@ mod handler;
 
 use async_trait::async_trait;
 use db::pool;
-use migration::{Migrator, MigratorTrait};
 use rocket::fairing::{self, AdHoc, Fairing, Info, Kind};
 use rocket::http::Header;
 use rocket::serde::json::{json, Value};
@@ -13,7 +12,7 @@ use rocket::tokio::runtime;
 use rocket::{catch, catchers, Build, Request, Responder, Response, Rocket};
 use sea_orm::DbErr;
 use sea_orm_rocket::Database;
-use starfish_core::sea_orm;
+use starfish_core::{migrator::{Migrator, MigratorTrait}, sea_orm};
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
     let conn = &pool::Db::fetch(&rocket).unwrap().conn;

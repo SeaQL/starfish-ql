@@ -4,6 +4,8 @@ mod m20220121_000001_create_entity_table;
 mod m20220121_000002_create_relation_table;
 mod m20220121_000003_create_entity_attribute_table;
 
+#[derive(Debug)]
+/// To perform database migration
 pub struct Migrator;
 
 #[async_trait::async_trait]

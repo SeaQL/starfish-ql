@@ -1,8 +1,8 @@
 use crate::db::pool::Db;
 use crate::ErrorResponder;
-use migration::{Migrator, MigratorTrait};
 use rocket::{get, routes};
 use sea_orm_rocket::Connection;
+use starfish_core::migrator::{Migrator, MigratorTrait};
 
 pub fn routes() -> Vec<rocket::Route> {
     routes![reset]
