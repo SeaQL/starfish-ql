@@ -4,15 +4,16 @@ use super::{EntityJson, RelationJson};
 
 /// Metadata of a schema request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub enum SchemaJson {
+pub struct SchemaJson {
+    /// If true, define all schema from scratch. Defaults to be false (append mode).
+    #[serde(default)]
+    pub reset: bool,
     /// What this defines
-    Define(SchemaDefineJson),
-    /// Signal a reset of schema
-    Reset,
+    #[serde(default)]
+    pub define: SchemaDefineJson,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 /// Metadata of vectors of entities and relations, deserialized as struct from json
 pub struct SchemaDefineJson {
     /// Entities metadata
