@@ -66,6 +66,15 @@ impl Into<ErrorResponder> for DbErr {
     }
 }
 
+#[allow(clippy::from_over_into)]
+impl Into<ErrorResponder> for &str {
+    fn into(self) -> ErrorResponder {
+        ErrorResponder {
+            message: self.to_string(),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Cors;
 
