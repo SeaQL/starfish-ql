@@ -1,5 +1,5 @@
 use rocket::serde::json::Json;
-use rocket::{get, post, routes};
+use rocket::{post, routes};
 use sea_orm_rocket::Connection;
 use starfish_core::lang::mutate::MutateJson;
 use starfish_core::lang::query::{QueryJson, QueryResultJson};
