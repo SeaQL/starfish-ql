@@ -3,8 +3,11 @@ const { constructUrl } = require("./url");
 const { postRequest, getRequest } = require("./util");
 
 const resetDatabase = async () => {
-    await getRequest(
-        constructUrl("util/reset")
+    await postRequest(
+        constructUrl("schema"),
+        {
+            reset: true
+        }
     );
 };
 
