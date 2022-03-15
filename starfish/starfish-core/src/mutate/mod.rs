@@ -17,7 +17,7 @@ impl Mutate {
     /// Mutate data in db
     pub async fn mutate(db: &DbConn, mutate_json: MutateJson, upsert: bool) -> Result<(), DbErr> {
         match mutate_json {
-            MutateJson::insert(insert_json) => match insert_json {
+            MutateJson::Insert(insert_json) => match insert_json {
                 MutateInsertJson::node(batch) => {
                     Mutate::insert_node_batch(db, batch, upsert).await?;
                 }
@@ -25,7 +25,7 @@ impl Mutate {
                     Mutate::insert_edge_batch(db, batch).await?;
                 }
             },
-            MutateJson::update(update_json) => match update_json {
+            MutateJson::Update(update_json) => match update_json {
                 MutateUpdateJson::node { selector, content } => {
                     Mutate::update_node_attributes(db, selector, content).await?;
                 }
@@ -33,13 +33,16 @@ impl Mutate {
                     Mutate::update_edge(db, selector, content).await?;
                 }
             },
-            MutateJson::delete(delete_json) => match delete_json {
+            MutateJson::Delete(delete_json) => match delete_json {
                 MutateDeleteJson::node(selector) => {
                     Mutate::delete_node_with_selector(db, selector).await?;
                 }
                 MutateDeleteJson::edge(selector) => {
                     Mutate::delete_edge_with_selector(db, selector).await?;
                 }
+            },
+            MutateJson::CalConn(relation_names) => {
+                Mutate::calculate_all_connectivity(db, relation_names).await?;
             },
         };
 
