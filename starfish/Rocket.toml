@@ -1,2 +1,5 @@
 [default.databases.starfish]
 url = "mysql://root:root@localhost/starfish"
+
+[default]
+address = "0.0.0.0"
