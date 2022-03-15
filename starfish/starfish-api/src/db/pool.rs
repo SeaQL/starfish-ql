@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use sea_orm::{ConnectOptions, DbConn};
 use sea_orm_rocket::{rocket::figment::Figment, Config, Database};
 use starfish_core::sea_orm;
+use std::env;
 use std::time::Duration;
 
 #[derive(Database, Debug)]
@@ -21,7 +22,12 @@ impl sea_orm_rocket::Pool for RocketDbPool {
 
     async fn init(figment: &Figment) -> Result<Self, Self::Error> {
         let config = figment.extract::<Config>().unwrap();
-        let mut options: ConnectOptions = config.url.into();
+        // Extract `DATABASE_URL` defined in environment variable (if any)
+        // Otherwise, use `DATABASE_URL`defined in `Rocket.toml`
+        let mut options: ConnectOptions = env::var("DATABASE_URL")
+            .map(Into::into)
+            .unwrap_or_else(|_| config.url.into());
+        options = dbg!(options);
         options
             .max_connections(config.max_connections as u32)
             .min_connections(config.min_connections.unwrap_or_default())
