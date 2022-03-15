@@ -16,7 +16,7 @@ pub enum MutateJson {
     /// Delete selected data
     Delete(MutateDeleteJson),
     /// Calculate and store the connectitivties of relations with the supplied *unformatted* names
-    CalConn(Vec<String>,)
+    CalConn(Vec<String>),
 }
 
 /// Metadata of a mutate insert request

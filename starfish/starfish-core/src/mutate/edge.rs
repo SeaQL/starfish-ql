@@ -2,13 +2,14 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
 use crate::{
+    entities::{relation::Model, Relation},
     lang::{
         mutate::{MutateEdgeContentJson, MutateEdgeSelectorJson},
         ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch,
     },
-    schema::{format_edge_table_name, format_node_table_name}, entities::{Relation, relation::Model},
+    schema::{format_edge_table_name, format_node_table_name},
 };
-use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Value, EntityTrait};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult, Value};
 use sea_query::{Alias, Cond, Expr, Query, SimpleExpr};
 
 #[derive(Debug, Clone, FromQueryResult)]
@@ -175,7 +176,10 @@ impl Mutate {
     }
 
     /// Calculate the connectivity of all relations specified by the supplied *unformatted* names
-    pub async fn calculate_all_connectivity(db: &DbConn, relation_names: Vec<String>) -> Result<(), DbErr> {
+    pub async fn calculate_all_connectivity(
+        db: &DbConn,
+        relation_names: Vec<String>,
+    ) -> Result<(), DbErr> {
         let mut relation_names: HashSet<String> = HashSet::from_iter(relation_names.into_iter());
 
         let relations = Relation::find()
@@ -187,7 +191,10 @@ impl Mutate {
 
         if !relation_names.is_empty() {
             let missing_relation_names = Vec::from_iter(relation_names.into_iter()).join(", ");
-            return Err(DbErr::Custom(format!("Relations not found: {}", missing_relation_names)));
+            return Err(DbErr::Custom(format!(
+                "Relations not found: {}",
+                missing_relation_names
+            )));
         }
 
         for relation in relations {
@@ -195,11 +202,9 @@ impl Mutate {
             let from_node = relation.from_entity.as_str();
             let to_node = relation.to_entity.as_str();
 
-            Self::calculate_simple_connectivity(db, relation_name, from_node, to_node)
-                .await?;
+            Self::calculate_simple_connectivity(db, relation_name, from_node, to_node).await?;
 
-            Self::calculate_compound_connectivity(db, relation_name, to_node)
-                .await?;
+            Self::calculate_compound_connectivity(db, relation_name, to_node).await?;
 
             for (weight, col_name) in [
                 (0.3, "in_conn_complex03"),

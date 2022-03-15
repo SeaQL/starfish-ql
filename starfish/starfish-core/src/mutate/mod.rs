@@ -43,7 +43,7 @@ impl Mutate {
             },
             MutateJson::CalConn(relation_names) => {
                 Mutate::calculate_all_connectivity(db, relation_names).await?;
-            },
+            }
         };
 
         Ok(())
