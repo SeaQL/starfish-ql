@@ -1,5 +1,5 @@
-use sea_schema::{migration::*, sea_query::*};
 use crate::entities::*;
+use sea_schema::{migration::*, sea_query::*};
 
 pub struct Migration;
 

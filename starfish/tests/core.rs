@@ -20,7 +20,7 @@ use starfish_core::migrator::{Migrator, MigratorTrait, SchemaManager};
 use starfish_core::mutate::Mutate;
 use starfish_core::query::{Query, QueryResultEdge};
 use starfish_core::schema::{format_edge_table_name, format_node_table_name};
-use starfish_core::sea_orm::{FromQueryResult, DbConn, ConnectionTrait};
+use starfish_core::sea_orm::{ConnectionTrait, DbConn, FromQueryResult};
 use starfish_core::sea_query::{Alias, Cond, Expr};
 use starfish_core::{
     entities::entity_attribute::Datatype,
@@ -244,7 +244,14 @@ async fn schema_mutate() -> Result<(), DbErr> {
 
     println!("# Node and edges deleted successfully! #");
 
-    Schema::define_schema(db, SchemaJson { reset: true, define: Default::default() }).await?;
+    Schema::define_schema(
+        db,
+        SchemaJson {
+            reset: true,
+            define: Default::default(),
+        },
+    )
+    .await?;
 
     assert!(!schema_manager.has_table("node_crate").await?);
     assert!(!schema_manager.has_table("edge_depends").await?);
