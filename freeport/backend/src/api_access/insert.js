@@ -27,7 +27,7 @@ const createNode = (name, attributes = {}) => {
 
 const insertCrateNodesBatch = async (nodes) => {
     await postRequest(
-        constructUrl("mutate"),
+        constructUrl("mutate", { upsert: true }),
         {
             insert: {
                 node: {
