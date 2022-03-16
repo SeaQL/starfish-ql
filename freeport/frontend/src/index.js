@@ -1,5 +1,5 @@
-import { graphMain } from "./src/main/graph";
-import { treeMain } from "./src/main/tree";
+import { graphMain } from "./main/graph";
+import { treeMain } from "./main/tree";
 
 const GlobalConfig = {
     minWeight: 12,

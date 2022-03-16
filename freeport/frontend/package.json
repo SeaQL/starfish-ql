@@ -7,19 +7,21 @@
   "private": true,
   "main": "index.js",
   "scripts": {
-    "start": "webpack-dev-server",
-    "build": "webpack"
+    "start": "webpack-dev-server --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js"
   },
   "keywords": [],
   "dependencies": {
     "axios": "^0.26.0",
     "colorsys": "^1.0.22",
     "d3": "^7.2.1",
-    "dotenv-webpack": "^7.1.0",
     "webpack": "^4.41.5"
   },
   "devDependencies": {
+    "dotenv-webpack": "^7.1.0",
+    "html-webpack-plugin": "^5.5.0",
     "webpack-cli": "^3.3.11",
-    "webpack-dev-server": "^3.10.1"
+    "webpack-dev-server": "^3.10.1",
+    "webpack-merge": "^5.8.0"
   }
 }
