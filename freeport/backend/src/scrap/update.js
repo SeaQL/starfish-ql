@@ -1,3 +1,4 @@
+const { calculateAllConnectivity } = require("../api_access/calculate_connectivity");
 const { insertDataIntoDatabaseAndLog } = require("../api_access/main");
 const { readFileLineByLine } = require("./file_io");
 const { createMetadata } = require("./meta");
