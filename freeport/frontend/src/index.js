@@ -7,7 +7,7 @@ const GlobalConfig = {
     outputElemId: "output",
 };
 
-const main = async () => {
+window.main = async (callback) => {
 
     const documentId = document.body.id;
 
@@ -15,14 +15,12 @@ const main = async () => {
         case "index":
             return;
         case "graph":
-            await graphMain(GlobalConfig);
+            await graphMain(GlobalConfig, callback);
             break;
         case "tree":
-            await treeMain(GlobalConfig);
+            await treeMain(GlobalConfig, callback);
             break;
         default:
     }
 
 }; // End of main()
-
-main().catch(console.error);

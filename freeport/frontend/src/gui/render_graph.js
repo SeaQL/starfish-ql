@@ -37,8 +37,11 @@ export function renderGraph(
     
     const svg = d3.select(containerElem)
         .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom);
+        .attr("width", "100vw")
+        .attr("height", "100vh")
+        // .attr("width", width + margin.left + margin.right)
+        // .attr("height", height + margin.top + margin.bottom)
+        ;
     
     const group = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
