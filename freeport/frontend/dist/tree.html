@@ -30,7 +30,7 @@
             FormControl,
             Paper,
             LinearProgress,
-            Collapse,
+            Grow,
             IconButton,
             styled,
         } = MaterialUI;
@@ -97,7 +97,11 @@
                     >
                         <i class="fa-solid fa-angle-down"></i>
                     </ExpandMore>
-                    <Collapse in={expanded}>
+                    <Grow
+                        in={expanded}
+                        style={{ transformOrigin: '0 0 0' }}
+                        {...(expanded ? { timeout: 1000 } : {})}
+                    >
                         <Paper
                             elevation={12}
                             sx={{
@@ -169,7 +173,7 @@
                             </FormControl>
                             {disabled ? <LinearProgress sx={{ marginTop: '10px' }} /> : null}
                         </Paper>
-                    </Collapse>
+                    </Grow>
                 </Box>
             );
         }
