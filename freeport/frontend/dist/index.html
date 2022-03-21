@@ -26,18 +26,20 @@
             createTheme,
             Button,
             Stack,
+            Paper,
         } = MaterialUI;
 
         const theme = createTheme();
 
         function App() {
             return (
-                <Container maxWidth="sm">
+                <Container maxWidth="md">
                     <p style={{ textAlign: 'center', margin: '0' }}>
                         <img src="/SeaQL logo.png" width="300px" />
                     </p>
-                    <Typography variant="h2" component="h1" align="center" gutterBottom>
-                        StarfishQL Demo
+                    <Typography variant="h3" component="h1" align="center" gutterBottom>
+                        StarfishQL Demo<br/>
+                        crates.io Dependency Network
                     </Typography>
                     <Stack spacing={2} justifyContent="center" alignItems="center" direction="row">
                         <Button variant="outlined" size="large" sx={{ textTransform: 'none' }} href="/graph.html">
@@ -48,7 +50,8 @@
                         </Button>
                     </Stack>
                     <Typography variant="body1" align="center" sx={{  marginTop: '20px', fontSize: '18px' }}>
-                        StarfishQL is graph database and query engine to enable graph analysis and visualization on the web.
+                        StarfishQL is graph database and query engine<br/>
+                        to enable graph analysis and visualization on the web.
                     </Typography>
                 </Container>
             );
@@ -63,16 +66,10 @@
         );
     </script>
     <style>
-        body {
-            height: 100vh;
-            overflow: hidden;
-        }
-
         div#root {
-            height: 100vh;
             display: flex;
             align-items: center;
-            padding-bottom: 300px;
+            padding-top: 40px;
         }
     </style>
 </body>
