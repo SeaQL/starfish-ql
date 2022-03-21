@@ -37,8 +37,6 @@
             Chip,
         } = MaterialUI;
 
-        const theme = createTheme();
-
         const decays = [
             {
                 value: 'Simple',
@@ -63,6 +61,22 @@
         ];
 
         function App() {
+            const [themeMode, setThemeMode] = React.useState(() => {
+                return localStorage.getItem("theme-color-scheme") || "light";
+            });
+            const toggleThemeMode = () => {
+                setThemeMode(themeMode == "dark" ? "light" : "dark");
+            }
+            React.useEffect(() => {
+                localStorage.setItem("theme-color-scheme", themeMode);
+            }, [themeMode]);
+
+            const theme = createTheme({
+                palette: {
+                    mode: themeMode,
+                },
+            });
+
             const [disabled, setDisabled] = React.useState(false);
             const callback = () => setDisabled(false);
 
@@ -97,8 +111,21 @@
             };
 
             return (
-                <Box>
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
                     <Box id="output" />
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            padding: '5px',
+                            top: '0px',
+                            right: '0px',
+                        }}
+                    >
+                        <IconButton onClick={toggleThemeMode} variant="contained">
+                            {themeMode === 'dark' ? <i class="fa-solid fa-sun"></i> : <i class="fa-solid fa-moon"></i>}
+                        </IconButton>
+                    </Box>
                     <ExpandMore
                         expand={expanded}
                         onClick={handleExpandClick}
@@ -228,15 +255,12 @@
                             clickable
                         />
                     </Paper>
-                </Box>
+                </ThemeProvider>
             );
         }
 
         ReactDOM.render(
-            <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <App />
-            </ThemeProvider>,
+            <App />,
             document.querySelector('#root'),
         );
     </script>
