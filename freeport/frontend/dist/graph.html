@@ -67,8 +67,10 @@
             const callback = () => setDisabled(false);
 
             const handleClick = async () => {
-                setDisabled(true);
-                await main(callback).catch(console.error);
+                if (!disabled) {
+                    setDisabled(true);
+                    await main(callback).catch(console.error);
+                }
             };
 
             const [expanded, setExpanded] = React.useState(true);
@@ -87,6 +89,12 @@
                     duration: theme.transitions.duration.shortest,
                 }),
             }));
+
+            const handleKeyPress = async (e) => {
+                if (e.key === 'Enter') {
+                    await handleClick();
+                }
+            };
 
             return (
                 <Box>
@@ -125,6 +133,7 @@
                                     type="number"
                                     defaultValue="8"
                                     margin="normal"
+                                    onKeyPress={handleKeyPress}
                                 />
                             </FormControl>
                             <FormControl fullWidth>
@@ -134,6 +143,7 @@
                                     type="number"
                                     defaultValue="8"
                                     margin="normal"
+                                    onKeyPress={handleKeyPress}
                                 />
                             </FormControl>
                             <FormControl fullWidth>
@@ -143,6 +153,7 @@
                                     type="number"
                                     defaultValue="8"
                                     margin="normal"
+                                    onKeyPress={handleKeyPress}
                                 />
                             </FormControl>
                             <FormControl fullWidth>
@@ -153,6 +164,7 @@
                                         native: true,
                                     }}
                                     margin="normal"
+                                    onKeyPress={handleKeyPress}
                                     select
                                 >
                                     {decays.map((option) => (
