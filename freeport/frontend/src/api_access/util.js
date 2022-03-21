@@ -63,8 +63,8 @@ export const formatTreeData = (rootNode, lhsData, rhsData) => {
     }));
     combined.links.push(...rhsData.edges.map((edge) => {
         return {
-            source: edge.fromNode,
-            target: edge.toNode,
+            source: edge.toNode,
+            target: edge.fromNode,
             type: TreeElemType.Dependent,
         }
     }));
