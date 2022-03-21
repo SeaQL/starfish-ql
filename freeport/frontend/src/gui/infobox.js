@@ -3,7 +3,7 @@ export function createInfobox(
     {
         opacity = 0.5,
         cornerRadius = 5,
-        topPadding = "10px",
+        topPadding = "16px",
         vAlign = "center"
     } = {}
 ) {
@@ -47,16 +47,25 @@ export function updateInfobox(
 
     text.selectAll("tspan").remove();
 
-    text.selectAll("tspan")
-        .data(contents)
-        .enter()
-        .append("tspan")
-        .style("font-size", fontSize + "px")
-        .attr("x", padding)
-        .attr("y", (_, i) => {
-            return padding + i * (fontSize + lineSpacing);
-        })
-        .text((d) => d);
+    let i = 0;
+    for (const [key, value] of Object.entries(contents)) {
+        let elem = text.append("tspan")
+            .style("font-size", fontSize + "px")
+            .attr("x", padding)
+            .attr("y", padding + i * (fontSize + lineSpacing));
+        if (key == "crate") {
+            elem.text("Crate: ")
+                .append("a")
+                .attr("xlink:href", `https://crates.io/crates/${value}`)
+                .attr("target", "_blank")
+                .attr("fill", "#eeeeee")
+                .attr("style", "text-decoration: underline;")
+                .text(value);
+        } else {
+            elem.text(value);
+        }
+        i++;
+    }
 
     let bb = text.node().getBoundingClientRect();
     bb = {

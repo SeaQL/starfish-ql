@@ -29,7 +29,7 @@ export const formatGraphData = (graphData) => {
 
 export const formatTreeData = (rootNode, lhsData, rhsData) => {
     const combined = {
-        nodes: [ {id: rootNode, type: TreeElemType.Root, depthInv: 0} ],
+        nodes: [ {id: rootNode, type: TreeElemType.Root, depth: 0} ],
         links: [],
     };
 

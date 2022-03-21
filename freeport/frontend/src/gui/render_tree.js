@@ -71,6 +71,24 @@ export function renderTree(
     const group = svg.append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+    svg.append("defs")
+        .selectAll("marker")
+        .data([TreeElemType.Root, TreeElemType.Dependency, TreeElemType.Dependent])
+        .enter()
+        .append("marker")
+        .attr("id", (d) => `arrowhead-${d}`)
+        .attr("viewBox", "0 -5 10 10")
+        .attr("orient", "auto")
+        .attr("refX", 8)
+        .attr("refY", 0)
+        .attr("markerWidth", 9)
+        .attr("markerHeight", 5)
+        .append("svg:path")
+        .attr("d", "M0,-5L10,0L0,5")
+        .attr("fill", (d) => `${ColorScheme[d].hex}`)
+        .attr("stroke", "none")
+        .attr("stroke-width", "1.5px");
+
     // Initialize the links
     const link = group
         .selectAll("line")
@@ -82,7 +100,8 @@ export function renderTree(
                 console.error("Unkown tree node type.");
             }
             return ColorScheme[d.type].hex;
-        });
+        })
+        .attr("marker-end", (d) => `url(#arrowhead-${d.type})`);
 
     // Initialize the nodes
     const node = createNodes(group, data.nodes)
@@ -148,10 +167,10 @@ export function renderTree(
         
         updateInfobox(
             infobox,
-            [
-                "Id: " + d.id,
-                "Depth: " + d.depth,
-            ],
+            {
+                crate: d.id,
+                depth: `Depth: ${d.depth}`,
+            },
         );
     });
 
@@ -191,12 +210,21 @@ export function renderTree(
     const getX = (d) => d.x;
     const getY = (d) => d.y;
     const translateAndScale = (d) => `translate(${d.x}, ${d.y}) scale(${nodeCircleRadius / d.textRadius})`;
+    const getTargetNodeCircumferencePoint = (d) => {
+        var radius = nodeCircleRadius + 1;
+        var dx = d.target.x - d.source.x;
+        var dy = d.target.y - d.source.y;
+        var gamma = Math.atan2(dy,dx);
+        var tx = d.target.x - (Math.cos(gamma) * radius);
+        var ty = d.target.y - (Math.sin(gamma) * radius);
+        return [tx, ty]; 
+    };
 
     simulation.on("tick", function() {
         link.attr("x1", getSourceX)
             .attr("y1", getSourceY)
-            .attr("x2", getTargetX)
-            .attr("y2", getTargetY);
+            .attr("x2", (d) => getTargetNodeCircumferencePoint(d)[0])
+            .attr("y2", (d) => getTargetNodeCircumferencePoint(d)[1]);
 
         // Move circles
         node.select("circle")
