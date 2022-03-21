@@ -40,6 +40,14 @@
                 setThemeMode(themeMode == "dark" ? "light" : "dark");
             }
             React.useEffect(() => {
+                if (window.matchMedia &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches && 
+                    !window.localStorage.getItem("theme-color-scheme")
+                ) {
+                    setThemeMode("dark");
+                }
+            }, []);
+            React.useEffect(() => {
                 localStorage.setItem("theme-color-scheme", themeMode);
             }, [themeMode]);
 
