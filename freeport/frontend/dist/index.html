@@ -30,6 +30,8 @@
             Paper,
             Box,
             IconButton,
+            Link,
+            Chip,
         } = MaterialUI;
 
         function App() {
@@ -93,6 +95,45 @@
                             to enable graph analysis and visualization on the web.
                         </Typography>
                     </Container>
+                    <Paper
+                        elevation={10}
+                        sx={{
+                            position: 'absolute',
+                            bottom: '0px',
+                            left: '0px',
+                            width: '100vw',
+                            padding: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <img src="/favicon.ico" width="30px" />
+                        <Typography component="span" sx={{ paddingLeft: '10px' }}>
+                            Copyright © {new Date().getFullYear()}
+                            &nbsp;
+                            <Link href="https://github.com/SeaQL" underline="hover">
+                                SeaQL
+                            </Link>
+                        </Typography>
+                        <Chip
+                            label="Docs"
+                            component="a"
+                            href="https://www.sea-ql.org/StarfishQL/"
+                            variant="outlined"
+                            size="small"
+                            sx={{ marginLeft: '15px' }}
+                            clickable
+                        />
+                        <Chip
+                            label="GitHub"
+                            component="a"
+                            href="https://github.com/SeaQL/starfish-ql"
+                            variant="outlined"
+                            size="small"
+                            sx={{ marginLeft: '15px' }}
+                            clickable
+                        />
+                    </Paper>
                 </ThemeProvider>
             );
         }
@@ -106,7 +147,6 @@
         div#root {
             display: flex;
             align-items: center;
-            padding-top: 40px;
         }
     </style>
 </body>
