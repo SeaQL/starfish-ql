@@ -1,3 +1,5 @@
+//! Migration scripts
+
 pub use sea_schema::migration::*;
 
 mod m20220121_000001_create_entity_table;

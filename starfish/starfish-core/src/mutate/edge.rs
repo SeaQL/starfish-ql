@@ -10,7 +10,7 @@ use crate::{
     schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult, Value};
-use sea_query::{Alias, Cond, Expr, Query, SimpleExpr};
+use sea_query::{Alias, Cond, Expr, Query, QueryStatementBuilder, SimpleExpr};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {

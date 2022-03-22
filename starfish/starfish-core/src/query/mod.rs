@@ -236,7 +236,7 @@ impl Query {
         }
     }
 
-    fn handle_vector_constraint(stmt: &mut SelectStatement, constraint: QueryVectorConstraint) {
+    fn handle_vector_constraint(_: &mut SelectStatement, constraint: QueryVectorConstraint) {
         match constraint {
             // Empty
         }

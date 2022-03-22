@@ -42,6 +42,7 @@ pub fn rocket() -> Rocket<Build> {
 }
 
 #[catch(404)]
+#[allow(dead_code)]
 fn not_found() -> Value {
     json!({
         "status": "error",
