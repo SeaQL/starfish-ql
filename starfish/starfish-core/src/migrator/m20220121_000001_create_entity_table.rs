@@ -1,5 +1,5 @@
+use crate::entities::*;
 use sea_schema::{migration::*, sea_query::*};
-use starfish_core::entities::*;
 
 pub struct Migration;
 

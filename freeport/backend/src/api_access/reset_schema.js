@@ -1,46 +1,36 @@
-const { calculateAllConnectivity } = require("./calculate_connectivity");
 const { constructUrl } = require("./url");
-const { postRequest, getRequest } = require("./util");
+const { postRequest } = require("./util");
 
-const resetDatabase = async () => {
-    await getRequest(
-        constructUrl("util/reset")
-    );
-};
-
-const createEntity = async () => {
+const defineSchema = async (reset = true) => {
     await postRequest(
-        constructUrl("schema/create-entity"),
+        constructUrl("schema"),
         {
-            name: "crate",
-            attributes: [
-                {
-                    "name": "version",
-                    "datatype": "String"
-                }
-            ]
+            reset,
+            define: {
+                entities: [
+                    {
+                        name: "crate",
+                        attributes: [
+                            {
+                                name: "version",
+                                datatype: "String",
+                            }
+                        ]
+                    }
+                ],
+                relations: [
+                    {
+                        name: "depends",
+                        from_entity: "crate",
+                        to_entity: "crate",
+                        directed: true
+                    }
+                ]
+            }
         }
     );
-};
-
-const createRelation = async () => {
-    await postRequest(
-        constructUrl("schema/create-relation"),
-        {
-            name: "depends",
-            from_entity: "crate",
-            to_entity: "crate",
-            directed: true
-        }
-    );
-};
-
-const resetSchema = async () => {
-    await resetDatabase();
-    await createEntity();
-    await createRelation();
 };
 
 module.exports = {
-    resetSchema
+    defineSchema
 };

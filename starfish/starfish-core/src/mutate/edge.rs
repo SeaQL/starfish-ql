@@ -2,14 +2,15 @@ use std::collections::{HashMap, HashSet, VecDeque};
 
 use super::Mutate;
 use crate::{
+    entities::{relation::Model, Relation},
     lang::{
         mutate::{MutateEdgeContentJson, MutateEdgeSelectorJson},
         ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch,
     },
     schema::{format_edge_table_name, format_node_table_name},
 };
-use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, FromQueryResult, Value};
-use sea_query::{Alias, Cond, Expr, Query, QueryStatementBuilder, SimpleExpr};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult, Value};
+use sea_query::{Alias, Cond, Expr, Query, SimpleExpr};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -170,6 +171,57 @@ impl Mutate {
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
+
+        Ok(())
+    }
+
+    /// Calculate the connectivity of all relations specified by the supplied *unformatted* names
+    pub async fn calculate_all_connectivity(
+        db: &DbConn,
+        relation_names: Vec<String>,
+    ) -> Result<(), DbErr> {
+        let mut relation_names: HashSet<String> = HashSet::from_iter(relation_names.into_iter());
+
+        let relations = Relation::find()
+            .all(db)
+            .await?
+            .into_iter()
+            .filter(|relation| relation_names.remove(&relation.name))
+            .collect::<Vec<Model>>();
+
+        if !relation_names.is_empty() {
+            let missing_relation_names = Vec::from_iter(relation_names.into_iter()).join(", ");
+            return Err(DbErr::Custom(format!(
+                "Relations not found: {}",
+                missing_relation_names
+            )));
+        }
+
+        for relation in relations {
+            let relation_name = relation.name.as_str();
+            let from_node = relation.from_entity.as_str();
+            let to_node = relation.to_entity.as_str();
+
+            Self::calculate_simple_connectivity(db, relation_name, from_node, to_node).await?;
+
+            Self::calculate_compound_connectivity(db, relation_name, to_node).await?;
+
+            for (weight, col_name) in [
+                (0.3, "in_conn_complex03"),
+                (0.5, "in_conn_complex05"),
+                (0.7, "in_conn_complex07"),
+            ] {
+                Self::calculate_complex_connectivity(
+                    db,
+                    relation_name,
+                    to_node,
+                    weight,
+                    f64::EPSILON,
+                    col_name,
+                )
+                .await?;
+            }
+        }
 
         Ok(())
     }

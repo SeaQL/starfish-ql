@@ -10,6 +10,7 @@
 
 pub mod entities;
 pub mod lang;
+pub mod migrator;
 pub mod mutate;
 pub mod query;
 pub mod schema;

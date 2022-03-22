@@ -7,14 +7,16 @@ use super::{EdgeJsonBatch, NodeJsonBatch};
 
 /// Metadata of a mutate request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[allow(non_camel_case_types)]
+#[serde(rename_all = "snake_case")]
 pub enum MutateJson {
     /// Insert new data; Use option "upsert" to allow insert-or-update
-    insert(MutateInsertJson),
+    Insert(MutateInsertJson),
     /// Update selected data
-    update(MutateUpdateJson),
+    Update(MutateUpdateJson),
     /// Delete selected data
-    delete(MutateDeleteJson),
+    Delete(MutateDeleteJson),
+    /// Calculate and store the connectitivties of relations with the supplied *unformatted* names
+    CalConn(Vec<String>),
 }
 
 /// Metadata of a mutate insert request

@@ -1,16 +1,16 @@
 const { calculateAllConnectivity } = require("../api_access/calculate_connectivity");
 const { insertDataIntoDatabaseAndLog } = require("../api_access/main");
-const { resetSchema } = require("../api_access/reset_schema");
+const { defineSchema } = require("../api_access/reset_schema");
 const { readFileLineByLine, readLastLineOfFile } = require("./file_io");
 const { createMetadata } = require("./meta");
 const { promisedExec, promisedExecInFolder } = require("./util");
 
 const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     // Reset database
-    await resetSchema();
+    await defineSchema(true);
     shouldLog && console.log("Resetting database...");
 
-    shouldLog && console.log("Commencing initial scrap...");
+    shouldLog && console.log("Commencing initial scrape...");
 
     // Clear data and metadata
     shouldLog && console.log("Removing existing data and metadata if any...");

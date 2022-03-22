@@ -6,8 +6,9 @@ mod relation;
 pub use entity::*;
 pub use relation::*;
 use sea_orm::{DbConn, DbErr};
+use sea_schema::migration::MigratorTrait;
 
-use crate::lang::schema::SchemaJson;
+use crate::{lang::schema::SchemaJson, migrator::Migrator};
 
 /// Define new entity and relation
 #[derive(Debug)]
@@ -40,10 +41,13 @@ where
 impl Schema {
     /// Insert entity/relation metadata into database and create a corresponding node/edge table
     pub async fn define_schema(db: &DbConn, schema_json: SchemaJson) -> Result<(), DbErr> {
+        if schema_json.reset {
+            Migrator::fresh(db).await?;
+        }
+
         for entity_json in schema_json.define.entities {
             Self::create_entity(db, entity_json).await?;
         }
-
         for relation_json in schema_json.define.relations {
             Self::create_relation(db, relation_json).await?;
         }

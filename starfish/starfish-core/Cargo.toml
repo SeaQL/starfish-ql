@@ -29,7 +29,8 @@ sea-orm = { version = "^0.6.0", default-features = false, features = [
     "runtime-async-std-native-tls",
     "debug-print",
 ]}
-sea-query = { version = "^0.21.0", features = ["thread-safe"] }
+sea-schema = { git = "https://github.com/SeaQL/sea-schema.git", branch = "schema-manager", default-features = false, features = [ "migration", "debug-print" ] }
+sea-query = { version = "^0.20.0", features = ["thread-safe"] }
 futures-executor = { version = "^0.3" }
 async-trait = { version = "^0.1" }
 serde = { version = "^1" }
