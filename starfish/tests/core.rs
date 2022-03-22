@@ -283,6 +283,7 @@ impl TestNode {
 }
 
 #[derive(Debug, Clone, FromQueryResult)]
+#[allow(dead_code)]
 struct TestEdge {
     from_node: String,
     to_node: String,
