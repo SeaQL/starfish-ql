@@ -99,28 +99,6 @@ impl Schema {
             )
             .col(ColumnDef::new(Alias::new("from_node")).string().not_null())
             .col(ColumnDef::new(Alias::new("to_node")).string().not_null())
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "from_node"))
-                    .table(table.clone())
-                    .col(Alias::new("from_node")),
-            )
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "to_node"))
-                    .table(table.clone())
-                    .col(Alias::new("to_node")),
-            )
-            .index(
-                Index::create()
-                    .unique()
-                    .name(&format!(
-                        "idx-{}-from_node-to_node",
-                        relation_json.get_table_name()
-                    ))
-                    .col(Alias::new("from_node"))
-                    .col(Alias::new("to_node")),
-            )
             .foreign_key(
                 ForeignKey::create()
                     .name(&format!(
@@ -149,6 +127,32 @@ impl Schema {
             );
 
         let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .name(&format!("idx-{}-{}", table.to_string(), "from_node"))
+            .table(table.clone())
+            .col(Alias::new("from_node"))
+            .to_owned();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .name(&format!("idx-{}-{}", table.to_string(), "to_node"))
+            .table(table.clone())
+            .col(Alias::new("to_node"))
+            .to_owned();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .unique()
+            .name(&format!(
+                "idx-{}-from_node-to_node",
+                relation_json.get_table_name()
+            ))
+            .table(table.clone())
+            .col(Alias::new("from_node"))
+            .col(Alias::new("to_node"))
+            .to_owned();
         db.execute(builder.build(&stmt)).await?;
 
         Ok(())

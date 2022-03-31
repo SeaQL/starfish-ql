@@ -33,46 +33,6 @@ impl MigrationTrait for Migration {
             .col(ColumnDef::new(Column::FromEntity).string().not_null())
             .col(ColumnDef::new(Column::ToEntity).string().not_null())
             .col(ColumnDef::new(Column::Directed).boolean().not_null())
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        Entity.to_string(),
-                        Column::Name.to_string()
-                    ))
-                    .table(Entity)
-                    .col(Column::Name),
-            )
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        Entity.to_string(),
-                        Column::FromEntity.to_string()
-                    ))
-                    .table(Entity)
-                    .col(Column::FromEntity),
-            )
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        Entity.to_string(),
-                        Column::ToEntity.to_string()
-                    ))
-                    .table(Entity)
-                    .col(Column::ToEntity),
-            )
-            .index(
-                Index::create()
-                    .name(&format!(
-                        "idx-{}-{}",
-                        Entity.to_string(),
-                        Column::Directed.to_string()
-                    ))
-                    .table(Entity)
-                    .col(Column::Directed),
-            )
             .foreign_key(
                 ForeignKeyCreateStatement::new()
                     .name("fk-relation-from_entity")
@@ -91,7 +51,63 @@ impl MigrationTrait for Migration {
             )
             .to_owned();
 
-        manager.create_table(stmt).await
+        manager.create_table(stmt).await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name(&format!(
+                        "idx-{}-{}",
+                        Entity.to_string(),
+                        Column::Name.to_string()
+                    ))
+                    .table(Entity)
+                    .col(Column::Name)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name(&format!(
+                        "idx-{}-{}",
+                        Entity.to_string(),
+                        Column::FromEntity.to_string()
+                    ))
+                    .table(Entity)
+                    .col(Column::FromEntity)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name(&format!(
+                        "idx-{}-{}",
+                        Entity.to_string(),
+                        Column::ToEntity.to_string()
+                    ))
+                    .table(Entity)
+                    .col(Column::ToEntity)
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_index(
+                Index::create()
+                    .name(&format!(
+                        "idx-{}-{}",
+                        Entity.to_string(),
+                        Column::Directed.to_string()
+                    ))
+                    .table(Entity)
+                    .col(Column::Directed)
+                    .to_owned(),
+            )
+            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {

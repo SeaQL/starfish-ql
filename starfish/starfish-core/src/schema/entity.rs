@@ -53,12 +53,6 @@ impl Schema {
                     .string()
                     .not_null()
                     .unique_key(),
-            )
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "name"))
-                    .table(table.clone())
-                    .col(Alias::new("name")),
             );
 
         for attribute in entity_json.attributes.into_iter() {
@@ -71,6 +65,13 @@ impl Schema {
         }
 
         let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .name(&format!("idx-{}-{}", table.to_string(), "name"))
+            .table(table.clone())
+            .col(Alias::new("name"))
+            .to_owned();
         db.execute(builder.build(&stmt)).await?;
 
         Ok(())
