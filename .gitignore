@@ -11,3 +11,8 @@
 
 # MySQLWorkbench barkup files
 **/*.bak
+
+# Config files of common editors
+*.sublime*
+.vscode
+.idea/*

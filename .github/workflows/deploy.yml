@@ -1,0 +1,37 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install static-sitemap-cli
+        run: npm install static-sitemap-cli
+
+      # Webpack production build
+      - name: Webpack production build
+        run: |
+          cd freeport/frontend/dist
+          npm install
+          npm run build
+        env:
+          API_BASE_URL: https://starfish-ql-api.sea-ql.org
+      - name: Generate tutorials-book sitemap
+        run: |
+          cd freeport/frontend/dist
+          npx sscli --base https://starfish-ql.sea-ql.org/
+
+      # Deploy GitHub Pages
+      - name: Deploy GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: freeport/frontend/dist
+          single-commit: true
+          clean: true

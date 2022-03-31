@@ -1,0 +1,197 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+
+  test:
+    name: Unit Test
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --workspace
+            --lib
+
+  clippy-fmt:
+    name: Clippy + Fmt
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy, rustfmt
+          override: true
+
+      # Make sure files are formatted
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --all
+
+      # Run clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --all-targets
+            --all
+
+  compile-mysql:
+    name: Compile MySQL
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-mysql
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --no-run
+
+  mysql:
+    name: MySQL
+    needs:
+      - compile-mysql
+    runs-on: ubuntu-20.04
+    env:
+      DATABASE_URL: "mysql://root:@localhost"
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [8.0, 5.7]
+    services:
+      mysql:
+        image: mysql:${{ matrix.version }}
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DB: mysql
+          MYSQL_USER: sea
+          MYSQL_PASSWORD: sea
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD:
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-mysql
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+
+  mariadb:
+    name: MariaDB
+    needs:
+      - compile-mysql
+    runs-on: ubuntu-20.04
+    env:
+      DATABASE_URL: "mysql://root:@localhost"
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [10.6, 10.5, 10.4]
+    services:
+      mysql:
+        image: mariadb:${{ matrix.version }}
+        env:
+          MYSQL_HOST: 127.0.0.1
+          MYSQL_DB: mysql
+          MYSQL_USER: sea
+          MYSQL_PASSWORD: sea
+          MYSQL_ALLOW_EMPTY_PASSWORD: yes
+          MYSQL_ROOT_PASSWORD:
+        ports:
+          - "3306:3306"
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-mysql
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
