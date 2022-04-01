@@ -6,7 +6,7 @@
     clippy::print_stdout
 )]
 
-//! Core data structures of the library
+//! Core data structures and execution engine StarfishQL
 
 pub mod entities;
 pub mod lang;

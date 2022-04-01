@@ -9,3 +9,5 @@
 //! A graph database and query engine
 //!
 //! Copyright (c) 2021 Tsang Hao Fung
+
+pub use starfish_core::*;

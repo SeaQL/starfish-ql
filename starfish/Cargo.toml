@@ -6,7 +6,7 @@ members = [
 ]
 
 [package]
-name = "starfish"
+name = "starfish-ql"
 version = "0.1.0"
 authors = [
     "Chris Tsang <tyt2y7@gmail.com>",
@@ -14,9 +14,9 @@ authors = [
     "Billy Chan <ccw.billy.123@gmail.com>",
 ]
 edition = "2021"
-description = "A graph database and query engine"
+description = "StarfishQL - A graph database and query engine"
 license = "AGPL-3.0"
-documentation = "https://docs.rs/starfish"
+documentation = "https://docs.rs/starfish-ql"
 repository = "https://github.com/SeaQL/starfish-ql"
 categories = ["database"]
 keywords = ["async", "graph", "graph-database", "graph-query-engine", "mysql", "postgres", "sqlite"]
@@ -30,7 +30,7 @@ name = "starfish"
 path = "src/lib.rs"
 
 [[bin]]
-name = "starfish-api"
+name = "starfish"
 path = "src/main.rs"
 
 [dependencies]
