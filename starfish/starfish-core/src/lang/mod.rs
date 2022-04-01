@@ -1,12 +1,12 @@
-//! Abstract Syntax Tree for the query language
+//! Abstract Syntax Tree for the query language, constructed using JSON
 
-/// Metadata of a schema request
+/// Structure of a schema request
 pub mod schema;
 
-/// Metadata of a mutate request
+/// Structure of a mutate request
 pub mod mutate;
 
-/// Metadata of a query request
+/// Structure of a query request
 pub mod query;
 
 use std::collections::HashMap;
@@ -18,7 +18,7 @@ use crate::schema::{format_edge_table_name, format_node_attribute_name, format_n
 
 use super::entities::entity_attribute::Datatype;
 
-/// Metadata of entity, deserialized as struct from json
+/// Structure of entity, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityJson {
     /// Name of entity
@@ -27,7 +27,7 @@ pub struct EntityJson {
     pub attributes: Vec<EntityAttrJson>,
 }
 
-/// Metadata of entity attribute, deserialized as struct from json
+/// Structure of entity attribute, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityAttrJson {
     /// Name of attribute
@@ -50,7 +50,7 @@ impl EntityAttrJson {
     }
 }
 
-/// Metadata of relation, deserialized as struct from json
+/// Structure of relation, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RelationJson {
     /// Name of relation
@@ -70,7 +70,7 @@ impl RelationJson {
     }
 }
 
-/// Metadata of a edge, deserialized as struct from json
+/// Structure of a edge, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct EdgeJson {
     /// Name of relation
@@ -81,7 +81,7 @@ pub struct EdgeJson {
     pub to_node: String,
 }
 
-/// Metadata of a edge, deserialized as struct from json
+/// Structure of a edge, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct ClearEdgeJson {
     /// Name of relation
@@ -90,7 +90,7 @@ pub struct ClearEdgeJson {
     pub node: String,
 }
 
-/// Metadata of a node, deserialized as struct from json
+/// Structure of a node, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeJson {
     /// Name of entity this node belongs to
@@ -101,7 +101,7 @@ pub struct NodeJson {
     pub attributes: HashMap<String, JsonValue>,
 }
 
-/// Metadata of a node in batch, deserialized as struct from json
+/// Structure of a node in batch, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Node {
     /// Name of node
@@ -131,7 +131,7 @@ impl Node {
     }
 }
 
-/// Metadata of nodes in batch, deserialized as struct from json
+/// Structure of nodes in batch, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NodeJsonBatch {
     /// Name of entity this node belongs to
@@ -140,7 +140,7 @@ pub struct NodeJsonBatch {
     pub nodes: Vec<Node>,
 }
 
-/// Metadata of a edge in batch, deserialized as struct from json
+/// Structure of a edge in batch, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Edge {
     /// Name of related node (from side)
@@ -175,7 +175,7 @@ impl Edge {
     }
 }
 
-/// Metadata of edges in batch, deserialized as struct from json
+/// Structure of edges in batch, deserialized as struct from json
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct EdgeJsonBatch {
     /// Name of relation
@@ -184,7 +184,7 @@ pub struct EdgeJsonBatch {
     pub edges: Vec<Edge>,
 }
 
-/// Metadata of the connectivity in a 'sortBy' constraint used in a query request, deserialized as struct from json
+/// Structure of the connectivity in a 'sortBy' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ConnectivityTypeJson {

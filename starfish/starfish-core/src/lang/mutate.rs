@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{EdgeJsonBatch, NodeJsonBatch};
 
-/// Metadata of a mutate request, deserialized as struct from json
+/// Structure of a mutate request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum MutateJson {
@@ -19,7 +19,7 @@ pub enum MutateJson {
     CalConn(Vec<String>),
 }
 
-/// Metadata of a mutate insert request
+/// Structure of a mutate insert request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum MutateInsertJson {
@@ -29,7 +29,7 @@ pub enum MutateInsertJson {
     edge(EdgeJsonBatch),
 }
 
-/// Metadata of a mutate update request
+/// Structure of a mutate update request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum MutateUpdateJson {
@@ -49,7 +49,7 @@ pub enum MutateUpdateJson {
     },
 }
 
-/// Metadata of a mutate delete request
+/// Structure of a mutate delete request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub enum MutateDeleteJson {
@@ -59,7 +59,7 @@ pub enum MutateDeleteJson {
     edge(MutateEdgeSelectorJson),
 }
 
-/// Metadata of a node selector of a mutate update/delete request
+/// Structure of a node selector of a mutate update/delete request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub struct MutateNodeSelectorJson {
@@ -72,7 +72,7 @@ pub struct MutateNodeSelectorJson {
     pub attributes: HashMap<String, JsonValue>,
 }
 
-/// Metadata of an edge selector of a mutate update/delete request
+/// Structure of an edge selector of a mutate update/delete request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub struct MutateEdgeSelectorJson {
@@ -83,7 +83,7 @@ pub struct MutateEdgeSelectorJson {
     pub edge_content: MutateEdgeContentJson,
 }
 
-/// Metadata of the update content of a mutate update request
+/// Structure of the update content of a mutate update request
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[allow(non_camel_case_types)]
 pub struct MutateEdgeContentJson {

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{EntityJson, RelationJson};
 
-/// Metadata of a schema request, deserialized as struct from json
+/// Structure of a schema request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SchemaJson {
     /// If true, define all schema from scratch. Defaults to be false (append mode).
@@ -14,10 +14,10 @@ pub struct SchemaJson {
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
-/// Metadata of vectors of entities and relations, deserialized as struct from json
+/// Structure of vectors of entities and relations, deserialized as struct from json
 pub struct SchemaDefineJson {
-    /// Entities metadata
+    /// Entities schema definition
     pub entities: Vec<EntityJson>,
-    /// Relations metadata
+    /// Relations schema definition
     pub relations: Vec<RelationJson>,
 }

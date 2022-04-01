@@ -4,7 +4,7 @@ use crate::query::{QueryResultEdge, QueryResultNode};
 
 use super::ConnectivityTypeJson;
 
-/// Metadata of a query request, deserialized as struct from json
+/// Structure of a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryJson {
@@ -14,7 +14,7 @@ pub enum QueryJson {
     Graph(QueryGraphJson),
 }
 
-/// Metadata of a query request to query a vector, deserialized as struct from json
+/// Structure of a query request to query a vector, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryVectorJson {
     /// Name of entity
@@ -23,7 +23,7 @@ pub struct QueryVectorJson {
     pub constraints: Vec<QueryVectorConstraintJson>,
 }
 
-/// Metadata of a query request to query a graph, deserialized as struct from json
+/// Structure of a query request to query a graph, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryGraphJson {
     /// Name of entity
@@ -32,7 +32,7 @@ pub struct QueryGraphJson {
     pub constraints: Vec<QueryGraphConstraintJson>,
 }
 
-/// Metadata of a common constraint used in a query request, deserialized as struct from json
+/// Structure of a common constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryCommonConstraint {
@@ -42,14 +42,14 @@ pub enum QueryCommonConstraint {
     Limit(u64),
 }
 
-/// Exclusive metadata of a vector constraint used in a query request, deserialized as struct from json
+/// Exclusive Structure of a vector constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryVectorConstraint {
     // Empty
 }
 
-/// Metadata of a vector constraint used in a query request, deserialized as struct from json
+/// Structure of a vector constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum QueryVectorConstraintJson {
@@ -59,7 +59,7 @@ pub enum QueryVectorConstraintJson {
     Exclusive(QueryVectorConstraint),
 }
 
-/// Exclusive metadata of a graph constraint used in a query request, deserialized as struct from json
+/// Exclusive Structure of a graph constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryGraphConstraint {
@@ -77,7 +77,7 @@ pub enum QueryGraphConstraint {
     Limit(QueryGraphConstraintLimitJson),
 }
 
-/// All metadata of a graph constraint used in a query request, deserialized as struct from json
+/// All Structure of a graph constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum QueryGraphConstraintJson {
@@ -87,7 +87,7 @@ pub enum QueryGraphConstraintJson {
     Exclusive(QueryGraphConstraint),
 }
 
-/// Metadata of a 'sortBy' constraint used in a query request, deserialized as struct from json
+/// Structure of a 'sortBy' constraint used in a query request, deserialized as struct from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct QueryConstraintSortByJson {
     /// Key to sort with
@@ -111,7 +111,7 @@ pub enum QueryConstraintSortByKeyJson {
     },
 }
 
-/// Metadata of a 'limit' constraint used in a query request used to query a graph, deserialized as enum from json
+/// Structure of a 'limit' constraint used in a query request used to query a graph, deserialized as enum from json
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum QueryGraphConstraintLimitJson {
@@ -123,7 +123,7 @@ pub enum QueryGraphConstraintLimitJson {
     BatchSize(Option<usize>),
 }
 
-/// Metadata of a traversal method used in a query request, deserialized as struct from json
+/// Structure of a traversal method used in a query request, deserialized as struct from json
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryConstraintTraversalJson {
@@ -131,7 +131,7 @@ pub struct QueryConstraintTraversalJson {
     pub reverse_direction: bool,
 }
 
-/// Metadata of the result of a query request, to be serialized as json from struct
+/// Structure of the result of a query request, to be serialized as json from struct
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum QueryResultJson {
