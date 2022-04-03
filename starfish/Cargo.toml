@@ -2,7 +2,6 @@
 members = [
     "starfish-core",
     "starfish-api",
-    "migration",
 ]
 
 [package]
@@ -34,8 +33,8 @@ name = "starfish"
 path = "src/main.rs"
 
 [dependencies]
-starfish-core = { version = "0.1.0", path = "starfish-core" }
-starfish-api = { version = "0.1.0", path = "starfish-api" }
+starfish-core = { version = "^0.1.0", path = "starfish-core" }
+starfish-api = { version = "^0.1.0", path = "starfish-api" }
 
 [dev-dependencies]
 smol = { version = "^1.2" }
