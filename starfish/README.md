@@ -46,7 +46,3 @@ docker run \
     -d -p 5432:5432 postgres:13
 docker stop "postgres-13"
 ```
-
-## REST API docs
-
-https://documenter.getpostman.com/view/15661872/UVRGFjWR
