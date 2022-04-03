@@ -23,8 +23,7 @@ name = "starfish_api"
 path = "src/lib.rs"
 
 [dependencies]
-starfish-core = { path = "../starfish-core" }
-migration = { path = "../migration" }
+starfish-core = { version = "^0.1.0", path = "../starfish-core" }
 sea-orm-rocket = { version = "^0.5.0" }
 rocket = { version = "^0.5.0-rc.1", features = ["json"] }
 async-trait = { version = "^0.1" }
