@@ -35,7 +35,7 @@
             styled,
             Link,
             Chip,
-            FormHelperText,
+            InputAdornment,
         } = MaterialUI;
 
         const decays = [
@@ -117,6 +117,10 @@
                 if (e.key === 'Enter') {
                     await handleClick();
                 }
+            };
+
+            const handleClickWeightDecayModeInfo = (e) => {
+                window.location.href = 'https://www.sea-ql.org/StarfishQL/docs/architecture-of-graph-query-engine/calculating-node-connectivity/#weight-decay-factors';
             };
 
             return (
@@ -201,6 +205,22 @@
                                     }}
                                     margin="normal"
                                     onKeyPress={handleKeyPress}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment
+                                                position="end"
+                                                style={{ marginRight: '12px' }}
+                                                onClick={handleClickWeightDecayModeInfo}
+                                            >
+                                                <IconButton
+                                                    variant="contained"
+                                                    style={{ fontSize: '1.2rem' }}
+                                                >
+                                                    <i class="fa-solid fa-circle-info"></i>
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
                                     select
                                 >
                                     {decays.map((option) => (
@@ -209,11 +229,6 @@
                                         </option>
                                     ))}
                                 </TextField>
-                                <FormHelperText>
-                                    <a href="https://www.sea-ql.org/StarfishQL/docs/architecture-of-graph-query-engine/calculating-node-connectivity/#weight-decay-factors">
-                                        Learn more about Weight Decay Factor
-                                    </a>
-                                </FormHelperText>
                             </FormControl>
                             <FormControl fullWidth>
                                 <Button
