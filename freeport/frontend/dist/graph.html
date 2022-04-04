@@ -293,6 +293,8 @@
             <App />,
             document.querySelector('#root'),
         );
+
+        setTimeout(async () => await window.mock(), 500);
     </script>
     <style>
         body {

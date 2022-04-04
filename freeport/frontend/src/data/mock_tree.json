@@ -1,140 +1,480 @@
 {
     "nodes": [
         {
-            "id": "quote",
-            "type": 2,
-            "depth_inv": 2
+            "id": "sea-query",
+            "type": 0,
+            "depth": 0
         },
         {
-            "id": "chrono",
+            "id": "cc",
             "type": 1,
-            "depth_inv": 4
+            "depth": 6
         },
         {
-            "id": "rand",
+            "id": "syn",
             "type": 1,
-            "depth_inv": 4
-        },
-        {
-            "id": "substrate-prometheus-endpoint",
-            "type": 1,
-            "depth_inv": 2
-        },
-        {
-            "id": "mongodb",
-            "type": 1,
-            "depth_inv": 2
-        },
-        {
-            "id": "time",
-            "type": 1,
-            "depth_inv": 2
-        },
-        {
-            "id": "proc-macro2",
-            "type": 2,
-            "depth_inv": 2
+            "depth": 4
         },
         {
             "id": "log",
             "type": 1,
-            "depth_inv": 4
+            "depth": 3
         },
         {
-            "id": "google-drive3",
+            "id": "ahash",
             "type": 1,
-            "depth_inv": 2
+            "depth": 4
         },
         {
-            "id": "serde_derive",
-            "type": 2,
-            "depth_inv": 4
-        },
-        {
-            "id": "google-storage1",
+            "id": "ansi_term",
             "type": 1,
-            "depth_inv": 2
+            "depth": 8
         },
         {
-            "id": "rusqlite",
+            "id": "atomic-polyfill",
             "type": 1,
-            "depth_inv": 2
+            "depth": 6
         },
         {
-            "id": "prometheus-endpoint",
+            "id": "autocfg",
             "type": 1,
-            "depth_inv": 2
+            "depth": 3
         },
         {
-            "id": "serde",
-            "type": 0,
-            "depth_inv": 0
-        },
-        {
-            "id": "prometheus",
+            "id": "backtrace",
             "type": 1,
-            "depth_inv": 3
+            "depth": 8
         },
         {
-            "id": "yup-oauth2",
+            "id": "bumpalo",
             "type": 1,
-            "depth_inv": 3
+            "depth": 4
         },
         {
-            "id": "uuid",
+            "id": "bytes",
             "type": 1,
-            "depth_inv": 3
+            "depth": 1
         },
         {
-            "id": "reqwest",
+            "id": "byteorder",
             "type": 1,
-            "depth_inv": 4
+            "depth": 2
+        },
+        {
+            "id": "cfg-if",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "chrono",
+            "type": 1,
+            "depth": 1
+        },
+        {
+            "id": "compiler_builtins",
+            "type": 1,
+            "depth": 4
+        },
+        {
+            "id": "crossbeam-utils",
+            "type": 1,
+            "depth": 5
+        },
+        {
+            "id": "crossbeam-epoch",
+            "type": 1,
+            "depth": 5
+        },
+        {
+            "id": "crossbeam-deque",
+            "type": 1,
+            "depth": 4
+        },
+        {
+            "id": "either",
+            "type": 1,
+            "depth": 4
+        },
+        {
+            "id": "getrandom",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "hashbrown",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "indexmap",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "jobserver",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "js-sys",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "lazy_static",
+            "type": 1,
+            "depth": 6
+        },
+        {
+            "id": "libc",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "libm",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "lock_api",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "loom",
+            "type": 1,
+            "depth": 6
+        },
+        {
+            "id": "memoffset",
+            "type": 1,
+            "depth": 6
+        },
+        {
+            "id": "num-traits",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "once_cell",
+            "type": 1,
+            "depth": 5
+        },
+        {
+            "id": "owning_ref",
+            "type": 1,
+            "depth": 8
+        },
+        {
+            "id": "parking_lot",
+            "type": 1,
+            "depth": 6
+        },
+        {
+            "id": "parking_lot_core",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "petgraph",
+            "type": 1,
+            "depth": 8
+        },
+        {
+            "id": "pin-project-lite",
+            "type": 1,
+            "depth": 8
+        },
+        {
+            "id": "pin-utils",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "proc-macro2",
+            "type": 1,
+            "depth": 1
+        },
+        {
+            "id": "quote",
+            "type": 1,
+            "depth": 1
+        },
+        {
+            "id": "rand_chacha",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "rand_core",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "rand",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "rayon",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "regex",
+            "type": 1,
+            "depth": 8
+        },
+        {
+            "id": "rustc-std-workspace-core",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "rust_decimal",
+            "type": 1,
+            "depth": 1
+        },
+        {
+            "id": "rustc-std-workspace-alloc",
+            "type": 1,
+            "depth": 4
+        },
+        {
+            "id": "scopeguard",
+            "type": 1,
+            "depth": 6
+        },
+        {
+            "id": "scoped-tls",
+            "type": 1,
+            "depth": 7
         },
         {
             "id": "serde_json",
             "type": 1,
-            "depth_inv": 4
+            "depth": 1
         },
         {
-            "id": "diesel",
+            "id": "serde",
             "type": 1,
-            "depth_inv": 2
+            "depth": 2
         },
         {
-            "id": "syn",
+            "id": "serde_derive",
+            "type": 1,
+            "depth": 3
+        },
+        {
+            "id": "smallvec",
+            "type": 1,
+            "depth": 8
+        },
+        {
+            "id": "spin",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "time",
+            "type": 1,
+            "depth": 1
+        },
+        {
+            "id": "tracing-subscriber",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "tracing",
+            "type": 1,
+            "depth": 7
+        },
+        {
+            "id": "tracing-core",
+            "type": 1,
+            "depth": 8
+        },
+        {
+            "id": "unicode-xid",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "uuid",
+            "type": 1,
+            "depth": 1
+        },
+        {
+            "id": "version_check",
+            "type": 1,
+            "depth": 5
+        },
+        {
+            "id": "wasi",
+            "type": 1,
+            "depth": 5
+        },
+        {
+            "id": "wasm-bindgen",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "winapi",
+            "type": 1,
+            "depth": 2
+        },
+        {
+            "id": "inspirer-foundation",
             "type": 2,
-            "depth_inv": 3
+            "depth": 2
+        },
+        {
+            "id": "keekijanai-serve-core",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "keekijanai-serve-vercel-adapter",
+            "type": 2,
+            "depth": 2
+        },
+        {
+            "id": "remindee-bot",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "sea_orm_casbin_adapter",
+            "type": 2,
+            "depth": 2
+        },
+        {
+            "id": "sea-orm-cli",
+            "type": 2,
+            "depth": 2
+        },
+        {
+            "id": "sea-schema",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "sea-orm-codegen",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "sea-orm",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "sea-migrations",
+            "type": 2,
+            "depth": 2
+        },
+        {
+            "id": "tardis",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "wolfie",
+            "type": 2,
+            "depth": 2
+        },
+        {
+            "id": "squtils",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "starfish-api",
+            "type": 2,
+            "depth": 2
+        },
+        {
+            "id": "starfish-core",
+            "type": 2,
+            "depth": 1
+        },
+        {
+            "id": "starfish-ql",
+            "type": 2,
+            "depth": 2
         }
     ],
     "links": [
         {
-            "source": "serde",
-            "target": "serde_derive",
-            "type": 2
+            "source": "crossbeam-epoch",
+            "target": "scopeguard",
+            "type": 1
         },
         {
-            "source": "serde_derive",
-            "target": "syn",
-            "type": 2
+            "source": "tracing-subscriber",
+            "target": "parking_lot",
+            "type": 1
         },
         {
-            "source": "syn",
-            "target": "quote",
-            "type": 2
+            "source": "hashbrown",
+            "target": "bumpalo",
+            "type": 1
         },
         {
-            "source": "syn",
-            "target": "proc-macro2",
-            "type": 2
+            "source": "tracing-subscriber",
+            "target": "tracing-core",
+            "type": 1
         },
         {
-            "source": "serde_json",
+            "source": "ahash",
             "target": "serde",
             "type": 1
         },
         {
-            "source": "log",
-            "target": "serde",
+            "source": "rand",
+            "target": "rand_chacha",
+            "type": 1
+        },
+        {
+            "source": "num-traits",
+            "target": "libm",
+            "type": 1
+        },
+        {
+            "source": "syn",
+            "target": "unicode-xid",
+            "type": 1
+        },
+        {
+            "source": "uuid",
+            "target": "getrandom",
+            "type": 1
+        },
+        {
+            "source": "serde_derive",
+            "target": "quote",
+            "type": 1
+        },
+        {
+            "source": "autocfg",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "once_cell",
+            "target": "parking_lot",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "bytes",
+            "type": 1
+        },
+        {
+            "source": "parking_lot",
+            "target": "lock_api",
             "type": 1
         },
         {
@@ -143,18 +483,98 @@
             "type": 1
         },
         {
+            "source": "loom",
+            "target": "pin-utils",
+            "type": 1
+        },
+        {
+            "source": "jobserver",
+            "target": "libc",
+            "type": 1
+        },
+        {
+            "source": "rand_chacha",
+            "target": "rand_core",
+            "type": 1
+        },
+        {
+            "source": "loom",
+            "target": "scoped-tls",
+            "type": 1
+        },
+        {
+            "source": "either",
+            "target": "serde",
+            "type": 1
+        },
+        {
             "source": "chrono",
+            "target": "wasm-bindgen",
+            "type": 1
+        },
+        {
+            "source": "cfg-if",
+            "target": "compiler_builtins",
+            "type": 1
+        },
+        {
+            "source": "lock_api",
             "target": "serde",
             "type": 1
         },
         {
-            "source": "reqwest",
+            "source": "wasm-bindgen",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "time",
+            "type": 1
+        },
+        {
+            "source": "rand_core",
+            "target": "getrandom",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-utils",
+            "target": "lazy_static",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "rust_decimal",
+            "type": 1
+        },
+        {
+            "source": "wasm-bindgen",
             "target": "serde",
             "type": 1
         },
         {
-            "source": "yup-oauth2",
-            "target": "chrono",
+            "source": "compiler_builtins",
+            "target": "cc",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "regex",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "loom",
+            "type": 1
+        },
+        {
+            "source": "serde_json",
+            "target": "indexmap",
+            "type": 1
+        },
+        {
+            "source": "rust_decimal",
+            "target": "byteorder",
             "type": 1
         },
         {
@@ -163,33 +583,228 @@
             "type": 1
         },
         {
-            "source": "uuid",
-            "target": "rand",
+            "source": "hashbrown",
+            "target": "rayon",
             "type": 1
         },
         {
-            "source": "prometheus",
-            "target": "reqwest",
+            "source": "quote",
+            "target": "proc-macro2",
             "type": 1
         },
         {
-            "source": "reqwest",
+            "source": "ahash",
+            "target": "once_cell",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "js-sys",
+            "type": 1
+        },
+        {
+            "source": "loom",
+            "target": "tracing-subscriber",
+            "type": 1
+        },
+        {
+            "source": "memoffset",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "tracing",
+            "target": "tracing-core",
+            "type": 1
+        },
+        {
+            "source": "serde",
+            "target": "serde_derive",
+            "type": 1
+        },
+        {
+            "source": "hashbrown",
+            "target": "rustc-std-workspace-core",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "proc-macro2",
+            "type": 1
+        },
+        {
+            "source": "chrono",
+            "target": "winapi",
+            "type": 1
+        },
+        {
+            "source": "rand",
+            "target": "libc",
+            "type": 1
+        },
+        {
+            "source": "log",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "wasi",
+            "target": "rustc-std-workspace-core",
+            "type": 1
+        },
+        {
+            "source": "wasi",
+            "target": "rustc-std-workspace-alloc",
+            "type": 1
+        },
+        {
+            "source": "once_cell",
+            "target": "atomic-polyfill",
+            "type": 1
+        },
+        {
+            "source": "wasm-bindgen",
             "target": "serde_json",
             "type": 1
         },
         {
-            "source": "substrate-prometheus-endpoint",
-            "target": "prometheus",
+            "source": "syn",
+            "target": "quote",
             "type": 1
         },
         {
-            "source": "prometheus-endpoint",
-            "target": "prometheus",
+            "source": "crossbeam-epoch",
+            "target": "lazy_static",
+            "type": 1
+        },
+        {
+            "source": "rust_decimal",
+            "target": "bytes",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-utils",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "indexmap",
+            "target": "rayon",
+            "type": 1
+        },
+        {
+            "source": "ahash",
+            "target": "getrandom",
+            "type": 1
+        },
+        {
+            "source": "lazy_static",
+            "target": "spin",
+            "type": 1
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "ansi_term",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "libc",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "serde_json",
+            "type": 1
+        },
+        {
+            "source": "cc",
+            "target": "jobserver",
+            "type": 1
+        },
+        {
+            "source": "loom",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "time",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "quote",
+            "type": 1
+        },
+        {
+            "source": "js-sys",
+            "target": "wasm-bindgen",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
+            "target": "chrono",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "serde_json",
+            "type": 1
+        },
+        {
+            "source": "log",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "lazy_static",
+            "type": 1
+        },
+        {
+            "source": "lazy_static",
+            "target": "version_check",
             "type": 1
         },
         {
             "source": "uuid",
             "target": "rand",
+            "type": 1
+        },
+        {
+            "source": "serde_derive",
+            "target": "proc-macro2",
+            "type": 1
+        },
+        {
+            "source": "cfg-if",
+            "target": "rustc-std-workspace-core",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "num-traits",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "loom",
+            "target": "cfg-if",
             "type": 1
         },
         {
@@ -198,34 +813,424 @@
             "type": 1
         },
         {
-            "source": "prometheus",
-            "target": "reqwest",
+            "source": "parking_lot_core",
+            "target": "petgraph",
             "type": 1
         },
         {
-            "source": "mongodb",
-            "target": "reqwest",
+            "source": "parking_lot_core",
+            "target": "smallvec",
             "type": 1
         },
         {
-            "source": "rusqlite",
+            "source": "rand_core",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "smallvec",
+            "type": 1
+        },
+        {
+            "source": "indexmap",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "tracing",
+            "target": "log",
+            "type": 1
+        },
+        {
+            "source": "tracing",
+            "target": "pin-project-lite",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "rayon",
+            "target": "either",
+            "type": 1
+        },
+        {
+            "source": "serde_derive",
+            "target": "syn",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "tracing",
+            "type": 1
+        },
+        {
+            "source": "uuid",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "compiler_builtins",
+            "target": "rustc-std-workspace-core",
+            "type": 1
+        },
+        {
+            "source": "indexmap",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "memoffset",
+            "type": 1
+        },
+        {
+            "source": "hashbrown",
+            "target": "compiler_builtins",
+            "type": 1
+        },
+        {
+            "source": "loom",
+            "target": "serde_json",
+            "type": 1
+        },
+        {
+            "source": "rust_decimal",
+            "target": "serde_json",
+            "type": 1
+        },
+        {
+            "source": "chrono",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "ahash",
+            "target": "version_check",
+            "type": 1
+        },
+        {
+            "source": "lock_api",
+            "target": "scopeguard",
+            "type": 1
+        },
+        {
+            "source": "spin",
+            "target": "lock_api",
+            "type": 1
+        },
+        {
+            "source": "chrono",
+            "target": "js-sys",
+            "type": 1
+        },
+        {
+            "source": "wasi",
+            "target": "compiler_builtins",
+            "type": 1
+        },
+        {
+            "source": "hashbrown",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "hashbrown",
+            "target": "ahash",
+            "type": 1
+        },
+        {
+            "source": "lock_api",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "indexmap",
+            "target": "hashbrown",
+            "type": 1
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "backtrace",
+            "type": 1
+        },
+        {
+            "source": "lock_api",
+            "target": "owning_ref",
+            "type": 1
+        },
+        {
+            "source": "tracing",
+            "target": "cfg-if",
+            "type": 1
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "time",
+            "type": 1
+        },
+        {
+            "source": "serde_json",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "wasi",
+            "type": 1
+        },
+        {
+            "source": "syn",
+            "target": "proc-macro2",
+            "type": 1
+        },
+        {
+            "source": "time",
+            "target": "libc",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-deque",
+            "target": "crossbeam-epoch",
+            "type": 1
+        },
+        {
+            "source": "chrono",
+            "target": "time",
+            "type": 1
+        },
+        {
+            "source": "bytes",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "proc-macro2",
+            "target": "unicode-xid",
+            "type": 1
+        },
+        {
+            "source": "rust_decimal",
+            "target": "num-traits",
+            "type": 1
+        },
+        {
+            "source": "chrono",
+            "target": "libc",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-deque",
+            "target": "crossbeam-utils",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "compiler_builtins",
+            "type": 1
+        },
+        {
+            "source": "rand",
+            "target": "rand_core",
+            "type": 1
+        },
+        {
+            "source": "rand_chacha",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "wasm-bindgen",
+            "type": 1
+        },
+        {
+            "source": "loom",
+            "target": "tracing",
+            "type": 1
+        },
+        {
+            "source": "getrandom",
+            "target": "rustc-std-workspace-core",
+            "type": 1
+        },
+        {
+            "source": "crossbeam-utils",
+            "target": "loom",
+            "type": 1
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "libc",
+            "type": 1
+        },
+        {
+            "source": "sea-query",
             "target": "uuid",
             "type": 1
         },
         {
-            "source": "diesel",
-            "target": "uuid",
+            "source": "crossbeam-epoch",
+            "target": "crossbeam-utils",
             "type": 1
         },
         {
-            "source": "google-drive3",
-            "target": "yup-oauth2",
+            "source": "hashbrown",
+            "target": "rustc-std-workspace-alloc",
             "type": 1
         },
         {
-            "source": "google-storage1",
-            "target": "yup-oauth2",
+            "source": "rayon",
+            "target": "crossbeam-deque",
             "type": 1
+        },
+        {
+            "source": "rust_decimal",
+            "target": "serde",
+            "type": 1
+        },
+        {
+            "source": "rayon",
+            "target": "autocfg",
+            "type": 1
+        },
+        {
+            "source": "libc",
+            "target": "rustc-std-workspace-core",
+            "type": 1
+        },
+        {
+            "source": "parking_lot",
+            "target": "parking_lot_core",
+            "type": 1
+        },
+        {
+            "source": "chrono",
+            "target": "num-traits",
+            "type": 1
+        },
+        {
+            "source": "libm",
+            "target": "rand",
+            "type": 1
+        },
+        {
+            "source": "sea-schema",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "wolfie",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "sea-orm-cli",
+            "target": "sea-schema",
+            "type": 2
+        },
+        {
+            "source": "starfish-ql",
+            "target": "starfish-core",
+            "type": 2
+        },
+        {
+            "source": "starfish-core",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "starfish-core",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "sea-schema",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "sea-orm-codegen",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "sea-orm-cli",
+            "target": "sea-orm-codegen",
+            "type": 2
+        },
+        {
+            "source": "squtils",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "keekijanai-serve-core",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "keekijanai-serve-vercel-adapter",
+            "target": "keekijanai-serve-core",
+            "type": 2
+        },
+        {
+            "source": "starfish-ql",
+            "target": "starfish-api",
+            "type": 2
+        },
+        {
+            "source": "tardis",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "sea-orm",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "tardis",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "remindee-bot",
+            "target": "sea-query",
+            "type": 2
+        },
+        {
+            "source": "inspirer-foundation",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "sea_orm_casbin_adapter",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "sea-migrations",
+            "target": "sea-orm",
+            "type": 2
+        },
+        {
+            "source": "starfish-core",
+            "target": "sea-schema",
+            "type": 2
+        },
+        {
+            "source": "starfish-api",
+            "target": "starfish-core",
+            "type": 2
         }
     ]
 }

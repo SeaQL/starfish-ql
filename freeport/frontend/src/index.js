@@ -1,5 +1,5 @@
-import { graphMain } from "./main/graph";
-import { treeMain } from "./main/tree";
+import { graphMain, graphMock } from "./main/graph";
+import { treeMain, treeMock } from "./main/tree";
 
 const GlobalConfig = {
     minWeight: 12,
@@ -24,3 +24,21 @@ window.main = async (callback) => {
     }
 
 }; // End of main()
+
+window.mock = async () => {
+
+    const documentId = document.body.id;
+
+    switch (documentId) {
+        case "index":
+            return;
+        case "graph":
+            await graphMock(GlobalConfig);
+            break;
+        case "tree":
+            await treeMock(GlobalConfig);
+            break;
+        default:
+    }
+
+};

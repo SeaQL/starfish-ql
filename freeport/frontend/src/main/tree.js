@@ -5,8 +5,6 @@ import { clearChildNodes } from "../gui/util";
 
 export const treeMain = async (GlobalConfig, callback) => {
 
-    const outputElem = document.getElementById(GlobalConfig.outputElemId);
-
     clearChildNodes(GlobalConfig.outputElemId);
 
     getTree(
@@ -15,7 +13,6 @@ export const treeMain = async (GlobalConfig, callback) => {
         Input.depth.parseValue(),
         Input.weightDecayMode.parseValue(),
     )
-    // getMockTreeSimple()
     .then((dataTree) => {
         renderTree(
             dataTree,
@@ -23,6 +20,20 @@ export const treeMain = async (GlobalConfig, callback) => {
         );
 
         callback();
+    })
+    .catch(console.error);
+};
+
+export const treeMock = async (GlobalConfig) => {
+
+    clearChildNodes(GlobalConfig.outputElemId);
+
+    getMockTreeSimple()
+    .then((dataTree) => {
+        renderTree(
+            dataTree,
+            document.getElementById(GlobalConfig.outputElemId),
+        );
     })
     .catch(console.error);
 };

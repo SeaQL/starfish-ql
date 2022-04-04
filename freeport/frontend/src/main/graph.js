@@ -6,8 +6,6 @@ import { clearChildNodes } from "../gui/util";
 
 export const graphMain = async (GlobalConfig, callback) => {
 
-    const outputElem = document.getElementById(GlobalConfig.outputElemId);
-
     clearChildNodes(GlobalConfig.outputElemId);
     
     getGraph(
@@ -16,32 +14,41 @@ export const graphMain = async (GlobalConfig, callback) => {
         Input.depth.parseValue(),
         Input.weightDecayMode.parseValue(),
     )
-    // getMockGraphSimple()
-    .then((dataGraph) => {
-        normalizeData(
-            dataGraph,
-            (data) => data.nodes.map((node) => node.weight),
-            (data, normalizedWeights) => {
-                normalizedWeights.forEach((normalizedWeight, i) => {
-                    data.nodes[i].weight = normalizedWeight;
-                });
-            },
-            {
-                newMin: GlobalConfig.minWeight,
-                newMax: GlobalConfig.maxWeight,
-            }
-        );
-
-        renderGraph(
-            dataGraph,
-            document.getElementById(GlobalConfig.outputElemId),
-            {
-                textDelimiters: "-+",
-                minFontSize: GlobalConfig.minWeight,
-            }
-        );
-
-        callback();
-    })
+    .then((dataGraph) => runRenderGraph(GlobalConfig, dataGraph))
+    .then(() => callback())
     .catch(console.error);
+};
+
+export const graphMock = async (GlobalConfig) => {
+
+    clearChildNodes(GlobalConfig.outputElemId);
+    
+    getMockGraphSimple()
+    .then((dataGraph) => runRenderGraph(GlobalConfig, dataGraph))
+    .catch(console.error);
+};
+
+const runRenderGraph = async (GlobalConfig, dataGraph) => {
+    normalizeData(
+        dataGraph,
+        (data) => data.nodes.map((node) => node.weight),
+        (data, normalizedWeights) => {
+            normalizedWeights.forEach((normalizedWeight, i) => {
+                data.nodes[i].weight = normalizedWeight;
+            });
+        },
+        {
+            newMin: GlobalConfig.minWeight,
+            newMax: GlobalConfig.maxWeight,
+        }
+    );
+
+    renderGraph(
+        dataGraph,
+        document.getElementById(GlobalConfig.outputElemId),
+        {
+            textDelimiters: "-+",
+            minFontSize: GlobalConfig.minWeight,
+        }
+    );
 };

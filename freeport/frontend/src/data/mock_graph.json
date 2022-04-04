@@ -1,0 +1,906 @@
+{
+    "nodes": [
+        {
+            "id": "cc",
+            "weight": 1157
+        },
+        {
+            "id": "syn",
+            "weight": 4001
+        },
+        {
+            "id": "log",
+            "weight": 9251
+        },
+        {
+            "id": "ahash",
+            "weight": 193
+        },
+        {
+            "id": "ansi_term",
+            "weight": 520
+        },
+        {
+            "id": "arbitrary",
+            "weight": 118
+        },
+        {
+            "id": "atty",
+            "weight": 535
+        },
+        {
+            "id": "autocfg",
+            "weight": 51
+        },
+        {
+            "id": "backtrace",
+            "weight": 258
+        },
+        {
+            "id": "bitflags",
+            "weight": 1606
+        },
+        {
+            "id": "bumpalo",
+            "weight": 36
+        },
+        {
+            "id": "cfg-if",
+            "weight": 827
+        },
+        {
+            "id": "clap",
+            "weight": 6366
+        },
+        {
+            "id": "compiler_builtins",
+            "weight": 29
+        },
+        {
+            "id": "const-random",
+            "weight": 2
+        },
+        {
+            "id": "crossbeam-utils",
+            "weight": 212
+        },
+        {
+            "id": "crossbeam-epoch",
+            "weight": 40
+        },
+        {
+            "id": "crossbeam-deque",
+            "weight": 31
+        },
+        {
+            "id": "either",
+            "weight": 410
+        },
+        {
+            "id": "fixedbitset",
+            "weight": 42
+        },
+        {
+            "id": "futures-util",
+            "weight": 851
+        },
+        {
+            "id": "futures-core",
+            "weight": 384
+        },
+        {
+            "id": "futures",
+            "weight": 5288
+        },
+        {
+            "id": "getrandom",
+            "weight": 276
+        },
+        {
+            "id": "generator",
+            "weight": 6
+        },
+        {
+            "id": "hashbrown",
+            "weight": 365
+        },
+        {
+            "id": "indexmap",
+            "weight": 717
+        },
+        {
+            "id": "itoa",
+            "weight": 121
+        },
+        {
+            "id": "jobserver",
+            "weight": 13
+        },
+        {
+            "id": "js-sys",
+            "weight": 442
+        },
+        {
+            "id": "lazy_static",
+            "weight": 5228
+        },
+        {
+            "id": "libc",
+            "weight": 4472
+        },
+        {
+            "id": "lock_api",
+            "weight": 38
+        },
+        {
+            "id": "loom",
+            "weight": 33
+        },
+        {
+            "id": "maybe-uninit",
+            "weight": 3
+        },
+        {
+            "id": "memchr",
+            "weight": 320
+        },
+        {
+            "id": "memoffset",
+            "weight": 66
+        },
+        {
+            "id": "object",
+            "weight": 67
+        },
+        {
+            "id": "once_cell",
+            "weight": 1455
+        },
+        {
+            "id": "owning_ref",
+            "weight": 59
+        },
+        {
+            "id": "parking_lot",
+            "weight": 1175
+        },
+        {
+            "id": "parking_lot_core",
+            "weight": 10
+        },
+        {
+            "id": "petgraph",
+            "weight": 262
+        },
+        {
+            "id": "pin-project-lite",
+            "weight": 249
+        },
+        {
+            "id": "pin-utils",
+            "weight": 100
+        },
+        {
+            "id": "proc-macro2",
+            "weight": 3253
+        },
+        {
+            "id": "proc-macro-hack",
+            "weight": 239
+        },
+        {
+            "id": "quote",
+            "weight": 3974
+        },
+        {
+            "id": "quickcheck",
+            "weight": 95
+        },
+        {
+            "id": "rand",
+            "weight": 5363
+        },
+        {
+            "id": "rayon",
+            "weight": 1361
+        },
+        {
+            "id": "regex",
+            "weight": 4454
+        },
+        {
+            "id": "rustc-demangle",
+            "weight": 53
+        },
+        {
+            "id": "rustc-std-workspace-core",
+            "weight": 32
+        },
+        {
+            "id": "rustversion",
+            "weight": 75
+        },
+        {
+            "id": "rustc-serialize",
+            "weight": 585
+        },
+        {
+            "id": "scopeguard",
+            "weight": 99
+        },
+        {
+            "id": "scoped-tls",
+            "weight": 34
+        },
+        {
+            "id": "serde_json",
+            "weight": 10573
+        },
+        {
+            "id": "serde",
+            "weight": 17532
+        },
+        {
+            "id": "serde_derive",
+            "weight": 4691
+        },
+        {
+            "id": "smallvec",
+            "weight": 739
+        },
+        {
+            "id": "stable_deref_trait",
+            "weight": 61
+        },
+        {
+            "id": "thiserror",
+            "weight": 5592
+        },
+        {
+            "id": "time",
+            "weight": 1141
+        },
+        {
+            "id": "tracing-subscriber",
+            "weight": 468
+        },
+        {
+            "id": "tracing",
+            "weight": 1375
+        },
+        {
+            "id": "unicode-xid",
+            "weight": 83
+        },
+        {
+            "id": "version_check",
+            "weight": 78
+        },
+        {
+            "id": "wasm-bindgen",
+            "weight": 827
+        },
+        {
+            "id": "wasm-bindgen-macro",
+            "weight": 1
+        },
+        {
+            "id": "winapi",
+            "weight": 1470
+        }
+    ],
+    "links": [
+        {
+            "source": "backtrace",
+            "target": "winapi"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "tracing"
+        },
+        {
+            "source": "time",
+            "target": "serde"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "autocfg"
+        },
+        {
+            "source": "serde",
+            "target": "serde_derive"
+        },
+        {
+            "source": "syn",
+            "target": "proc-macro2"
+        },
+        {
+            "source": "autocfg",
+            "target": "autocfg"
+        },
+        {
+            "source": "serde_json",
+            "target": "itoa"
+        },
+        {
+            "source": "serde_derive",
+            "target": "quote"
+        },
+        {
+            "source": "loom",
+            "target": "serde_json"
+        },
+        {
+            "source": "owning_ref",
+            "target": "stable_deref_trait"
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "smallvec"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "cfg-if"
+        },
+        {
+            "source": "clap",
+            "target": "lazy_static"
+        },
+        {
+            "source": "const-random",
+            "target": "proc-macro-hack"
+        },
+        {
+            "source": "getrandom",
+            "target": "js-sys"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "parking_lot"
+        },
+        {
+            "source": "generator",
+            "target": "winapi"
+        },
+        {
+            "source": "serde_json",
+            "target": "serde"
+        },
+        {
+            "source": "cc",
+            "target": "jobserver"
+        },
+        {
+            "source": "rayon",
+            "target": "crossbeam-deque"
+        },
+        {
+            "source": "atty",
+            "target": "libc"
+        },
+        {
+            "source": "bitflags",
+            "target": "compiler_builtins"
+        },
+        {
+            "source": "generator",
+            "target": "rustversion"
+        },
+        {
+            "source": "lock_api",
+            "target": "owning_ref"
+        },
+        {
+            "source": "crossbeam-utils",
+            "target": "lazy_static"
+        },
+        {
+            "source": "parking_lot",
+            "target": "parking_lot_core"
+        },
+        {
+            "source": "generator",
+            "target": "libc"
+        },
+        {
+            "source": "lock_api",
+            "target": "scopeguard"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "smallvec"
+        },
+        {
+            "source": "libc",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "ahash",
+            "target": "const-random"
+        },
+        {
+            "source": "getrandom",
+            "target": "cfg-if"
+        },
+        {
+            "source": "time",
+            "target": "libc"
+        },
+        {
+            "source": "once_cell",
+            "target": "parking_lot"
+        },
+        {
+            "source": "wasm-bindgen",
+            "target": "cfg-if"
+        },
+        {
+            "source": "wasm-bindgen",
+            "target": "wasm-bindgen-macro"
+        },
+        {
+            "source": "crossbeam-deque",
+            "target": "crossbeam-utils"
+        },
+        {
+            "source": "generator",
+            "target": "log"
+        },
+        {
+            "source": "lock_api",
+            "target": "autocfg"
+        },
+        {
+            "source": "petgraph",
+            "target": "indexmap"
+        },
+        {
+            "source": "indexmap",
+            "target": "serde"
+        },
+        {
+            "source": "log",
+            "target": "cfg-if"
+        },
+        {
+            "source": "ahash",
+            "target": "version_check"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "memoffset"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "regex"
+        },
+        {
+            "source": "backtrace",
+            "target": "cfg-if"
+        },
+        {
+            "source": "futures",
+            "target": "futures-util"
+        },
+        {
+            "source": "lazy_static",
+            "target": "version_check"
+        },
+        {
+            "source": "smallvec",
+            "target": "serde"
+        },
+        {
+            "source": "tracing",
+            "target": "cfg-if"
+        },
+        {
+            "source": "clap",
+            "target": "bitflags"
+        },
+        {
+            "source": "rand",
+            "target": "serde"
+        },
+        {
+            "source": "serde_derive",
+            "target": "proc-macro2"
+        },
+        {
+            "source": "hashbrown",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "quote",
+            "target": "proc-macro2"
+        },
+        {
+            "source": "ahash",
+            "target": "getrandom"
+        },
+        {
+            "source": "petgraph",
+            "target": "quickcheck"
+        },
+        {
+            "source": "rand",
+            "target": "log"
+        },
+        {
+            "source": "futures-util",
+            "target": "memchr"
+        },
+        {
+            "source": "time",
+            "target": "itoa"
+        },
+        {
+            "source": "bitflags",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "tracing",
+            "target": "pin-project-lite"
+        },
+        {
+            "source": "futures-util",
+            "target": "futures"
+        },
+        {
+            "source": "getrandom",
+            "target": "wasm-bindgen"
+        },
+        {
+            "source": "petgraph",
+            "target": "serde"
+        },
+        {
+            "source": "regex",
+            "target": "memchr"
+        },
+        {
+            "source": "lock_api",
+            "target": "serde"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "lazy_static"
+        },
+        {
+            "source": "clap",
+            "target": "indexmap"
+        },
+        {
+            "source": "log",
+            "target": "serde"
+        },
+        {
+            "source": "compiler_builtins",
+            "target": "cc"
+        },
+        {
+            "source": "jobserver",
+            "target": "libc"
+        },
+        {
+            "source": "wasm-bindgen",
+            "target": "serde_json"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "lazy_static"
+        },
+        {
+            "source": "ahash",
+            "target": "serde"
+        },
+        {
+            "source": "backtrace",
+            "target": "serde"
+        },
+        {
+            "source": "loom",
+            "target": "tracing"
+        },
+        {
+            "source": "ansi_term",
+            "target": "winapi"
+        },
+        {
+            "source": "proc-macro2",
+            "target": "unicode-xid"
+        },
+        {
+            "source": "backtrace",
+            "target": "libc"
+        },
+        {
+            "source": "crossbeam-deque",
+            "target": "maybe-uninit"
+        },
+        {
+            "source": "indexmap",
+            "target": "hashbrown"
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "cfg-if"
+        },
+        {
+            "source": "tracing",
+            "target": "log"
+        },
+        {
+            "source": "petgraph",
+            "target": "fixedbitset"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "serde_json"
+        },
+        {
+            "source": "clap",
+            "target": "atty"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "loom"
+        },
+        {
+            "source": "crossbeam-utils",
+            "target": "loom"
+        },
+        {
+            "source": "loom",
+            "target": "cfg-if"
+        },
+        {
+            "source": "clap",
+            "target": "backtrace"
+        },
+        {
+            "source": "memoffset",
+            "target": "autocfg"
+        },
+        {
+            "source": "getrandom",
+            "target": "compiler_builtins"
+        },
+        {
+            "source": "indexmap",
+            "target": "rayon"
+        },
+        {
+            "source": "generator",
+            "target": "cc"
+        },
+        {
+            "source": "atty",
+            "target": "winapi"
+        },
+        {
+            "source": "js-sys",
+            "target": "wasm-bindgen"
+        },
+        {
+            "source": "futures-util",
+            "target": "futures-core"
+        },
+        {
+            "source": "backtrace",
+            "target": "rustc-demangle"
+        },
+        {
+            "source": "cfg-if",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "memchr",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "loom",
+            "target": "pin-utils"
+        },
+        {
+            "source": "futures-util",
+            "target": "pin-utils"
+        },
+        {
+            "source": "petgraph",
+            "target": "serde_derive"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "crossbeam-utils"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "serde"
+        },
+        {
+            "source": "cfg-if",
+            "target": "compiler_builtins"
+        },
+        {
+            "source": "smallvec",
+            "target": "arbitrary"
+        },
+        {
+            "source": "getrandom",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "indexmap",
+            "target": "autocfg"
+        },
+        {
+            "source": "hashbrown",
+            "target": "rayon"
+        },
+        {
+            "source": "memchr",
+            "target": "compiler_builtins"
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "petgraph"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "time"
+        },
+        {
+            "source": "hashbrown",
+            "target": "ahash"
+        },
+        {
+            "source": "ansi_term",
+            "target": "serde"
+        },
+        {
+            "source": "loom",
+            "target": "scoped-tls"
+        },
+        {
+            "source": "ahash",
+            "target": "once_cell"
+        },
+        {
+            "source": "parking_lot",
+            "target": "lock_api"
+        },
+        {
+            "source": "backtrace",
+            "target": "rustc-serialize"
+        },
+        {
+            "source": "time",
+            "target": "rand"
+        },
+        {
+            "source": "hashbrown",
+            "target": "compiler_builtins"
+        },
+        {
+            "source": "serde_derive",
+            "target": "syn"
+        },
+        {
+            "source": "crossbeam-epoch",
+            "target": "scopeguard"
+        },
+        {
+            "source": "crossbeam-utils",
+            "target": "cfg-if"
+        },
+        {
+            "source": "backtrace",
+            "target": "object"
+        },
+        {
+            "source": "crossbeam-deque",
+            "target": "crossbeam-epoch"
+        },
+        {
+            "source": "loom",
+            "target": "tracing-subscriber"
+        },
+        {
+            "source": "wasm-bindgen-macro",
+            "target": "quote"
+        },
+        {
+            "source": "loom",
+            "target": "serde"
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "libc"
+        },
+        {
+            "source": "hashbrown",
+            "target": "bumpalo"
+        },
+        {
+            "source": "futures-util",
+            "target": "pin-project-lite"
+        },
+        {
+            "source": "syn",
+            "target": "unicode-xid"
+        },
+        {
+            "source": "tracing-subscriber",
+            "target": "ansi_term"
+        },
+        {
+            "source": "wasm-bindgen",
+            "target": "serde"
+        },
+        {
+            "source": "serde_json",
+            "target": "indexmap"
+        },
+        {
+            "source": "hashbrown",
+            "target": "serde"
+        },
+        {
+            "source": "compiler_builtins",
+            "target": "rustc-std-workspace-core"
+        },
+        {
+            "source": "futures",
+            "target": "futures-core"
+        },
+        {
+            "source": "loom",
+            "target": "generator"
+        },
+        {
+            "source": "rayon",
+            "target": "either"
+        },
+        {
+            "source": "time",
+            "target": "quickcheck"
+        },
+        {
+            "source": "getrandom",
+            "target": "libc"
+        },
+        {
+            "source": "parking_lot_core",
+            "target": "backtrace"
+        },
+        {
+            "source": "clap",
+            "target": "regex"
+        },
+        {
+            "source": "memchr",
+            "target": "libc"
+        },
+        {
+            "source": "rand",
+            "target": "libc"
+        },
+        {
+            "source": "either",
+            "target": "serde"
+        },
+        {
+            "source": "syn",
+            "target": "quote"
+        },
+        {
+            "source": "backtrace",
+            "target": "cc"
+        },
+        {
+            "source": "rayon",
+            "target": "autocfg"
+        }
+    ]
+}

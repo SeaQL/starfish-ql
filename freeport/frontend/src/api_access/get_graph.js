@@ -1,6 +1,6 @@
 import { formatGraphData, postRequest } from "./util";
 import { constructUrl } from "./url";
-import MOCK_GRAPH_SIMPLE from "../data/mock_graph/simple.json";
+import MOCK_GRAPH_SIMPLE from "../data/mock_graph.json";
 
 export const getGraph = async (topN, limit, depth, weightDecayMode) => {
     const url = constructUrl("query");
