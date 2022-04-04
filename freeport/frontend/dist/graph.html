@@ -35,28 +35,29 @@
             styled,
             Link,
             Chip,
+            FormHelperText,
         } = MaterialUI;
 
         const decays = [
             {
                 value: 'Simple',
-                label: 'Immediate',
+                label: '0 (Simple connectivity)',
             },
             {
                 value: 'FastDecay',
-                label: 'Fast',
+                label: '0.3 (Complex connectivity)',
             },
             {
                 value: 'MediumDecay',
-                label: 'Medium',
+                label: '0.5 (Complex connectivity)',
             },
             {
                 value: 'SlowDecay',
-                label: 'Slow',
+                label: '0.7 (Complex connectivity)',
             },
             {
                 value: 'Compound',
-                label: 'None',
+                label: '1 (Compound connectivity)',
             },
         ];
 
@@ -194,7 +195,7 @@
                             <FormControl fullWidth>
                                 <TextField
                                     id="weightDecayMode"
-                                    label="Weight Decay Mode"
+                                    label="Weight Decay Factor"
                                     SelectProps={{
                                         native: true,
                                     }}
@@ -208,6 +209,11 @@
                                         </option>
                                     ))}
                                 </TextField>
+                                <FormHelperText>
+                                    <a href="https://www.sea-ql.org/StarfishQL/docs/architecture-of-graph-query-engine/calculating-node-connectivity/#weight-decay-factors">
+                                        Learn more about Weight Decay Factor
+                                    </a>
+                                </FormHelperText>
                             </FormControl>
                             <FormControl fullWidth>
                                 <Button
