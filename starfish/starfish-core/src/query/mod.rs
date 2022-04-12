@@ -400,7 +400,7 @@ impl Query {
             let stmt = sea_query::Query::select()
                 .column(NodeQueryIden::Name)
                 .expr_as(Expr::col(Alias::new(&weight_key)), NodeQueryIden::Weight)
-                .expr_as(Expr::val(Some(0_u64)), NodeQueryIden::Depth)
+                .expr_as(Expr::val(Option::<u64>::None), NodeQueryIden::Depth)
                 .from(Alias::new(node_table))
                 .and_where(Expr::col(NodeQueryIden::Name).is_in(result_nodes))
                 .to_owned();
