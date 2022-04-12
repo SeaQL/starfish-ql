@@ -80,7 +80,7 @@ impl Mutate {
             .columns(cols)
             .on_conflict(
                 OnConflict::columns(cols)
-                    .do_nothing()
+                    .update_columns(cols)
                     .to_owned(),
             );
 
