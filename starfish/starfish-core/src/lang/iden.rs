@@ -1,8 +1,7 @@
-use sea_orm::DynIden;
-use sea_query::{Iden, Alias, IntoIden};
+use sea_query::Iden;
 
 /// Reusable column identifiers for edges
-#[derive(Debug, Iden)]
+#[derive(Copy, Clone, Debug, Iden)]
 pub enum EdgeIden {
     /// The `from_node` column of an edge
     #[iden = "from_node"]
@@ -18,6 +17,20 @@ pub enum NodeIden {
     /// The `name` column of a node
     #[iden = "name"]
     Name,
+}
+
+/// Reusable column identifiers for node query results
+#[derive(Debug, Iden)]
+pub enum NodeQueryIden {
+    /// The `name` column of a node query result
+    #[iden = "name"]
+    Name,
+    /// The `weight` column of a node query result
+    #[iden = "weight"]
+    Weight,
+    /// The `depth` column of a node query result
+    #[iden = "depth"]
+    Depth,
 }
 
 /// Reusable column identifiers for entities
