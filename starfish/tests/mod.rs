@@ -3,6 +3,8 @@ mod common;
 use common::TestContext;
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult};
 use sea_query::Alias;
+use starfish::lang::iden::NodeIden;
+use starfish::sea_query::IntoIden;
 use starfish_core::migrator::Migrator;
 use starfish_core::migrator::MigratorTrait;
 use starfish_core::migrator::SchemaManager;
@@ -538,10 +540,10 @@ async fn test_get_nodes_with_connectivity(db: &DbConn) -> Result<HashMap<String,
         builder.build(
             sea_query::Query::select()
                 .columns([
-                    Alias::new("name"),
-                    Alias::new("depends_in_conn"),
-                    Alias::new("depends_in_conn_compound"),
-                    Alias::new("depends_in_conn_complex05"),
+                    NodeIden::Name.into_iden(),
+                    Alias::new("depends_in_conn").into_iden(),
+                    Alias::new("depends_in_conn_compound").into_iden(),
+                    Alias::new("depends_in_conn_complex05").into_iden(),
                 ])
                 .from(Alias::new("node_crate")),
         ),
