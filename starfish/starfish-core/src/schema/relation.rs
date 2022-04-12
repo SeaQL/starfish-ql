@@ -1,7 +1,7 @@
 //! Define relation schema
 
 use super::{format_node_table_name, Schema};
-use crate::{entities::relation, lang::RelationJson};
+use crate::{entities::relation, lang::{RelationJson, iden::{EdgeIden, NodeIden}}};
 use sea_orm::{
     ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, ForeignKeyAction, Set,
 };
@@ -91,25 +91,25 @@ impl Schema {
         let mut stmt = Table::create();
         stmt.table(table.clone())
             .col(
-                ColumnDef::new(Alias::new("id"))
+                ColumnDef::new(EdgeIden::Id)
                     .integer()
                     .not_null()
                     .auto_increment()
                     .primary_key(),
             )
-            .col(ColumnDef::new(Alias::new("from_node")).string().not_null())
-            .col(ColumnDef::new(Alias::new("to_node")).string().not_null())
+            .col(ColumnDef::new(EdgeIden::FromNode).string().not_null())
+            .col(ColumnDef::new(EdgeIden::ToNode).string().not_null())
             .index(
                 Index::create()
                     .name(&format!("idx-{}-{}", table.to_string(), "from_node"))
                     .table(table.clone())
-                    .col(Alias::new("from_node")),
+                    .col(EdgeIden::FromNode),
             )
             .index(
                 Index::create()
                     .name(&format!("idx-{}-{}", table.to_string(), "to_node"))
                     .table(table.clone())
-                    .col(Alias::new("to_node")),
+                    .col(EdgeIden::ToNode),
             )
             .index(
                 Index::create()
@@ -118,8 +118,8 @@ impl Schema {
                         "idx-{}-from_node-to_node",
                         relation_json.get_table_name()
                     ))
-                    .col(Alias::new("from_node"))
-                    .col(Alias::new("to_node")),
+                    .col(EdgeIden::FromNode)
+                    .col(EdgeIden::ToNode),
             )
             .foreign_key(
                 ForeignKey::create()
@@ -129,9 +129,9 @@ impl Schema {
                         from_entity
                     ))
                     .from_tbl(Alias::new(relation_json.get_table_name().as_str()))
-                    .from_col(Alias::new("from_node"))
+                    .from_col(EdgeIden::FromNode)
                     .to_tbl(Alias::new(from_entity.as_str()))
-                    .to_col(Alias::new("name"))
+                    .to_col(NodeIden::Name)
                     .on_delete(ForeignKeyAction::Cascade),
             )
             .foreign_key(
@@ -142,9 +142,9 @@ impl Schema {
                         to_entity
                     ))
                     .from_tbl(Alias::new(relation_json.get_table_name().as_str()))
-                    .from_col(Alias::new("to_node"))
+                    .from_col(EdgeIden::ToNode)
                     .to_tbl(Alias::new(to_entity.as_str()))
-                    .to_col(Alias::new("name"))
+                    .to_col(NodeIden::Name)
                     .on_delete(ForeignKeyAction::Cascade),
             );
 

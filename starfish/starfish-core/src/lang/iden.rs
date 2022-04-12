@@ -3,6 +3,9 @@ use sea_query::Iden;
 /// Reusable column identifiers for edges
 #[derive(Copy, Clone, Debug, Iden)]
 pub enum EdgeIden {
+    /// The `id` column of an edge
+    #[iden = "id"]
+    Id,
     /// The `from_node` column of an edge
     #[iden = "from_node"]
     FromNode,
@@ -14,6 +17,9 @@ pub enum EdgeIden {
 /// Reusable column identifiers for nodes
 #[derive(Debug, Iden)]
 pub enum NodeIden {
+    /// The `id` column of a node
+    #[iden = "id"]
+    Id,
     /// The `name` column of a node
     #[iden = "name"]
     Name,

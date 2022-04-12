@@ -6,7 +6,7 @@ use crate::{
         entity,
         entity_attribute::{self, Datatype},
     },
-    lang::EntityJson,
+    lang::{EntityJson, iden::NodeIden},
 };
 use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
 use sea_query::{Alias, ColumnDef, Index, Table};
@@ -42,14 +42,14 @@ impl Schema {
         let mut stmt = Table::create();
         stmt.table(table.clone())
             .col(
-                ColumnDef::new(Alias::new("id"))
+                ColumnDef::new(NodeIden::Id)
                     .integer()
                     .not_null()
                     .auto_increment()
                     .primary_key(),
             )
             .col(
-                ColumnDef::new(Alias::new("name"))
+                ColumnDef::new(NodeIden::Name)
                     .string()
                     .not_null()
                     .unique_key(),
@@ -58,7 +58,7 @@ impl Schema {
                 Index::create()
                     .name(&format!("idx-{}-{}", table.to_string(), "name"))
                     .table(table.clone())
-                    .col(Alias::new("name")),
+                    .col(NodeIden::Name),
             );
 
         for attribute in entity_json.attributes.into_iter() {
