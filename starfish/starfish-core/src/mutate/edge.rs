@@ -5,12 +5,12 @@ use crate::{
     entities::{relation::Model, Relation},
     lang::{
         mutate::{MutateEdgeContentJson, MutateEdgeSelectorJson},
-        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch,
+        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, iden::{EdgeIden, NodeIden},
     },
     schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult, Value};
-use sea_query::{Alias, Cond, Expr, Query, QueryStatementBuilder, SimpleExpr};
+use sea_query::{Alias, Cond, Expr, Query, QueryStatementBuilder, SimpleExpr, IntoIden};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -75,7 +75,7 @@ impl Mutate {
     ) -> Result<(), DbErr> {
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(&format_edge_table_name(edge_json_batch.of)))
-            .columns([Alias::new("from_node"), Alias::new("to_node")]);
+            .columns([EdgeIden::FromNode, EdgeIden::ToNode]);
 
         for edge_json in edge_json_batch.edges.into_iter() {
             stmt.values_panic([edge_json.from_node.into(), edge_json.to_node.into()]);
@@ -93,8 +93,8 @@ impl Mutate {
     pub async fn delete_edge(db: &DbConn, edge_json: EdgeJson) -> Result<(), DbErr> {
         let mut stmt = Query::delete();
         stmt.from_table(Alias::new(&format_edge_table_name(edge_json.name)))
-            .and_where(Expr::col(Alias::new("from_node")).eq(edge_json.from_node))
-            .and_where(Expr::col(Alias::new("to_node")).eq(edge_json.to_node));
+            .and_where(Expr::col(EdgeIden::FromNode).eq(edge_json.from_node))
+            .and_where(Expr::col(EdgeIden::ToNode).eq(edge_json.to_node));
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
@@ -106,7 +106,7 @@ impl Mutate {
     pub async fn clear_edge(db: &DbConn, clear_edge_json: ClearEdgeJson) -> Result<(), DbErr> {
         let mut stmt = Query::delete();
         stmt.from_table(Alias::new(&format_edge_table_name(clear_edge_json.name)))
-            .and_where(Expr::col(Alias::new("from_node")).eq(clear_edge_json.node));
+            .and_where(Expr::col(EdgeIden::FromNode).eq(clear_edge_json.node));
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
@@ -121,10 +121,10 @@ impl Mutate {
     ) -> Result<(), DbErr> {
         let mut condition = Cond::all();
         if let Some(from_node) = selector.edge_content.from_node {
-            condition = condition.add(Expr::col(Alias::new("from_node")).eq(from_node));
+            condition = condition.add(Expr::col(EdgeIden::FromNode).eq(from_node));
         }
         if let Some(to_node) = selector.edge_content.to_node {
-            condition = condition.add(Expr::col(Alias::new("to_node")).eq(to_node));
+            condition = condition.add(Expr::col(EdgeIden::ToNode).eq(to_node));
         }
 
         let stmt = Query::delete()
@@ -144,12 +144,12 @@ impl Mutate {
         selector: MutateEdgeSelectorJson,
         content: MutateEdgeContentJson,
     ) -> Result<(), DbErr> {
-        let mut set_values: Vec<(Alias, Value)> = vec![];
+        let mut set_values: Vec<(EdgeIden, Value)> = vec![];
         if let Some(from_node) = content.from_node {
-            set_values.push((Alias::new("from_node"), from_node.into()));
+            set_values.push((EdgeIden::FromNode, from_node.into()));
         }
         if let Some(to_node) = content.to_node {
-            set_values.push((Alias::new("to_node"), to_node.into()));
+            set_values.push((EdgeIden::ToNode, to_node.into()));
         }
         if set_values.is_empty() {
             return Ok(());
@@ -157,10 +157,10 @@ impl Mutate {
 
         let mut condition = Cond::all();
         if let Some(from_node) = selector.edge_content.from_node {
-            condition = condition.add(Expr::col(Alias::new("from_node")).eq(from_node));
+            condition = condition.add(Expr::col(EdgeIden::FromNode).eq(from_node));
         }
         if let Some(to_node) = selector.edge_content.to_node {
-            condition = condition.add(Expr::col(Alias::new("to_node")).eq(to_node));
+            condition = condition.add(Expr::col(EdgeIden::ToNode).eq(to_node));
         }
 
         let stmt = Query::update()
@@ -243,8 +243,8 @@ impl Mutate {
             .from(Alias::new(edge_table))
             .expr(Expr::cust("COUNT(*)"))
             .and_where(
-                Expr::col(Alias::new("from_node"))
-                    .equals(Alias::new(node_table), Alias::new("name")),
+                Expr::col(EdgeIden::FromNode)
+                    .equals(Alias::new(node_table), NodeIden::Name),
             );
         let mut stmt = Query::update();
         stmt.table(Alias::new(node_table)).value_expr(
@@ -260,7 +260,7 @@ impl Mutate {
             .from(Alias::new(edge_table))
             .expr(Expr::cust("COUNT(*)"))
             .and_where(
-                Expr::col(Alias::new("to_node")).equals(Alias::new(node_table), Alias::new("name")),
+                Expr::col(EdgeIden::ToNode).equals(Alias::new(node_table), NodeIden::Name),
             );
         let mut stmt = Query::update();
         stmt.table(Alias::new(node_table)).value_expr(
@@ -304,7 +304,7 @@ impl Mutate {
 
         let mut node_stmt = sea_query::Query::select();
         node_stmt
-            .column(Alias::new("name"))
+            .column(NodeIden::Name)
             .from(Alias::new(node_table))
             .and_where(Expr::col(Alias::new(&format!("{}_in_conn", relation_name))).gt(0));
         let nodes = Node::find_by_statement(builder.build(&node_stmt))
@@ -316,7 +316,7 @@ impl Mutate {
             (Link::find_by_statement(
                 builder.build(
                     sea_query::Query::select()
-                        .columns([Alias::new("from_node"), Alias::new("to_node")])
+                        .columns([EdgeIden::FromNode, EdgeIden::ToNode])
                         .from(Alias::new(edge_table)),
                 ),
             )
@@ -397,8 +397,8 @@ impl Mutate {
 
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
         let cols = [
-            Alias::new("name"),
-            Alias::new(&format!("{}_{}", relation_name, col_name)),
+            NodeIden::Name.into_iden(),
+            Alias::new(&format!("{}_{}", relation_name, col_name)).into_iden(),
         ];
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(node_table))

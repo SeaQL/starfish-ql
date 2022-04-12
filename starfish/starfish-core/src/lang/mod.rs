@@ -9,6 +9,9 @@ pub mod mutate;
 /// Structure of a query request
 pub mod query;
 
+/// Reusable column identifiers in requests
+pub mod iden;
+
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
