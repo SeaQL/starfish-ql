@@ -6,7 +6,7 @@ use crate::{
     lang::{
         iden::{EdgeIden, NodeIden},
         mutate::{MutateEdgeContentJson, MutateEdgeSelectorJson},
-        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch,
+        ClearEdgeJson, Edge, EdgeJson, EdgeJsonBatch, iden::{EdgeIden, NodeIden},
     },
     schema::{format_edge_table_name, format_node_table_name},
 };
@@ -244,7 +244,8 @@ impl Mutate {
             .from(Alias::new(edge_table))
             .expr(Expr::cust("COUNT(*)"))
             .and_where(
-                Expr::col(EdgeIden::FromNode).equals(Alias::new(node_table), NodeIden::Name),
+                Expr::col(EdgeIden::FromNode)
+                    .equals(Alias::new(node_table), NodeIden::Name),
             );
         let mut stmt = Query::update();
         stmt.table(Alias::new(node_table)).value_expr(
@@ -259,7 +260,9 @@ impl Mutate {
         select
             .from(Alias::new(edge_table))
             .expr(Expr::cust("COUNT(*)"))
-            .and_where(Expr::col(EdgeIden::ToNode).equals(Alias::new(node_table), NodeIden::Name));
+            .and_where(
+                Expr::col(EdgeIden::ToNode).equals(Alias::new(node_table), NodeIden::Name),
+            );
         let mut stmt = Query::update();
         stmt.table(Alias::new(node_table)).value_expr(
             Alias::new(&format!("{}_in_conn", relation_name)),
