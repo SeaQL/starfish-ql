@@ -1,11 +1,14 @@
 //! Graph query engine
 
 use crate::{
-    lang::{query::{
-        QueryCommonConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraint,
-        QueryGraphConstraintJson, QueryGraphConstraintLimitJson, QueryGraphJson, QueryJson,
-        QueryResultJson, QueryVectorConstraint, QueryVectorConstraintJson, QueryVectorJson,
-    }, iden::{NodeQueryIden, EdgeIden, NodeIden}},
+    lang::{
+        iden::{EdgeIden, NodeIden, NodeQueryIden},
+        query::{
+            QueryCommonConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraint,
+            QueryGraphConstraintJson, QueryGraphConstraintLimitJson, QueryGraphJson, QueryJson,
+            QueryResultJson, QueryVectorConstraint, QueryVectorConstraintJson, QueryVectorJson,
+        },
+    },
     schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, FromQueryResult, Order};

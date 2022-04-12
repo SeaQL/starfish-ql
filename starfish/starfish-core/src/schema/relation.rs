@@ -1,7 +1,13 @@
 //! Define relation schema
 
 use super::{format_node_table_name, Schema};
-use crate::{entities::relation, lang::{RelationJson, iden::{EdgeIden, NodeIden}}};
+use crate::{
+    entities::relation,
+    lang::{
+        iden::{EdgeIden, NodeIden},
+        RelationJson,
+    },
+};
 use sea_orm::{
     ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, ForeignKeyAction, Set,
 };

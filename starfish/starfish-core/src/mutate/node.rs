@@ -6,14 +6,18 @@ use crate::{
         entity,
         entity_attribute::{self, Datatype},
     },
-    lang::{mutate::MutateNodeSelectorJson, Node, NodeJson, NodeJsonBatch, iden::{EntityAttrIden, EntityIden, NodeIden}},
+    lang::{
+        iden::{EntityAttrIden, EntityIden, NodeIden},
+        mutate::MutateNodeSelectorJson,
+        Node, NodeJson, NodeJsonBatch,
+    },
     schema::{format_node_attribute_name, format_node_table_name},
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult,
     JoinType, JsonValue, QueryFilter, Value,
 };
-use sea_query::{Alias, Cond, Expr, Query, IntoIden};
+use sea_query::{Alias, Cond, Expr, IntoIden, Query};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct AttributeMeta {

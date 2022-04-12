@@ -6,7 +6,7 @@ use crate::{
         entity,
         entity_attribute::{self, Datatype},
     },
-    lang::{EntityJson, iden::NodeIden},
+    lang::{iden::NodeIden, EntityJson},
 };
 use sea_orm::{ActiveModelTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, Set};
 use sea_query::{Alias, ColumnDef, Index, Table};
