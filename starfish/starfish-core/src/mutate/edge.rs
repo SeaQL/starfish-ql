@@ -74,18 +74,22 @@ impl Mutate {
         db: &DbConn,
         edge_json_batch: EdgeJsonBatch,
     ) -> Result<(), DbErr> {
+        let cols = [EdgeIden::FromNode, EdgeIden::ToNode];
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(&format_edge_table_name(edge_json_batch.of)))
-            .columns([EdgeIden::FromNode, EdgeIden::ToNode]);
+            .columns(cols)
+            .on_conflict(
+                OnConflict::columns(cols)
+                    .do_nothing()
+                    .to_owned(),
+            );
 
         for edge_json in edge_json_batch.edges.into_iter() {
             stmt.values_panic([edge_json.from_node.into(), edge_json.to_node.into()]);
         }
 
         let builder = db.get_database_backend();
-        let mut stmt = builder.build(&stmt);
-        stmt.sql = stmt.sql.replace("INSERT", "INSERT IGNORE");
-        db.execute(stmt).await?;
+        db.execute(builder.build(&stmt)).await?;
 
         Ok(())
     }
