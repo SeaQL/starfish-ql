@@ -12,7 +12,7 @@
 
 ## About
 
-StarfishQL is an experimental graph database and query engine to enable graph analysis and visualization on the web. It is an experimental project, with its primary purpose to explore the dependency network of Rust crates published on crates.io.
+StarfishQL is a graph database and query engine to enable graph analysis and visualization on the web. It is an experimental project, with its primary purpose to explore the dependency network of Rust crates published on crates.io.
 
 [![GitHub stars](https://img.shields.io/github/stars/SeaQL/starfish-ql.svg?style=social&label=Star&maxAge=1)](https://github.com/SeaQL/starfish-ql/stargazers/)
 If you like what we do, consider starring, commenting, sharing and contributing!
