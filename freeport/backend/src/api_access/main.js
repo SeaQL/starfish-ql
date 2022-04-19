@@ -45,7 +45,10 @@ const insertDataIntoDatabase = async (
             );
         }
     };
-    edges = filterEdges(edges, nodes);
+    const filterResult = filterEdges(edges, nodes);
+    edges = filterResult.valid;
+    const invalidEdges = filterResult.invalid;
+    shouldLog && console.log(`${invalidEdges.length} invalid edges filtered out:\n`, invalidEdges);
     shouldLog && console.log(`Collected ${nodes.length} nodes and ${edges.length} edges.`);
 
     const errors = [];
