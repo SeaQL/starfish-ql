@@ -1,6 +1,7 @@
 const { writeToEndOfFile } = require("../scrape/file_io");
 const { promisedExecInFolder } = require("../scrape/util");
 const { AsyncBatch } = require("./batch");
+const filterEdges = require("./filter_edges").default;
 const { insertCrateNodesBatch, insertDependsEdgesBatch, createNode, createEdge } = require("./insert");
 
 const now = () => (new Date()).getTime();
@@ -18,7 +19,7 @@ const insertDataIntoDatabase = async (
     const numData = data.length;
 
     const nodes = [];
-    const edges = [];
+    let edges = [];
 
     for (let i = 0; i < numData; ++i) {
         const datum = data[i];
@@ -44,6 +45,7 @@ const insertDataIntoDatabase = async (
             );
         }
     };
+    edges = filterEdges(edges, nodes);
     shouldLog && console.log(`Collected ${nodes.length} nodes and ${edges.length} edges.`);
 
     const errors = [];
