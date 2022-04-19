@@ -391,6 +391,10 @@ impl Mutate {
             map_id_to_ancestors.insert(root_node.name, ancestors);
         }
 
+        if map_id_to_ancestors.is_empty() {
+            return Ok(());
+        }
+
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
         let cols = [
             NodeIden::Name.into_iden(),
