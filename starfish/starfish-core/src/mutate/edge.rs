@@ -11,7 +11,9 @@ use crate::{
     schema::{format_edge_table_name, format_node_table_name},
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Value};
-use sea_query::{Alias, Cond, Expr, IntoIden, Query, QueryStatementBuilder, SimpleExpr, OnConflict};
+use sea_query::{
+    Alias, Cond, Expr, IntoIden, OnConflict, Query, QueryStatementBuilder, SimpleExpr,
+};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
