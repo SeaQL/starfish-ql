@@ -83,9 +83,7 @@ impl Mutate {
         }
 
         let builder = db.get_database_backend();
-        let mut stmt = builder.build(&stmt);
-        stmt.sql = stmt.sql.replace("INSERT", "INSERT IGNORE");
-        db.execute(stmt).await?;
+        db.execute(builder.build(&stmt)).await?;
 
         Ok(())
     }
