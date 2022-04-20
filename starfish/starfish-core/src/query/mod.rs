@@ -1,10 +1,13 @@
 //! Graph query engine
 
 use crate::{
-    lang::query::{
-        QueryCommonConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraint,
-        QueryGraphConstraintJson, QueryGraphConstraintLimitJson, QueryGraphJson, QueryJson,
-        QueryResultJson, QueryVectorConstraint, QueryVectorConstraintJson, QueryVectorJson,
+    lang::{
+        iden::{EdgeIden, NodeIden, NodeQueryIden},
+        query::{
+            QueryCommonConstraint, QueryConstraintSortByKeyJson, QueryGraphConstraint,
+            QueryGraphConstraintJson, QueryGraphConstraintLimitJson, QueryGraphJson, QueryJson,
+            QueryResultJson, QueryVectorConstraint, QueryVectorConstraintJson, QueryVectorJson,
+        },
     },
     schema::{format_edge_table_name, format_node_table_name},
 };
@@ -173,9 +176,9 @@ impl Query {
     ) -> Result<QueryResultJson, DbErr> {
         let mut stmt = sea_query::Query::select();
 
-        stmt.column(Alias::new("name"))
-            .expr_as(Expr::value(Option::<f64>::None), Alias::new("weight"))
-            .expr_as(Expr::val(Option::<u64>::None), Alias::new("depth"))
+        stmt.column(NodeQueryIden::Name)
+            .expr_as(Expr::value(Option::<f64>::None), NodeQueryIden::Weight)
+            .expr_as(Expr::val(Option::<u64>::None), NodeQueryIden::Depth)
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
         for constraint in metadata.constraints {
@@ -206,7 +209,7 @@ impl Query {
                         r#type.to_column_name(of)
                     }
                 };
-                stmt.expr_as(Expr::col(Alias::new(&col_name)), Alias::new("weight"))
+                stmt.expr_as(Expr::col(Alias::new(&col_name)), NodeQueryIden::Weight)
                     .order_by(
                         Alias::new(&col_name),
                         if sort_by.desc {
@@ -250,7 +253,7 @@ impl Query {
                 HashSet::from_iter(params.root_node_names.into_iter());
 
             let root_node_stmt = sea_query::Query::select()
-                .column(Alias::new("name"))
+                .column(NodeQueryIden::Name)
                 .from(Alias::new(node_table))
                 .to_owned();
 
@@ -275,9 +278,9 @@ impl Query {
         // Normal direction: Join on "from" -> finding "to"'s
         // Reverse: Join on "to" -> finding "from"'s
         let join_col = if !params.reverse_direction {
-            "from_node"
+            EdgeIden::FromNode
         } else {
-            "to_node"
+            EdgeIden::ToNode
         };
 
         let mut depth = 0;
@@ -285,14 +288,14 @@ impl Query {
             // Fetch target edges from pending_nodes
             let target_edges = {
                 let target_edge_stmt = sea_query::Query::select()
-                    .columns([Alias::new("from_node"), Alias::new("to_node")])
+                    .columns([EdgeIden::FromNode, EdgeIden::ToNode])
                     .from(Alias::new(edge_table))
                     .inner_join(
                         Alias::new(node_table),
-                        Expr::tbl(Alias::new(node_table), Alias::new("name"))
-                            .equals(Alias::new(edge_table), Alias::new(join_col)),
+                        Expr::tbl(Alias::new(node_table), NodeIden::Name)
+                            .equals(Alias::new(edge_table), join_col),
                     )
-                    .and_where(Expr::col(Alias::new(join_col)).is_in(pending_nodes))
+                    .and_where(Expr::col(join_col).is_in(pending_nodes))
                     .to_owned();
 
                 QueryResultEdge::find_by_statement(builder.build(&target_edge_stmt))
@@ -337,7 +340,7 @@ impl Query {
                         HashSet::from_iter(pending_nodes.into_iter());
 
                     let stmt = sea_query::Query::select()
-                        .column(Alias::new("name"))
+                        .column(NodeIden::Name)
                         .from(Alias::new(node_table))
                         .order_by(
                             Alias::new(order_by_key),
@@ -395,11 +398,11 @@ impl Query {
         // Fetch the weights if needed
         let nodes: Vec<QueryResultNode> = if let Some(weight_key) = params.batch_sort_key {
             let stmt = sea_query::Query::select()
-                .column(Alias::new("name"))
-                .expr_as(Expr::col(Alias::new(&weight_key)), Alias::new("weight"))
-                .expr_as(Expr::val(Some(0_u64)), Alias::new("depth"))
+                .column(NodeQueryIden::Name)
+                .expr_as(Expr::col(Alias::new(&weight_key)), NodeQueryIden::Weight)
+                .expr_as(Expr::val(Some(0_u64)), NodeQueryIden::Depth)
                 .from(Alias::new(node_table))
-                .and_where(Expr::col(Alias::new("name")).is_in(result_nodes))
+                .and_where(Expr::col(NodeQueryIden::Name).is_in(result_nodes))
                 .to_owned();
 
             QueryResultNode::find_by_statement(builder.build(&stmt))

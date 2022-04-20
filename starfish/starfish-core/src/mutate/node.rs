@@ -6,14 +6,18 @@ use crate::{
         entity,
         entity_attribute::{self, Datatype},
     },
-    lang::{mutate::MutateNodeSelectorJson, Node, NodeJson, NodeJsonBatch},
+    lang::{
+        iden::{EntityAttrIden, EntityIden, NodeIden},
+        mutate::MutateNodeSelectorJson,
+        Node, NodeJson, NodeJsonBatch,
+    },
     schema::{format_node_attribute_name, format_node_table_name},
 };
 use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult,
     JoinType, JsonValue, QueryFilter, Value,
 };
-use sea_query::{Alias, Cond, Expr, Query};
+use sea_query::{Alias, Cond, Expr, IntoIden, Query};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct AttributeMeta {
@@ -57,11 +61,11 @@ impl Mutate {
             )));
         }
 
-        let mut cols = vec![Alias::new("name")];
+        let mut cols = vec![NodeIden::Name.into_iden()];
         let attributes = &vec[0].1;
 
         for attribute in attributes.iter() {
-            cols.push(Alias::new(&format_node_attribute_name(&attribute.name)));
+            cols.push(Alias::new(&format_node_attribute_name(&attribute.name)).into_iden());
         }
 
         let mut stmt = Query::insert();
@@ -109,7 +113,7 @@ impl Mutate {
 
         let mut stmt = Query::delete();
         stmt.from_table(Alias::new(&format_node_table_name(of)))
-            .and_where(Expr::col(Alias::new("name")).eq(node_name));
+            .and_where(Expr::col(NodeIden::Name).eq(node_name));
 
         let builder = db.get_database_backend();
         db.execute(builder.build(&stmt)).await?;
@@ -134,7 +138,7 @@ impl Mutate {
         let stmt = Query::delete()
             .from_table(Alias::new(&format_node_table_name(selector.of)))
             .cond_where(if let Some(name) = selector.name {
-                condition.add(Expr::col(Alias::new("name")).eq(name))
+                condition.add(Expr::col(NodeIden::Name).eq(name))
             } else {
                 condition
             })
@@ -155,20 +159,17 @@ impl Mutate {
     ) -> Result<(), DbErr> {
         let builder = db.get_database_backend();
 
-        let entity_attribute_alias = Alias::new("entity_attribute");
-        let entity_alias = Alias::new("entity");
-
         let attr_stmt = Query::select()
-            .column((entity_attribute_alias.clone(), Alias::new("name")))
-            .column(Alias::new("datatype"))
-            .from(entity_alias.clone())
+            .column(EntityAttrIden::Name.prefixed_with_table())
+            .column(EntityIden::Datatype)
+            .from(EntityIden::Entity)
             .join(
                 JoinType::Join,
-                entity_attribute_alias.clone(),
-                Expr::tbl(entity_alias.clone(), Alias::new("id"))
-                    .equals(entity_attribute_alias, Alias::new("entity_id")),
+                EntityAttrIden::EntityAttribute,
+                Expr::tbl(EntityIden::Entity, EntityIden::Id)
+                    .equals(EntityAttrIden::EntityAttribute, EntityAttrIden::EntityId),
             )
-            .and_where(Expr::col((entity_alias, Alias::new("name"))).eq(selector.of.clone()))
+            .and_where(Expr::col(EntityIden::Name.prefixed_with_table()).eq(selector.of.clone()))
             .to_owned();
         let attributes = AttributeMeta::find_by_statement(builder.build(&attr_stmt))
             .all(db)
@@ -209,7 +210,7 @@ impl Mutate {
             .table(Alias::new(&format_node_table_name(selector.of)))
             .values(set_values)
             .cond_where(if let Some(name) = selector.name {
-                condition.add(Expr::col(Alias::new("name")).eq(name))
+                condition.add(Expr::col(NodeIden::Name).eq(name))
             } else {
                 condition
             })

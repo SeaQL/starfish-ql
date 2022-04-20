@@ -4,6 +4,7 @@ use std::collections::{HashMap, HashSet};
 
 use common::TestContext;
 use sea_orm::DbErr;
+use starfish::lang::iden::{EdgeIden, NodeIden};
 use starfish_core::lang::mutate::{
     MutateDeleteJson, MutateEdgeContentJson, MutateEdgeSelectorJson, MutateInsertJson, MutateJson,
     MutateNodeSelectorJson, MutateUpdateJson,
@@ -270,10 +271,10 @@ struct TestNode {
 impl TestNode {
     async fn get_with_name(db: &DbConn, of: &str, name: &str) -> Result<Option<Self>, DbErr> {
         let stmt = sea_query::Query::select()
-            .column(Alias::new("name"))
+            .column(NodeIden::Name)
             .column(Alias::new("attr_version"))
             .from(Alias::new(&format_node_table_name(of)))
-            .and_where(Expr::col(Alias::new("name")).eq(name))
+            .and_where(Expr::col(NodeIden::Name).eq(name))
             .to_owned();
 
         let builder = db.get_database_backend();
@@ -297,13 +298,13 @@ impl TestEdge {
         to: &str,
     ) -> Result<Option<Self>, DbErr> {
         let stmt = sea_query::Query::select()
-            .column(Alias::new("from_node"))
-            .column(Alias::new("to_node"))
+            .column(EdgeIden::FromNode)
+            .column(EdgeIden::ToNode)
             .from(Alias::new(&format_edge_table_name(of)))
             .cond_where(
                 Cond::all()
-                    .add(Expr::col(Alias::new("from_node")).eq(from))
-                    .add(Expr::col(Alias::new("to_node")).eq(to)),
+                    .add(Expr::col(EdgeIden::FromNode).eq(from))
+                    .add(Expr::col(EdgeIden::ToNode).eq(to)),
             )
             .to_owned();
 
@@ -314,8 +315,8 @@ impl TestEdge {
 
     async fn get_all(db: &DbConn, of: &str) -> Result<Vec<Self>, DbErr> {
         let stmt = sea_query::Query::select()
-            .column(Alias::new("from_node"))
-            .column(Alias::new("to_node"))
+            .column(EdgeIden::FromNode)
+            .column(EdgeIden::ToNode)
             .from(Alias::new(&format_edge_table_name(of)))
             .to_owned();
 
