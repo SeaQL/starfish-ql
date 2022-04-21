@@ -30,7 +30,12 @@ impl MigrationTrait for Migration {
                     .not_null()
                     .unique_key(),
             )
-            .index(
+            .to_owned();
+
+        manager.create_table(stmt).await?;
+
+        manager
+            .create_index(
                 Index::create()
                     .name(&format!(
                         "idx-{}-{}",
@@ -38,11 +43,10 @@ impl MigrationTrait for Migration {
                         Column::Name.to_string()
                     ))
                     .table(Entity)
-                    .col(Column::Name),
+                    .col(Column::Name)
+                    .to_owned(),
             )
-            .to_owned();
-
-        manager.create_table(stmt).await
+            .await
     }
 
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {

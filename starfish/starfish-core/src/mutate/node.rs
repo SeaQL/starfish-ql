@@ -17,7 +17,7 @@ use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, JoinType, JsonValue,
     QueryFilter, Value,
 };
-use sea_query::{Alias, Cond, Expr, IntoIden, Query};
+use sea_query::{Alias, Cond, Expr, IntoIden, Query, OnConflict};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct AttributeMeta {
@@ -70,7 +70,12 @@ impl Mutate {
 
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(&format_node_table_name(node_json_batch.of)))
-            .columns(cols.clone());
+            .columns(cols.clone())
+            .on_conflict(
+                OnConflict::column(NodeIden::Name)
+                    .update_columns(cols)
+                    .to_owned(),
+            );
 
         for node_json in node_json_batch.nodes.into_iter() {
             let mut vals = vec![node_json.name.as_str().into()];
@@ -85,20 +90,7 @@ impl Mutate {
         }
 
         let builder = db.get_database_backend();
-        let mut stmt = builder.build(&stmt);
-        if upsert {
-            let update_vals = cols
-                .into_iter()
-                .map(|col| {
-                    let col = col.to_string();
-                    format!("{0} = VALUES({0})", col)
-                })
-                .collect::<Vec<_>>()
-                .join(", ");
-
-            stmt.sql = format!("{} ON DUPLICATE KEY UPDATE {}", stmt.sql, update_vals);
-        }
-        db.execute(stmt).await?;
+        db.execute(builder.build(&stmt)).await?;
 
         Ok(())
     }
