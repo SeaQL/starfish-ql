@@ -25,7 +25,10 @@ path = "src/lib.rs"
 [dependencies]
 sea-orm = { git = "https://github.com/shpun817/sea-orm", default-features = false, features = [
     "macros",
+    # Should create `sqlx-*` features instead of always enabling all backends
     "sqlx-mysql",
+    "sqlx-postgres",
+    "sqlx-sqlite",
     "runtime-async-std-native-tls",
     "debug-print",
 ]}
