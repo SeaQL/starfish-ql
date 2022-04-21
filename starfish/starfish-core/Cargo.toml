@@ -23,14 +23,14 @@ name = "starfish_core"
 path = "src/lib.rs"
 
 [dependencies]
-sea-orm = { version = "^0.6.0", default-features = false, features = [
+sea-orm = { git = "https://github.com/shpun817/sea-orm", default-features = false, features = [
     "macros",
     "sqlx-mysql",
     "runtime-async-std-native-tls",
     "debug-print",
 ]}
-sea-schema = { version = "^0.5.0", default-features = false, features = [ "migration", "debug-print" ] }
-sea-query = { version = "^0.21.0", features = ["thread-safe"] }
+sea-schema = { git = "https://github.com/shpun817/sea-schema", default-features = false, features = [ "migration", "debug-print" ] }
+sea-query = { version = "^0.24.0", features = ["thread-safe"] }
 futures-executor = { version = "^0.3" }
 async-trait = { version = "^0.1" }
 serde = { version = "^1" }

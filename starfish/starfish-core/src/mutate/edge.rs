@@ -10,8 +10,10 @@ use crate::{
     },
     schema::{format_edge_table_name, format_node_table_name},
 };
-use sea_orm::{ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult, Value};
-use sea_query::{Alias, Cond, Expr, IntoIden, Query, QueryStatementBuilder, SimpleExpr};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Value};
+use sea_query::{
+    Alias, Cond, Expr, IntoIden, OnConflict, Query, QueryStatementBuilder, SimpleExpr,
+};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -74,18 +76,18 @@ impl Mutate {
         db: &DbConn,
         edge_json_batch: EdgeJsonBatch,
     ) -> Result<(), DbErr> {
+        let cols = [EdgeIden::FromNode, EdgeIden::ToNode];
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(&format_edge_table_name(edge_json_batch.of)))
-            .columns([EdgeIden::FromNode, EdgeIden::ToNode]);
+            .columns(cols)
+            .on_conflict(OnConflict::columns(cols).update_columns(cols).to_owned());
 
         for edge_json in edge_json_batch.edges.into_iter() {
             stmt.values_panic([edge_json.from_node.into(), edge_json.to_node.into()]);
         }
 
         let builder = db.get_database_backend();
-        let mut stmt = builder.build(&stmt);
-        stmt.sql = stmt.sql.replace("INSERT", "INSERT IGNORE");
-        db.execute(stmt).await?;
+        db.execute(builder.build(&stmt)).await?;
 
         Ok(())
     }
@@ -393,6 +395,10 @@ impl Mutate {
             map_id_to_ancestors.insert(root_node.name, ancestors);
         }
 
+        if map_id_to_ancestors.is_empty() {
+            return Ok(());
+        }
+
         // map_id_to_ancestors is ready; the sizes of the sets in its values are the compound in_conn
         let cols = [
             NodeIden::Name.into_iden(),
@@ -400,7 +406,12 @@ impl Mutate {
         ];
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(node_table))
-            .columns(cols.clone());
+            .columns(cols.clone())
+            .on_conflict(
+                OnConflict::column(NodeIden::Name)
+                    .update_columns(cols.clone())
+                    .to_owned(),
+            );
 
         for (name, ancestors) in map_id_to_ancestors.into_iter() {
             let in_conn_complex = ancestors
@@ -409,18 +420,8 @@ impl Mutate {
             stmt.values_panic([name.into(), in_conn_complex.into()]);
         }
 
-        let update_vals = cols
-            .into_iter()
-            .map(|col| {
-                let col = col.to_string();
-                format!("{0} = VALUES({0})", col)
-            })
-            .collect::<Vec<_>>()
-            .join(", ");
         let builder = db.get_database_backend();
-        let mut stmt = builder.build(&stmt);
-        stmt.sql = format!("{} ON DUPLICATE KEY UPDATE {}", stmt.sql, update_vals);
-        db.execute(stmt).await?;
+        db.execute(builder.build(&stmt)).await?;
 
         Ok(())
     }

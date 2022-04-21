@@ -14,8 +14,8 @@ use crate::{
     schema::{format_node_attribute_name, format_node_table_name},
 };
 use sea_orm::{
-    ColumnTrait, ConnectionTrait, DbConn, DbErr, DeriveIden, EntityTrait, FromQueryResult,
-    JoinType, JsonValue, QueryFilter, Value,
+    ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, JoinType, JsonValue,
+    QueryFilter, Value,
 };
 use sea_query::{Alias, Cond, Expr, IntoIden, Query};
 
