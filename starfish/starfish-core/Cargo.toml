@@ -25,10 +25,6 @@ path = "src/lib.rs"
 [dependencies]
 sea-orm = { git = "https://github.com/shpun817/sea-orm", default-features = false, features = [
     "macros",
-    # Should create `sqlx-*` features instead of always enabling all backends
-    "sqlx-mysql",
-    "sqlx-postgres",
-    "sqlx-sqlite",
     "runtime-async-std-native-tls",
     "debug-print",
 ]}
@@ -40,3 +36,8 @@ serde = { version = "^1" }
 serde_json = { version = "^1" }
 serde_repr = { version = "^0" }
 num_cpus = { version = "^1" }
+
+[features]
+sqlx-mysql = ["sea-orm/sqlx-mysql"]
+sqlx-postgres = ["sea-orm/sqlx-postgres"]
+sqlx-sqlite = ["sea-orm/sqlx-sqlite"]
