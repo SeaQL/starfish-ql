@@ -70,12 +70,15 @@ impl Mutate {
 
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(&format_node_table_name(node_json_batch.of)))
-            .columns(cols.clone())
-            .on_conflict(
+            .columns(cols.clone());
+
+        if upsert {
+            stmt.on_conflict(
                 OnConflict::column(NodeIden::Name)
                     .update_columns(cols)
                     .to_owned(),
             );
+        }
 
         for node_json in node_json_batch.nodes.into_iter() {
             let mut vals = vec![node_json.name.as_str().into()];
