@@ -5,6 +5,7 @@ use std::collections::{HashMap, HashSet};
 use common::TestContext;
 use sea_orm::DbErr;
 use starfish::lang::iden::{EdgeIden, NodeIden};
+use starfish::sea_orm::DatabaseConnection;
 use starfish_core::lang::mutate::{
     MutateDeleteJson, MutateEdgeContentJson, MutateEdgeSelectorJson, MutateInsertJson, MutateJson,
     MutateNodeSelectorJson, MutateUpdateJson,
@@ -326,14 +327,11 @@ impl TestEdge {
     }
 }
 
-/// Specifically for testing the 'query' endpoint.
-/// Assumes that the 'schema' and 'mutate' endpoints work correctly.
-#[smol_potat::test]
-async fn query() -> Result<(), DbErr> {
-    let ctx = TestContext::new("starfish_core_query").await;
-    let db = &ctx.db;
+async fn query_init(test_context_name: &str) -> Result<DatabaseConnection, DbErr> {
+    let ctx = TestContext::new(test_context_name).await;
+    let db = ctx.db;
 
-    Migrator::fresh(db).await?;
+    Migrator::fresh(&db).await?;
 
     let schema_json = SchemaJson {
         reset: true,
@@ -351,19 +349,11 @@ async fn query() -> Result<(), DbErr> {
         },
     };
 
-    Schema::define_schema(db, schema_json).await?;
+    Schema::define_schema(&db, schema_json).await?;
 
-    construct_mock_graph(db).await?;
+    construct_mock_graph(&db).await?;
 
-    query_vector(db).await?;
-
-    query_graph_normal(db).await?;
-
-    query_graph_reversed(db).await?;
-
-    query_graph_limited_batch_size(db).await?;
-
-    Ok(())
+    Ok(db)
 }
 
 async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
@@ -395,7 +385,10 @@ async fn construct_mock_graph(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
-async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
+#[smol_potat::test]
+async fn query_vector() -> Result<(), DbErr> {
+    let db = &query_init("query_vector").await?;
+
     let query_json = QueryJson::Vector(QueryVectorJson {
         of: "letter".to_owned(),
         constraints: vec![
@@ -439,7 +432,10 @@ async fn query_vector(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
-async fn query_graph_normal(db: &DbConn) -> Result<(), DbErr> {
+#[smol_potat::test]
+async fn query_graph_normal() -> Result<(), DbErr> {
+    let db = &query_init("query_graph_normal").await?;
+
     let query_json = QueryJson::Graph(QueryGraphJson {
         of: "letter".to_owned(),
         constraints: vec![
@@ -501,7 +497,10 @@ async fn query_graph_normal(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
-async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
+#[smol_potat::test]
+async fn query_graph_reversed() -> Result<(), DbErr> {
+    let db = &query_init("query_graph_reversed").await?;
+
     let query_json = QueryJson::Graph(QueryGraphJson {
         of: "letter".to_owned(),
         constraints: vec![
@@ -568,7 +567,10 @@ async fn query_graph_reversed(db: &DbConn) -> Result<(), DbErr> {
     Ok(())
 }
 
-async fn query_graph_limited_batch_size(db: &DbConn) -> Result<(), DbErr> {
+#[smol_potat::test]
+async fn query_graph_limited_batch_size() -> Result<(), DbErr> {
+    let db = &query_init("query_graph_limited_batch_size").await?;
+
     let query_json = QueryJson::Graph(QueryGraphJson {
         of: "letter".to_owned(),
         constraints: vec![

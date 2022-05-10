@@ -17,7 +17,7 @@ use sea_orm::{
     ColumnTrait, ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, JoinType, JsonValue,
     QueryFilter, Value,
 };
-use sea_query::{Alias, Cond, Expr, IntoIden, Query, OnConflict};
+use sea_query::{Alias, Cond, Expr, IntoIden, OnConflict, Query};
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct AttributeMeta {
