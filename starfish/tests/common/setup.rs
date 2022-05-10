@@ -41,7 +41,8 @@ pub async fn setup(base_url: &str, db_name: &str) -> DatabaseConnection {
         let url = format!("{}/{}", base_url, db_name);
         Database::connect(&url).await.unwrap()
     } else {
-        Database::connect(base_url).await.unwrap()
+        let url = base_url.to_owned() + db_name + ".db?mode=rwc";
+        Database::connect(url).await.unwrap()
     };
 
     db
