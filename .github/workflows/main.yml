@@ -142,6 +142,7 @@ jobs:
           args: >
             --manifest-path starfish/Cargo.toml
             --test '*'
+            --features sqlx-mysql
 
   mariadb:
     name: MariaDB
@@ -195,3 +196,4 @@ jobs:
           args: >
             --manifest-path starfish/Cargo.toml
             --test '*'
+            --features sqlx-mysql
