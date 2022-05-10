@@ -41,3 +41,8 @@ smol = { version = "^1.2" }
 smol-potat = { version = "^1.1" }
 tracing = { version = "0.1", features = ["log"] }
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[features]
+sqlx-mysql = ["starfish-core/sqlx-mysql"]
+sqlx-postgres = ["starfish-core/sqlx-postgres"]
+sqlx-sqlite = ["starfish-core/sqlx-sqlite"]
