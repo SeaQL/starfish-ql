@@ -91,6 +91,66 @@ jobs:
             --features sqlx-mysql
             --no-run
 
+  compile-sqlite:
+    name: Compile SQLite
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-sqlite
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --features sqlx-sqlite
+            --no-run
+
+  compile-postgres:
+    name: Compile PostgreSQL
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-postgres
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --features sqlx-postgres
+            --no-run
+
   mysql:
     name: MySQL
     needs:
