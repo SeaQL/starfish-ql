@@ -12,8 +12,9 @@ use crate::{
 };
 use sea_orm::{ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Value};
 use sea_query::{
-    Alias, Cond, Expr, IntoIden, OnConflict, Query, QueryStatementBuilder, SimpleExpr,
+    Alias, Cond, Expr, Iden, IntoIden, OnConflict, Query, QueryStatementBuilder, SimpleExpr,
 };
+use std::sync::Arc;
 
 #[derive(Debug, Clone, FromQueryResult)]
 struct Node {
@@ -26,7 +27,7 @@ struct Link {
     to_node: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct NodeAncestor {
     name: String,
     weight: f64,
@@ -404,12 +405,38 @@ impl Mutate {
             NodeIden::Name.into_iden(),
             Alias::new(&format!("{}_{}", relation_name, col_name)).into_iden(),
         ];
+        
+        if cfg!(feature = "sqlx-sqlite") {
+            println!("{}: Batch updating connectivity for SQLite.", col_name);
+            // SQLite imposes a limitation on the number of variables, therefore it has to be batch updated.
+            // https://www.sqlite.org/limits.html
+            const SQLITE_MAX_VARIABLE_NUMBER: usize = 32766 / 2;
+            let map_id_to_ancestors = map_id_to_ancestors.into_iter().collect::<Vec<_>>();
+            let map_id_to_ancestors_chunks = map_id_to_ancestors.chunks(SQLITE_MAX_VARIABLE_NUMBER);
+
+            for chunk in map_id_to_ancestors_chunks {
+                Self::update_compound_connectivity(node_table, cols.clone(), chunk.to_vec(), db).await?;
+            };
+        } else {
+            println!("{}: Updating connectivity all at once.", col_name);
+            Self::update_compound_connectivity(node_table, cols, map_id_to_ancestors, db).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn update_compound_connectivity(
+        node_table: &str,
+        cols: [Arc<dyn Iden>; 2],
+        map_id_to_ancestors: impl IntoIterator<Item = (String, HashSet<NodeAncestor>)>,
+        db: &DbConn,
+    ) -> Result<(), DbErr> {
         let mut stmt = Query::insert();
         stmt.into_table(Alias::new(node_table))
             .columns(cols.clone())
             .on_conflict(
                 OnConflict::column(NodeIden::Name)
-                    .update_columns(cols.clone())
+                    .update_columns(cols)
                     .to_owned(),
             );
 
