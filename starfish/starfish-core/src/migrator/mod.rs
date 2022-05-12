@@ -1,6 +1,6 @@
 //! Migration scripts
 
-pub use sea_schema::migration::*;
+pub use sea_orm_migration::prelude::*;
 
 mod m20220121_000001_create_entity_table;
 mod m20220121_000002_create_relation_table;
