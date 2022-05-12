@@ -300,7 +300,7 @@ jobs:
       - compile-postgres
     runs-on: ubuntu-20.04
     env:
-      DATABASE_URL: "postgres://root:@localhost"
+      DATABASE_URL: "postgres://root:root@localhost"
     strategy:
       fail-fast: false
       matrix:
