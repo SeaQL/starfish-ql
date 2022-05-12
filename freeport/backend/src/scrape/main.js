@@ -1,6 +1,6 @@
 const { promisedExec, promisedExecInFolder } = require("./util");
 const { parseMetadata } = require("./meta");
-const { initialScrap } = require("./initial");
+const { initialScrape } = require("./initial");
 const { updateScrap } = require("./update");
 
 const scrape = async ({
@@ -28,7 +28,7 @@ const scrape = async ({
     // Branch on whether the metadata file is verified
     const metadata = await parseMetadata(DATA_PATH + META_NAME, shouldLog);
     if (metadata === null) {
-        await initialScrap(shouldLog, DATA_PATH, META_NAME, REPO_NAME);
+        await initialScrape(shouldLog, DATA_PATH, META_NAME, REPO_NAME);
     } else {
         await updateScrap(shouldLog, metadata, DATA_PATH, REPO_NAME);
     }

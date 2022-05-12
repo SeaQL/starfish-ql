@@ -1,5 +1,5 @@
 const { writeToEndOfFile } = require("../scrape/file_io");
-const { promisedExecInFolder } = require("../scrape/util");
+const { promisedExecInFolder, storeCrateNames } = require("../scrape/util");
 const { AsyncBatch } = require("./batch");
 const filterEdges = require("./filter_edges").default;
 const { insertCrateNodesBatch, insertDependsEdgesBatch, createNode, createEdge } = require("./insert");
@@ -9,6 +9,7 @@ const now = () => (new Date()).getTime();
 /// 'data' is obtained from the 'scrape/main' module.
 const insertDataIntoDatabase = async (
     data,
+    storedCrateNames,
     batchReleaseThreshold,
     {
         shouldLog = true
@@ -45,7 +46,11 @@ const insertDataIntoDatabase = async (
             );
         }
     };
-    const filterResult = filterEdges(edges, nodes);
+
+    nodes.forEach(node => storedCrateNames.add(node.name));
+    storeCrateNames(Array.from(storedCrateNames));
+
+    const filterResult = filterEdges(edges, storedCrateNames);
     edges = filterResult.valid;
     const invalidEdges = filterResult.invalid;
     shouldLog && console.log(`${invalidEdges.length} invalid edges filtered out:\n`, invalidEdges);
@@ -76,13 +81,14 @@ const insertDataIntoDatabase = async (
 
 const insertDataIntoDatabaseAndLog = async (
     data,
-    logPath,
+    dataPath,
     {
+        storedCrateNames = new Set(),
         batchReleaseThreshold = 3000,
         shouldLog = true
     } = {}
 ) => {
-    const result = await insertDataIntoDatabase(data, batchReleaseThreshold, { shouldLog });
+    const result = await insertDataIntoDatabase(data, storedCrateNames, batchReleaseThreshold, { shouldLog });
     if (result.errors.length > 0) {
         for (let e of result.errors) {
             e.errMsg = e.response.data;
@@ -96,11 +102,11 @@ const insertDataIntoDatabaseAndLog = async (
         }
     }
 
-    await promisedExecInFolder(logPath, "touch log.js");
-    await writeToEndOfFile(logPath + "log.js",
+    await promisedExecInFolder(dataPath, "touch log.js");
+    await writeToEndOfFile(dataPath + "log.js",
         "// Some edges in this file may contain non-existent nodes (e.g. 'ptable').\n"
     );
-    await writeToEndOfFile(logPath + "log.js", JSON.stringify(result) + ";\n\n");
+    await writeToEndOfFile(dataPath + "log.js", JSON.stringify(result) + ";\n\n");
 };
 
 module.exports = {
