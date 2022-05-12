@@ -10,7 +10,7 @@ use crate::{
     },
     schema::{format_edge_table_name, format_node_table_name},
 };
-use sea_orm::{ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Value};
+use sea_orm::{ConnectionTrait, DbConn, DbErr, EntityTrait, FromQueryResult, Value, DbBackend};
 use sea_query::{
     Alias, Cond, Expr, Iden, IntoIden, OnConflict, Query, QueryStatementBuilder, SimpleExpr,
 };
@@ -406,7 +406,7 @@ impl Mutate {
             Alias::new(&format!("{}_{}", relation_name, col_name)).into_iden(),
         ];
         
-        if cfg!(feature = "sqlx-sqlite") {
+        if db.get_database_backend() == DbBackend::Sqlite {
             println!("{}: Batch updating connectivity for SQLite.", col_name);
             // SQLite imposes a limitation on the number of variables, therefore it has to be batch updated.
             // https://www.sqlite.org/limits.html
