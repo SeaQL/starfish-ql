@@ -37,7 +37,23 @@ function postprocessOutput(str) {
         }, []);
 }
 
+function storeCrateNames(crateNames, dataPath, filename = "crate_names.json") {
+    require('fs').writeFileSync(dataPath + filename, JSON.stringify(crateNames));
+    console.log(crateNames.length + " crate names have been stored");
+}
+
+function loadCrateNames(dataPath, filename = "crate_names.json") {
+    const crateNamesJson = require('fs').readFileSync(dataPath + filename);
+    
+    const crateNames = JSON.parse(crateNamesJson);
+    console.log(crateNames.length + " crate names loaded");
+
+    return crateNames;
+}
+
 module.exports = {
     promisedExec,
-    promisedExecInFolder
+    promisedExecInFolder,
+    storeCrateNames,
+    loadCrateNames,
 };

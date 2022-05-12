@@ -1,5 +1,7 @@
 [default.databases.starfish]
-url = "mysql://root:root@localhost/starfish"
+# url = "mysql://root:root@localhost/starfish"
+# url = "postgres://root:root@localhost/starfish"
+url = "sqlite:./starfish.db?mode=rwc"
 
 [default]
 address = "0.0.0.0"

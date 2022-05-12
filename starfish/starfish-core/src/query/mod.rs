@@ -27,7 +27,7 @@ pub struct QueryResultNode {
     /// Depth when this node is first found in the graph.
     /// Some(0) for root nodes.
     /// None if querying a vector.
-    pub depth: Option<u64>,
+    pub depth: Option<u32>,
 }
 
 #[derive(Debug, Clone, FromQueryResult)]
@@ -70,7 +70,7 @@ pub struct QueryGraphParams {
     pub root_node_names: Vec<String>,
     /// Recursion goes up to this level, 0 means no recursion at all.
     /// Recursion does not terminate early if this value is None.
-    pub max_depth: Option<u64>,
+    pub max_depth: Option<u32>,
     /// Sort each batch on this key (this value is a Formatted column name).
     /// This key is also used as for filling the `weight` field of queried nodes, if supplied.
     /// The order is random if this value is None.
@@ -178,7 +178,7 @@ impl Query {
 
         stmt.column(NodeQueryIden::Name)
             .expr_as(Expr::value(Option::<f64>::None), NodeQueryIden::Weight)
-            .expr_as(Expr::val(Option::<u64>::None), NodeQueryIden::Depth)
+            .expr_as(Expr::val(Option::<u32>::None), NodeQueryIden::Depth)
             .from(Alias::new(&format_node_table_name(metadata.of)));
 
         for constraint in metadata.constraints {
@@ -272,7 +272,7 @@ impl Query {
         };
 
         let mut result_nodes: HashSet<String> = HashSet::from_iter(pending_nodes.iter().cloned());
-        let mut node_depths: HashMap<String, u64> = HashMap::new();
+        let mut node_depths: HashMap<String, u32> = HashMap::new();
         let mut result_edges: HashSet<QueryResultEdge> = HashSet::new();
 
         // Normal direction: Join on "from" -> finding "to"'s
@@ -283,7 +283,7 @@ impl Query {
             EdgeIden::ToNode
         };
 
-        let mut depth = 0;
+        let mut depth = 0_u32;
         while params.max_depth.is_none() || depth < params.max_depth.unwrap() {
             // Fetch target edges from pending_nodes
             let target_edges = {
@@ -400,7 +400,7 @@ impl Query {
             let stmt = sea_query::Query::select()
                 .column(NodeQueryIden::Name)
                 .expr_as(Expr::col(Alias::new(&weight_key)), NodeQueryIden::Weight)
-                .expr_as(Expr::val(Some(0_u64)), NodeQueryIden::Depth)
+                .expr_as(Expr::val(Option::<u32>::None), NodeQueryIden::Depth)
                 .from(Alias::new(node_table))
                 .and_where(Expr::col(NodeQueryIden::Name).is_in(result_nodes))
                 .to_owned();

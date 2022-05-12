@@ -2,7 +2,7 @@ const { calculateAllConnectivity } = require("../api_access/calculate_connectivi
 const { insertDataIntoDatabaseAndLog } = require("../api_access/main");
 const { readFileLineByLine } = require("./file_io");
 const { createMetadata } = require("./meta");
-const { promisedExecInFolder } = require("./util");
+const { promisedExecInFolder, loadCrateNames } = require("./util");
 
 const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
 
@@ -33,7 +33,8 @@ const updateScrap = async (shouldLog, metadata, dataPath, repoPath) => {
     const data = Array.from(dataMap.values());
 
     shouldLog && console.log("Updating crates: ", data.map((datum) => datum.name));
-    await insertDataIntoDatabaseAndLog(data, dataPath, { shouldLog });
+    const storedCrateNames = new Set(loadCrateNames(dataPath));
+    await insertDataIntoDatabaseAndLog(data, dataPath, { shouldLog, storedCrateNames });
 
     shouldLog && console.log("Recalculating connectivities...");
     await calculateAllConnectivity();

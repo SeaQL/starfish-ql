@@ -88,6 +88,67 @@ jobs:
           args: >
             --manifest-path starfish/Cargo.toml
             --test '*'
+            --features sqlx-mysql
+            --no-run
+
+  compile-sqlite:
+    name: Compile SQLite
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-sqlite
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --features sqlx-sqlite
+            --no-run
+
+  compile-postgres:
+    name: Compile PostgreSQL
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-postgres
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --features sqlx-postgres
             --no-run
 
   mysql:
@@ -142,6 +203,7 @@ jobs:
           args: >
             --manifest-path starfish/Cargo.toml
             --test '*'
+            --features sqlx-mysql
 
   mariadb:
     name: MariaDB
@@ -195,3 +257,90 @@ jobs:
           args: >
             --manifest-path starfish/Cargo.toml
             --test '*'
+            --features sqlx-mysql
+
+  sqlite:
+    name: SQLite
+    needs:
+      - compile-sqlite
+    runs-on: ubuntu-20.04
+    env:
+      DATABASE_URL: "sqlite:./sqlite/"
+    strategy:
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-sqlite
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --features sqlx-sqlite
+
+  postgres:
+    name: Postgres
+    needs:
+      - compile-postgres
+    runs-on: ubuntu-20.04
+    env:
+      DATABASE_URL: "postgres://root:root@localhost"
+    strategy:
+      fail-fast: false
+      matrix:
+        version: [14, 13, 12, 11, 10]
+    services:
+      postgres:
+        image: postgres:${{ matrix.version }}
+        env:
+          POSTGRES_HOST: 127.0.0.1
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: root
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: actions/cache@v2
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            starfish/Cargo.lock
+            starfish/target
+          key: ${{ github.sha }}-${{ github.run_id }}-${{ runner.os }}-postgres
+
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: >
+            --manifest-path starfish/Cargo.toml
+            --test '*'
+            --features sqlx-postgres

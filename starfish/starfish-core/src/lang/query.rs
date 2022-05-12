@@ -117,7 +117,7 @@ pub enum QueryConstraintSortByKeyJson {
 pub enum QueryGraphConstraintLimitJson {
     /// Recurse to a certain depth, 0 means root only.
     /// A `null` value means there is no limit
-    Depth(Option<u64>),
+    Depth(Option<u32>),
     /// Include up to this number of nodes in each batch
     /// A `null` value means there is no limit
     BatchSize(Option<usize>),

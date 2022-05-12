@@ -2,20 +2,39 @@
 
 ## Testing
 
+We have a shell script (`test.sh`) for you to perform testing.
+
 ```sh
-DATABASE_URL="mysql://root:root@localhost:3306" cargo t --all
+$ test.sh mysql       # Test it on MySQL
+$ test.sh postgres  # Test it on PostgreSQL
+$ test.sh sqlite      # Test it on SQLite
 ```
 
 ## Running REST API
 
-```sh
-cargo r
+You need to set the connection string for your database in `Rocket.toml`:
+
+```toml
+[default.databases.starfish]
+url = "mysql://root:root@localhost/starfish"
+# url = "postgres://root:root@localhost/starfish"
+# url = "sqlite:./starfish.db?mode=rwc"
 ```
 
-You might need to setup your database with Docker:
+Then, run the application with one or more `DATABASE_DRIVER` from:
+
+- `sqlx-mysql` - SQLx MySQL
+- `sqlx-postgres` - SQLx PostgreSQL
+- `sqlx-sqlite` - SQLx SQLite
 
 ```sh
-docker run \
+$ cargo run --features=<DATABASE_DRIVER>
+```
+
+If you want to setup your database with Docker:
+
+```sh
+$ docker run \
     --name "mysql-8.0" \
     --env MYSQL_DB="mysql" \
     --env MYSQL_USER="sea" \
@@ -27,7 +46,7 @@ docker stop "mysql-8.0"
 ```
 
 ```sh
-docker run \
+$ docker run \
     --name "mariadb-10.6" \
     --env MYSQL_DB="mysql" \
     --env MYSQL_USER="sea" \
@@ -39,7 +58,7 @@ docker stop "mariadb-10.6"
 ```
 
 ```sh
-docker run \
+$ docker run \
     --name "postgres-13" \
     --env POSTGRES_USER="root" \
     --env POSTGRES_PASSWORD="root" \

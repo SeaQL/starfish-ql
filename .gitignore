@@ -16,3 +16,6 @@
 *.sublime*
 .vscode
 .idea/*
+
+# SQLite db files
+**/starfish.db*

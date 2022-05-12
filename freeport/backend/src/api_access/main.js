@@ -1,6 +1,7 @@
 const { writeToEndOfFile } = require("../scrape/file_io");
-const { promisedExecInFolder } = require("../scrape/util");
+const { promisedExecInFolder, storeCrateNames } = require("../scrape/util");
 const { AsyncBatch } = require("./batch");
+const filterEdges = require("./filter_edges").default;
 const { insertCrateNodesBatch, insertDependsEdgesBatch, createNode, createEdge } = require("./insert");
 
 const now = () => (new Date()).getTime();
@@ -8,6 +9,8 @@ const now = () => (new Date()).getTime();
 /// 'data' is obtained from the 'scrape/main' module.
 const insertDataIntoDatabase = async (
     data,
+    dataPath,
+    storedCrateNames,
     batchReleaseThreshold,
     {
         shouldLog = true
@@ -18,7 +21,7 @@ const insertDataIntoDatabase = async (
     const numData = data.length;
 
     const nodes = [];
-    const edges = [];
+    let edges = [];
 
     for (let i = 0; i < numData; ++i) {
         const datum = data[i];
@@ -44,7 +47,19 @@ const insertDataIntoDatabase = async (
             );
         }
     };
+
+    nodes.forEach(node => storedCrateNames.add(node.name));
+    storeCrateNames(Array.from(storedCrateNames), dataPath);
+
+    const filterResult = filterEdges(edges, storedCrateNames);
+    edges = filterResult.valid;
+    const invalidEdges = filterResult.invalid;
+    shouldLog && console.log(`${invalidEdges.length} invalid edges filtered out:\n`, invalidEdges);
     shouldLog && console.log(`Collected ${nodes.length} nodes and ${edges.length} edges.`);
+
+    if (nodes.length === 0) {
+        return { nodes, edges, errors: [] };
+    }
 
     const errors = [];
     const errorHandler = (e) => {
@@ -52,10 +67,12 @@ const insertDataIntoDatabase = async (
         console.error(e.response.data);
     };
     const nodesBatch = new AsyncBatch(batchReleaseThreshold, insertCrateNodesBatch, shouldLog, errorHandler);
-    const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertDependsEdgesBatch, shouldLog, errorHandler);
-
     await nodesBatch.consumeArray(nodes, "nodes");
-    await edgesBatch.consumeArray(edges, "edges");
+    
+    if (edges.length !== 0) {
+        const edgesBatch = new AsyncBatch(batchReleaseThreshold, insertDependsEdgesBatch, shouldLog, errorHandler);
+        await edgesBatch.consumeArray(edges, "edges");
+    }
 
     shouldLog && console.log(
         `Inserted ${nodes.length + edges.length} items into database in ${Math.round((now() - startTime) / 1000)}s with ${errors.length} errors caught.`
@@ -65,13 +82,14 @@ const insertDataIntoDatabase = async (
 
 const insertDataIntoDatabaseAndLog = async (
     data,
-    logPath,
+    dataPath,
     {
+        storedCrateNames = new Set(),
         batchReleaseThreshold = 3000,
         shouldLog = true
     } = {}
 ) => {
-    const result = await insertDataIntoDatabase(data, batchReleaseThreshold, { shouldLog });
+    const result = await insertDataIntoDatabase(data, dataPath, storedCrateNames, batchReleaseThreshold, { shouldLog });
     if (result.errors.length > 0) {
         for (let e of result.errors) {
             e.errMsg = e.response.data;
@@ -85,11 +103,11 @@ const insertDataIntoDatabaseAndLog = async (
         }
     }
 
-    await promisedExecInFolder(logPath, "touch log.js");
-    await writeToEndOfFile(logPath + "log.js",
+    await promisedExecInFolder(dataPath, "touch log.js");
+    await writeToEndOfFile(dataPath + "log.js",
         "// Some edges in this file may contain non-existent nodes (e.g. 'ptable').\n"
     );
-    await writeToEndOfFile(logPath + "log.js", JSON.stringify(result) + ";\n\n");
+    await writeToEndOfFile(dataPath + "log.js", JSON.stringify(result) + ";\n\n");
 };
 
 module.exports = {

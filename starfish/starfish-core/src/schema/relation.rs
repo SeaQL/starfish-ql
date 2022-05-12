@@ -105,28 +105,6 @@ impl Schema {
             )
             .col(ColumnDef::new(EdgeIden::FromNode).string().not_null())
             .col(ColumnDef::new(EdgeIden::ToNode).string().not_null())
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "from_node"))
-                    .table(table.clone())
-                    .col(EdgeIden::FromNode),
-            )
-            .index(
-                Index::create()
-                    .name(&format!("idx-{}-{}", table.to_string(), "to_node"))
-                    .table(table.clone())
-                    .col(EdgeIden::ToNode),
-            )
-            .index(
-                Index::create()
-                    .unique()
-                    .name(&format!(
-                        "idx-{}-from_node-to_node",
-                        relation_json.get_table_name()
-                    ))
-                    .col(EdgeIden::FromNode)
-                    .col(EdgeIden::ToNode),
-            )
             .foreign_key(
                 ForeignKey::create()
                     .name(&format!(
@@ -155,6 +133,32 @@ impl Schema {
             );
 
         let builder = db.get_database_backend();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .name(&format!("idx-{}-{}", table.to_string(), "from_node"))
+            .table(table.clone())
+            .col(EdgeIden::FromNode)
+            .to_owned();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .name(&format!("idx-{}-{}", table.to_string(), "to_node"))
+            .table(table.clone())
+            .col(EdgeIden::ToNode)
+            .to_owned();
+        db.execute(builder.build(&stmt)).await?;
+
+        let stmt = Index::create()
+            .unique()
+            .name(&format!(
+                "idx-{}-from_node-to_node",
+                relation_json.get_table_name()
+            ))
+            .table(table.clone())
+            .col(EdgeIden::FromNode)
+            .col(EdgeIden::ToNode)
+            .to_owned();
         db.execute(builder.build(&stmt)).await?;
 
         Ok(())

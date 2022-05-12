@@ -3,9 +3,9 @@ const { insertDataIntoDatabaseAndLog } = require("../api_access/main");
 const { defineSchema } = require("../api_access/reset_schema");
 const { readFileLineByLine, readLastLineOfFile } = require("./file_io");
 const { createMetadata } = require("./meta");
-const { promisedExec, promisedExecInFolder } = require("./util");
+const { promisedExec, promisedExecInFolder, storeCrateNames } = require("./util");
 
-const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
+const initialScrape = async (shouldLog, dataPath, metaName, repoPath) => {
     // Reset database
     await defineSchema(true);
     shouldLog && console.log("Resetting database...");
@@ -53,7 +53,7 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
     shouldLog && console.log(`${entries.length} data entries loaded from ${numPaths} paths.`);
 
     // Store all crate names in an array for later use
-    require('fs').writeFileSync(dataPath + "crate_names.json", JSON.stringify(entries.map((entry) => entry.name)));
+    storeCrateNames(entries.map((entry) => entry.name), dataPath);
 
     await insertDataIntoDatabaseAndLog(
         entries,
@@ -76,5 +76,5 @@ const initialScrap = async (shouldLog, dataPath, metaName, repoPath) => {
 };
 
 module.exports = {
-    initialScrap
+    initialScrape
 };

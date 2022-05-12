@@ -23,7 +23,7 @@ async fn schema(
     check_auth_match(auth)?;
 
     let db = conn.into_inner();
-    let schema_json = input_data.clone();
+    let schema_json = input_data.0;
 
     Schema::define_schema(db, schema_json)
         .await
@@ -42,7 +42,7 @@ async fn mutate(
     check_auth_match(auth)?;
 
     let db = conn.into_inner();
-    let mutate_json = input_data.clone();
+    let mutate_json = input_data.0;
 
     Mutate::mutate(db, mutate_json, upsert)
         .await
@@ -57,7 +57,7 @@ async fn query(
     input_data: Json<QueryJson>,
 ) -> Result<Json<QueryResultJson>, ErrorResponder> {
     let db = conn.into_inner();
-    let query_json = input_data.clone();
+    let query_json = input_data.0;
 
     Ok(Json(
         Query::query(db, query_json).await.map_err(Into::into)?,

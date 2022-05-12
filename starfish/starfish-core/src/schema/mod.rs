@@ -6,7 +6,7 @@ mod relation;
 pub use entity::*;
 pub use relation::*;
 use sea_orm::{DbConn, DbErr};
-use sea_schema::migration::MigratorTrait;
+use sea_orm_migration::MigratorTrait;
 
 use crate::{lang::schema::SchemaJson, migrator::Migrator};
 

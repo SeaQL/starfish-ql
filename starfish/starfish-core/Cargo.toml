@@ -23,17 +23,22 @@ name = "starfish_core"
 path = "src/lib.rs"
 
 [dependencies]
-sea-orm = { version = "^0.6.0", default-features = false, features = [
-    "macros",
-    "sqlx-mysql",
-    "runtime-async-std-native-tls",
+sea-orm = { version = "^0.8.0", default-features = false, features = [
     "debug-print",
+    "macros",
+    "runtime-async-std-native-tls",
+    "with-json",
 ]}
-sea-schema = { version = "^0.5.0", default-features = false, features = [ "migration", "debug-print" ] }
-sea-query = { version = "^0.21.0", features = ["thread-safe"] }
+sea-orm-migration = { version = "^0.8.0" }
+sea-query = { version = "^0.24.0", features = ["thread-safe"] }
 futures-executor = { version = "^0.3" }
 async-trait = { version = "^0.1" }
 serde = { version = "^1" }
 serde_json = { version = "^1" }
 serde_repr = { version = "^0" }
 num_cpus = { version = "^1" }
+
+[features]
+sqlx-mysql = ["sea-orm/sqlx-mysql"]
+sqlx-postgres = ["sea-orm/sqlx-postgres"]
+sqlx-sqlite = ["sea-orm/sqlx-sqlite"]
