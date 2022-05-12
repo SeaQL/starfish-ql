@@ -6,7 +6,7 @@ We have a shell script (`test.sh`) for you to perform testing.
 
 ```sh
 $ test.sh mysql       # Test it on MySQL
-$ test.sh postgresql  # Test it on PostgreSQL
+$ test.sh postgres  # Test it on PostgreSQL
 $ test.sh sqlite      # Test it on SQLite
 ```
 
