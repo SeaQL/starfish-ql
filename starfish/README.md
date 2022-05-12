@@ -2,17 +2,17 @@
 
 ## Testing
 
-We have a shell script (`test.sh`) for you to perform testing.
+We have a shell script, `test.sh`, for you to perform testing easily.
 
 ```sh
-$ test.sh mysql       # Test it on MySQL
+$ test.sh mysql     # Test it on MySQL
 $ test.sh postgres  # Test it on PostgreSQL
-$ test.sh sqlite      # Test it on SQLite
+$ test.sh sqlite    # Test it on SQLite
 ```
 
 ## Running REST API
 
-You need to set the connection string for your database in `Rocket.toml`:
+First, you need to set the connection string for your database in `Rocket.toml`:
 
 ```toml
 [default.databases.starfish]
