@@ -9,6 +9,7 @@ const now = () => (new Date()).getTime();
 /// 'data' is obtained from the 'scrape/main' module.
 const insertDataIntoDatabase = async (
     data,
+    dataPath,
     storedCrateNames,
     batchReleaseThreshold,
     {
@@ -48,7 +49,7 @@ const insertDataIntoDatabase = async (
     };
 
     nodes.forEach(node => storedCrateNames.add(node.name));
-    storeCrateNames(Array.from(storedCrateNames));
+    storeCrateNames(Array.from(storedCrateNames), dataPath);
 
     const filterResult = filterEdges(edges, storedCrateNames);
     edges = filterResult.valid;
@@ -88,7 +89,7 @@ const insertDataIntoDatabaseAndLog = async (
         shouldLog = true
     } = {}
 ) => {
-    const result = await insertDataIntoDatabase(data, storedCrateNames, batchReleaseThreshold, { shouldLog });
+    const result = await insertDataIntoDatabase(data, dataPath, storedCrateNames, batchReleaseThreshold, { shouldLog });
     if (result.errors.length > 0) {
         for (let e of result.errors) {
             e.errMsg = e.response.data;
