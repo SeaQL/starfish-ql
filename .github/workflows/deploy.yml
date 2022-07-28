@@ -22,7 +22,7 @@ jobs:
       - name: Webpack production build
         run: |
           cd freeport/frontend/dist
-          npm install
+          npm install --save --legacy-peer-deps
           npm run build
         env:
           API_BASE_URL: https://starfish-ql-api.sea-ql.org
