@@ -35,7 +35,7 @@ futures-executor = { version = "^0.3" }
 async-trait = { version = "^0.1" }
 serde = { version = "^1" }
 serde_json = { version = "^1" }
-serde_repr = { version = "^0" }
+serde_repr = { version = "^0.1" }
 num_cpus = { version = "^1" }
 
 [features]
