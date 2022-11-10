@@ -2,6 +2,9 @@ name: Deploy
 
 on:
   push:
+    paths-ignore:
+      - '**.md'
+      - '.github/ISSUE_TEMPLATE/**'
     branches:
       - main
 
