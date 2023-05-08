@@ -21,6 +21,10 @@ jobs:
       - name: Install static-sitemap-cli
         run: npm install static-sitemap-cli
 
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
       # Webpack production build
       - name: Webpack production build
         run: |
