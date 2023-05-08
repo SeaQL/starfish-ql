@@ -234,7 +234,7 @@ impl Query {
     async fn query_graph(db: &DbConn, metadata: QueryGraphJson) -> Result<QueryResultJson, DbErr> {
         let params = QueryGraphParams::from_query_graph_metadata(metadata);
 
-        println!("Querying a graph with params:\n{:?}", params);
+        // println!("Querying a graph with params:\n{:?}", params);
 
         Self::traverse_with_params(db, params).await
     }

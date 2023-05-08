@@ -344,7 +344,7 @@ impl Mutate {
 
         for (i, root_node) in nodes.into_iter().enumerate() {
             if (i + 1) % 1000 == 0 || i + 1 == num_nodes {
-                println!("Handling root node {}/{}", i + 1, num_nodes);
+                // println!("Handling root node {}/{}", i + 1, num_nodes);
             }
             let mut queue: VecDeque<Option<String>> = VecDeque::new();
             queue.push_back(Some(root_node.name.clone()));
@@ -407,7 +407,7 @@ impl Mutate {
         ];
         
         if db.get_database_backend() == DbBackend::Sqlite {
-            println!("{}: Batch updating connectivity for SQLite.", col_name);
+            // println!("{}: Batch updating connectivity for SQLite.", col_name);
             // SQLite imposes a limitation on the number of variables, therefore it has to be batch updated.
             // https://www.sqlite.org/limits.html
             const SQLITE_MAX_VARIABLE_NUMBER: usize = 32766 / 2;
@@ -418,7 +418,7 @@ impl Mutate {
                 Self::update_compound_connectivity(node_table, cols.clone(), chunk.to_vec(), db).await?;
             };
         } else {
-            println!("{}: Updating connectivity all at once.", col_name);
+            // println!("{}: Updating connectivity all at once.", col_name);
             Self::update_compound_connectivity(node_table, cols, map_id_to_ancestors, db).await?;
         }
 
