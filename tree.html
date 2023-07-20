@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Dependencies & Dependants | StarfishQL Demo</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <script src="https://unpkg.com/react@latest/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@latest/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@mui/material@latest/umd/material-ui.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@latest/babel.min.js"></script>
+    <script src="https://www.sea-ql.org/sea-ql.js"></script>
+    <script src="/main.bundle.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.0/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <link rel="icon" href="/favicon.ico" />
+</head>
+
+<body id="tree">
+    <div id="root"></div>
+    <script type="text/babel">
+        const {
+            CssBaseline,
+            ThemeProvider,
+            Typography,
+            createTheme,
+            Button,
+            Box,
+            TextField,
+            FormControl,
+            Paper,
+            LinearProgress,
+            Grow,
+            IconButton,
+            styled,
+            Link,
+            Chip,
+            InputAdornment,
+        } = MaterialUI;
+
+        const decays = [
+            {
+                value: 'Simple',
+                label: '0 (Simple connectivity)',
+            },
+            {
+                value: 'FastDecay',
+                label: '0.3 (Complex connectivity)',
+            },
+            {
+                value: 'MediumDecay',
+                label: '0.5 (Complex connectivity)',
+            },
+            {
+                value: 'SlowDecay',
+                label: '0.7 (Complex connectivity)',
+            },
+            {
+                value: 'Compound',
+                label: '1 (Compound connectivity)',
+            },
+        ];
+
+        function App() {
+            const [themeMode, setThemeMode] = React.useState(() => {
+                return localStorage.getItem("theme-color-scheme") || "light";
+            });
+            const toggleThemeMode = () => {
+                setThemeMode(themeMode == "dark" ? "light" : "dark");
+            }
+            React.useEffect(() => {
+                if (window.matchMedia &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches && 
+                    !window.localStorage.getItem("theme-color-scheme")
+                ) {
+                    setThemeMode("dark");
+                }
+            }, []);
+            React.useEffect(() => {
+                localStorage.setItem("theme-color-scheme", themeMode);
+            }, [themeMode]);
+
+            const theme = createTheme({
+                palette: {
+                    mode: themeMode,
+                },
+            });
+
+            const [disabled, setDisabled] = React.useState(false);
+            const callback = () => setDisabled(false);
+
+            const handleClick = async () => {
+                if (!disabled) {
+                    setDisabled(true);
+                    await main(callback).catch(console.error);
+                }
+            };
+
+            const [expanded, setExpanded] = React.useState(true);
+
+            const handleExpandClick = async () => {
+                setExpanded(!expanded);
+            };
+
+            const ExpandMore = styled((props) => {
+                const { expand, ...other } = props;
+                return <Button {...other} />;
+            })(({ theme, expand }) => ({
+                transform: !expand ? 'rotate(0deg)' : 'rotate(180deg)',
+                marginLeft: 'auto',
+                transition: theme.transitions.create('transform', {
+                    duration: theme.transitions.duration.shortest,
+                }),
+            }));
+
+            const handleKeyPress = async (e) => {
+                if (e.key === 'Enter') {
+                    await handleClick();
+                }
+            };
+
+            const handleClickWeightDecayModeInfo = (e) => {
+                window.location.href = 'https://www.sea-ql.org/StarfishQL/docs/architecture-of-graph-query-engine/calculating-node-connectivity/#weight-decay-factors';
+            };
+
+            return (
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <Box id="output" />
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            padding: '5px',
+                            top: '0px',
+                            right: '0px',
+                        }}
+                    >
+                        <IconButton onClick={toggleThemeMode} variant="contained">
+                            {themeMode === 'dark' ? <i class="fa-solid fa-sun"></i> : <i class="fa-solid fa-moon"></i>}
+                        </IconButton>
+                    </Box>
+                    <ExpandMore
+                        expand={expanded}
+                        onClick={handleExpandClick}
+                        variant="contained"
+                        sx={{ position: 'absolute', top: '5px', left: '5px', zIndex: '8' }}
+                    >
+                        <i class="fa-solid fa-angle-down"></i>
+                    </ExpandMore>
+                    <Grow
+                        in={expanded}
+                        style={{ transformOrigin: '0 0 0' }}
+                        {...(expanded ? { timeout: 1000 } : {})}
+                    >
+                        <Paper
+                            elevation={12}
+                            sx={{
+                                position: 'absolute',
+                                top: '0px',
+                                left: '0px',
+                                width: '350px',
+                                padding: '16px',
+                                margin: '16px',
+                            }}
+                        >
+                            <Typography variant="h5" component="h1" align="center" gutterBottom>
+                                Dependencies & Dependants
+                            </Typography>
+                            <FormControl fullWidth>
+                                <TextField
+                                    id="treeRootNode"
+                                    label="Name of Root Node"
+                                    defaultValue="sea-query"
+                                    margin="normal"
+                                    onKeyPress={handleKeyPress}
+                                />
+                            </FormControl>
+                            <FormControl fullWidth>
+                                <TextField
+                                    id="limit"
+                                    label="Node Limit on The First Layer (deteriorates with depth)"
+                                    type="number"
+                                    defaultValue="8"
+                                    margin="normal"
+                                    onKeyPress={handleKeyPress}
+                                />
+                            </FormControl>
+                            <FormControl fullWidth>
+                                <TextField
+                                    id="depth"
+                                    label="Recursion Depth"
+                                    type="number"
+                                    defaultValue="8"
+                                    margin="normal"
+                                    onKeyPress={handleKeyPress}
+                                />
+                            </FormControl>
+                            <FormControl fullWidth>
+                                <TextField
+                                    id="weightDecayMode"
+                                    label="Weight Decay Factor"
+                                    SelectProps={{
+                                        native: true,
+                                    }}
+                                    margin="normal"
+                                    onKeyPress={handleKeyPress}
+                                    InputProps={{
+                                        endAdornment: (
+                                            <InputAdornment
+                                                position="end"
+                                                style={{ marginRight: '12px' }}
+                                                onClick={handleClickWeightDecayModeInfo}
+                                            >
+                                                <IconButton
+                                                    variant="contained"
+                                                    style={{ fontSize: '1.2rem' }}
+                                                >
+                                                    <i class="fa-solid fa-circle-info"></i>
+                                                </IconButton>
+                                            </InputAdornment>
+                                        )
+                                    }}
+                                    select
+                                >
+                                    {decays.map((option) => (
+                                        <option key={option.value} value={option.value}>
+                                            {option.label}
+                                        </option>
+                                    ))}
+                                </TextField>
+                            </FormControl>
+                            <FormControl fullWidth>
+                                <Button
+                                    id="submit"
+                                    variant="outlined"
+                                    size="large"
+                                    sx={{ textTransform: 'none', margin: '16px 0px 8px' }}
+                                    onClick={() => handleClick()}
+                                    disabled={disabled}
+                                >
+                                    Run
+                                </Button>
+                            </FormControl>
+                            {disabled ? <LinearProgress sx={{ marginTop: '10px' }} /> : null}
+                        </Paper>
+                    </Grow>
+                    <Paper
+                        elevation={10}
+                        sx={{
+                            position: 'absolute',
+                            bottom: '0px',
+                            left: '0px',
+                            width: '100vw',
+                            padding: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <img src="/favicon.ico" width="30px" />
+                        <Typography component="span" sx={{ paddingLeft: '10px' }}>
+                            Copyright © {new Date().getFullYear()}
+                            &nbsp;
+                            <Link href="https://github.com/SeaQL" underline="hover">
+                                SeaQL
+                            </Link>
+                        </Typography>
+                        <Chip
+                            label="Docs"
+                            component="a"
+                            href="https://www.sea-ql.org/StarfishQL/"
+                            variant="outlined"
+                            size="small"
+                            sx={{ marginLeft: '15px' }}
+                            clickable
+                        />
+                        <Chip
+                            label="GitHub"
+                            component="a"
+                            href="https://github.com/SeaQL/starfish-ql"
+                            variant="outlined"
+                            size="small"
+                            sx={{ marginLeft: '15px' }}
+                            clickable
+                        />
+                    </Paper>
+                </ThemeProvider>
+            );
+        }
+
+        ReactDOM.render(
+            <App />,
+            document.querySelector('#root'),
+        );
+
+        setTimeout(async () => await window.mock(), 500);
+    </script>
+    <style>
+        body {
+            height: 100vh;
+            overflow: hidden;
+        }
+    </style>
+</body>
+
+</html>
